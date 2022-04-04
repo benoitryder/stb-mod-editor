@@ -1507,10 +1507,21 @@ const TilesetTab = {
     },
 
     setSelectedTileName(ev) {
-      const name = ev.target.value;
+      const new_name = ev.target.value;
       const idx = this.selectedTileIndex;
       if (idx !== null) {
-        this.tree.tileset.tilenames[idx] = name;
+        const old_name = this.tree.tileset.tilenames[idx];
+        this.tree.tileset.tilenames[idx] = new_name;
+
+        Utils.getAnimationsUsingTile(this.tree, old_name).forEach(anim => {
+          anim.frames.forEach(frame => {
+            frame.sprites.forEach(sprite => {
+              if (sprite.tile == old_name) {
+                sprite.tile = new_name;
+              }
+            });
+          });
+        });
       }
     },
   },
