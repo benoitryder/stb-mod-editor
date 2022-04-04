@@ -894,7 +894,7 @@ app.component('stb-animation-frame', {
     spriteTile(sprite) {
       const tileset = this.tree.tileset;
       const idx = tileset.tilenames.indexOf(sprite.tile);
-      return tileset.tiles[idx];
+      return tileset.tiles[idx == -1 ? 0 : idx];
     },
 
     spriteStyle(sprite) {
