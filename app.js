@@ -1439,7 +1439,7 @@ app.component('stb-state', {
     <div class="stb-state">
       <i class="fas fa-chevron-down" @click="unroll = !unroll" /> <input v-model="state.name" /> <i class="fas fa-trash-alt" @click="$emit('delete')" />
       <ul v-show="unroll">
-        <li><label><span>Start routine:</span> <input v-model="state.start_routine" /></label></li>
+        <li><label><span>Start routine:</span> <input :value="state.start_routine" @change="state.start_routine = $event.target.value || null" /></label></li>
         <li><label><span>Update routine:</span> <input v-model="state.update_routine" /></label></li>
         <li><label><span>Input routine:</span> <input v-model="state.input_routine" /></label></li>
         <li><label><span>On ground routine:</span> <input v-model="state.onground_routine" /></label></li>
@@ -2039,7 +2039,7 @@ const CodeTab = {
       this.tree.states.push({
         type: 'character_state',
         name: 'STATE_NAME',
-        start_routine: 'dummy_routine',
+        start_routine: null,
         update_routine: 'dummy_routine',
         input_routine: 'dummy_routine',
         onground_routine: 'dummy_routine',
