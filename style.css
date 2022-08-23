@@ -479,13 +479,13 @@ div.sprite-info {
 .picker-p1-c3 { background-color: var(--color-p1-c3); }
 
 
-.bg-illu-token-c0 { background-color: #3CBCFC; }
-.bg-illu-token-c1 { background-color: #000000; }
+.bg-illu-token-c0 { background-color: #000000; }
+.bg-illu-token-c1 { background-color: #3CBCFC; }
 .bg-illu-token-c2 { background-color: #747474; }
 .bg-illu-token-c3 { background-color: #BCBCBC; }
 
-.bg-illu-small-c0 { background-color: #C4C4C4; }
-.bg-illu-small-c1 { background-color: #000000; }
+.bg-illu-small-c0 { background-color: #000000; }
+.bg-illu-small-c1 { background-color: #C4C4C4; }
 .bg-illu-small-c2 { background-color: #FCD8A8; }
 .bg-illu-small-c3 { background-color: #9CFCF0; }
 

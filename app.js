@@ -430,22 +430,7 @@ class Conf {
     this.toolbar = {
       cssPalettes: ['picker-p0', 'picker-p1'],
       gridModes: ['off', 'tiles', 'pixels'],
-      // Hack for illustrations
-      // The large illustration palette is very similar to the token one, but
-      // with colors 0 and 1 swapped and its background is not color 0.
-      // Swap the color numbers without changing display when mouse is over the large illustration.
-      illustrationHack: false,
     }
-  }
-
-  setIllustrationHack(enable) {
-    if (this.toolbar.illustrationHack === enable) {
-      return;
-    }
-    if (this.color < 2) {
-      this.color = 1 - this.color;  // swap
-    }
-    this.toolbar.illustrationHack = enable;
   }
 
   cycleColor() {
@@ -841,15 +826,6 @@ app.component('toolbar', {
   template: `
     <table class="color-picker">
       <tr
-        v-if="conf.toolbar.illustrationHack"
-        v-for="c in [1, 0, 2, 3]"
-        :class="{ 'active-color': c === conf.color }"
-        @click="conf.color = c"
-       >
-        <td v-for="name of conf.toolbar.cssPalettes" :class="name + '-c' + [1, 0, 2, 3][c]" />
-      </tr>
-      <tr
-        v-else
         v-for="c in [0, 1, 2, 3]"
         :class="{ 'active-color': c === conf.color }"
         @click="conf.color = c"
@@ -1535,10 +1511,7 @@ const IllustrationsTab = {
       <h2>Small </h2> 
       <stb-illustration :tiles.sync="tree.illustration_small.tiles" width="2" height="2" palette="illu-small" />
       <h2>Large</h2> 
-      <stb-illustration :tiles.sync="tree.illustration_large.tiles" width="6" height="8" palette="illu-large"
-        @mouseenter="conf.setIllustrationHack(true)"
-        @mouseleave="conf.setIllustrationHack(false)"
-        />
+      <stb-illustration :tiles.sync="tree.illustration_large.tiles" width="6" height="8" palette="illu-large" />
     </div>
   `,
 }
