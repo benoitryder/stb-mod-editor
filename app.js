@@ -946,6 +946,10 @@ app.component('stb-animation-frame', {
     rect() {
       return Utils.frameRect(this.frame, { boxes: true, origin: true, margin: 1 });
     },
+
+    hitboxType() {
+      return this.frame.hitbox === null ? 'none' : ({'animation_direct_hitbox': 'direct', 'animation_custom_hitbox': 'custom'}[this.frame.hitbox.type]);
+    },
   },
 
   mounted() {
@@ -1033,11 +1037,13 @@ app.component('stb-animation-frame', {
       }
     },
 
-    toggleHitbox(value) {
-      if ((this.frame.hitbox !== null) === value) {
+    cycleHitbox(value) {
+      if (this.hitboxType === value) {
         return;  // no changes
       }
-      if (value) {
+      if (value === 'none') {
+        this.frame.hitbox = null;
+      } else if (value === 'direct') {
         this.frame.hitbox = {
           type: 'animation_direct_hitbox',
           left: 0,
@@ -1051,8 +1057,23 @@ app.component('stb-animation-frame', {
           damages: 1,
           enabled: true,
         };
+      } else if (value === 'custom') {
+        this.frame.hitbox = {
+          type: 'animation_custom_hitbox',
+          left: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          enabled: true,
+          routine: '',
+          directional1: 0,
+          directional2: 0,
+          value1: 0,
+          value2: 0,
+          value3: 0,
+        };
       } else {
-        this.frame.hitbox = null;
+        throw new Error(`Unknown hitbox type '${value}'`);
       }
     },
 
@@ -1182,20 +1203,36 @@ app.component('stb-animation-frame', {
           Area: (<input v-model="frame.hurtbox.left" type="number" class="coordinate" />,<input v-model="frame.hurtbox.top" type="number" class="coordinate" />)
           to (<input v-model="frame.hurtbox.right" type="number" class="coordinate" />,<input v-model="frame.hurtbox.bottom" type="number" class="coordinate" />)
         </div>
-        <div class="box-header">
-          <label><input type="checkbox" :checked="frame.hitbox !== null" @change="toggleHitbox($event.target.checked)" /> Hitbox</label>
-        </div>
+        <div class="box-header">Hitbox</div>
+        <label>Type:
+          <select @change="cycleHitbox($event.target.value)" :value="hitboxType">
+            <option value="none">None</option>
+            <option value="direct">Direct</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
         <div v-if="frame.hitbox !== null">
           Area: (<input v-model="frame.hitbox.left" type="number" class="coordinate" />,<input v-model="frame.hitbox.top" type="number" class="coordinate" />)
           to (<input v-model="frame.hitbox.right" type="number" class="coordinate" />,<input v-model="frame.hitbox.bottom" type="number" class="coordinate" />)
           <br/>
-          <label>Damages: <input v-model="frame.hitbox.damages" type="number" class="damages" /> %</label>
-          <br/>
-          Base knockback: (<input v-model="frame.hitbox.base_h" type="number" class="force" />,<input v-model="frame.hitbox.base_v" type="number" class="force" />)
-          <br/>
-          Knockback scaling: (<input v-model="frame.hitbox.force_h" type="number" class="force" />,<input v-model="frame.hitbox.force_v" type="number" class="force" />) per %
-          <br/>
-          <label><input type="checkbox" v-model="frame.hitbox.enabled" /> Enabled</label><br/>
+          <div v-if="hitboxType === 'direct'">
+            <label>Damages: <input v-model="frame.hitbox.damages" type="number" class="damages" /> %</label>
+            <br/>
+            Base knockback: (<input v-model="frame.hitbox.base_h" type="number" class="force" />,<input v-model="frame.hitbox.base_v" type="number" class="force" />)
+            <br/>
+            Knockback scaling: (<input v-model="frame.hitbox.force_h" type="number" class="force" />,<input v-model="frame.hitbox.force_v" type="number" class="force" />) per %
+            <br/>
+            <label><input type="checkbox" v-model="frame.hitbox.enabled" /> Enabled</label><br/>
+          </div>
+          <div v-if="hitboxType === 'custom'">
+            <label>Routine: <input v-model="frame.hitbox.routine" type="string" /></label><br />
+            <label>Directional value 1: <input v-model="frame.hitbox.directional1" type="number" /></label><br />
+            <label>Directional value 2: <input v-model="frame.hitbox.directional2" type="number" /></label><br />
+            <label>Immediate value 1: <input v-model="frame.hitbox.value1" type="number" /></label><br />
+            <label>Immediate value 2: <input v-model="frame.hitbox.value2" type="number" /></label><br />
+            <label>Immediate value 3: <input v-model="frame.hitbox.value3" type="number" /></label><br />
+            <label><input type="checkbox" v-model="frame.hitbox.enabled" /> Enabled</label><br/>
+          </div>
         </div>
         <hr/>
         <div class="sprite-thumbnails">
