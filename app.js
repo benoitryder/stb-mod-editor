@@ -1039,7 +1039,7 @@ app.component('stb-animation-frame', {
       }
       if (value) {
         this.frame.hitbox = {
-          type: 'animation_hitbox',
+          type: 'animation_direct_hitbox',
           left: 0,
           top: 0,
           right: 0,
