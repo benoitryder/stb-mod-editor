@@ -1521,7 +1521,7 @@ app.component('dnd-list', {
         @dragover.prevent="dragOver($event)"
         @drop="drop($event, idx)"
        >
-        <slot name="item" :item="item" />
+        <slot name="item" :item="item" :idx="idx" />
       </div>
     </template>
   `,
@@ -2072,9 +2072,15 @@ const CodeTab = {
       <div>
         <h3>States</h3>
         <ul class="code-states">
-          <li v-for="(state, idx) of tree.states" :key="state">
-            <stb-state :state="state" @delete="removeState(idx)" />
-          </li>
+          <dnd-list
+            :items="tree.states"
+            direction="vertical"
+            group="states"
+          >
+            <template v-slot:item="props">
+              <stb-state :state="props.item" @delete="removeState(props.idx)" />
+            </template>
+          </dnd-list>
           <li><i class="fas fa-plus-square" @click="newState()" /></li>
         </ul>
       </div>
