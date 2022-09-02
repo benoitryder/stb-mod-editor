@@ -1,7 +1,7 @@
 
 // Trigger download of a JSON file
 const downloadJson = function(data, filename) {
-  const json = JSON.stringify(data);
+  const json = JSON.stringify(data, null, '  ') + '\n';
   const blob = new Blob([json], {type: "application/json"});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
