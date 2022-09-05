@@ -1915,6 +1915,7 @@ const AnimationTab = {
         <div class="icon" @click="removeSelectedFrame()" v-show="selectedFrame">
           <i class="fas fa-trash-alt" />
         </div>
+        <stb-animation-thumbnail :animation="animation" :zoom="2" :rect="rect" />
       </div>
       <div>
         <stb-animation-frame v-if="selectedFrame" :frame="selectedFrame" draggable />
