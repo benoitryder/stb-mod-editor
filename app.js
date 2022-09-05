@@ -1492,6 +1492,7 @@ app.component('dnd-list', {
         }
         const src = parseInt(ev.dataTransfer.getData('idx'));
         this.moveItem(src, idx);
+        ev.preventDefault();
       }
     },
 
@@ -1739,10 +1740,18 @@ const AnimationsTab = {
           />
           <router-link :to="'/animations/'+anim.name">{{ anim.name }}</router-link>
         </li>
-        <li v-for="anim in tree.animations">
-          <stb-animation-thumbnail :animation="anim" :zoom="2" :rect="animRect" />
-          <router-link :to="'/animations/'+anim.name">{{ anim.name }}</router-link>
-        </li>
+        <dnd-list
+          :items="tree.animations"
+          direction="vertical"
+          group="animations"
+        >
+          <template v-slot:item="props">
+            <li>
+              <stb-animation-thumbnail :animation="props.item" :zoom="2" :rect="animRect" />
+              <router-link :to="'/animations/'+props.item.name">{{ props.item.name }}</router-link>
+            </li>
+          </template>
+        </dnd-list>
       </ul>
     </div>
   `,
