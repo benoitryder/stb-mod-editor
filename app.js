@@ -770,6 +770,7 @@ const app = Vue.createApp({
           <li><i class="fas fa-fw fa-images" /> <router-link to="/animations">Animations</router-link></li>
           <li><i class="fas fa-fw fa-palette" /> <router-link to="/colors">Color swaps</router-link></li>
           <li><i class="fas fa-fw fa-code" /> <router-link to="/code">Source code</router-link></li>
+          <li><i class="fas fa-fw fa-robot" /> <router-link to="/ai">Artificial intelligence</router-link></li>
         </ul>
         <p><router-link to="/help">Help</router-link></p>
       </div>
@@ -1463,6 +1464,62 @@ app.component('stb-state', {
   `,
 });
 
+app.component('stb-ai-action',  {
+  props: ['action'],
+  emits: ['delete'],
+
+  methods: {
+    newStep() {
+      this.action.steps.push({
+        duration: 1,
+        input: 'CONTROLLER_INPUT_NONE',
+        type: 'character_ai_action_step',
+      });
+    },
+  },
+
+  template: `
+    <div class="stb-ai-action">
+      <input v-model="action.name"> <i class="fas fa-trash-alt" @click="$emit('delete')" />
+      <ul class="ai-action-steps">
+        <li v-for="step in action.steps">
+          <input v-model="step.duration" type="number" style="width: 3em" />
+          <input v-model="step.input" style="width: 25em" />
+        </li>
+        <li><i class="fas fa-plus-square" @click="newStep()" /></li>
+      </ul>
+    </div>
+  `,
+});
+
+app.component('stb-ai-attack',  {
+  props: ['attack'],
+  emits: ['delete'],
+
+  template: `
+    <div class="stb-ai-attack">
+      <div><strong>Attack</strong> <i class="fas fa-trash-alt" @click="$emit('delete')" /></div>
+      <ul>
+        <li><label>Action: <input v-model="attack.action" style="width: 20%;"/></label></li>
+        <li>
+          <label>Hitbox:</label>
+          (<input v-model="attack.hitbox.left" type="number" style="width: 3em;"/>, <input v-model="attack.hitbox.top" type="number" style="width: 3em;"/>)
+          (<input v-model="attack.hitbox.right" type="number" style="width: 3em;"/>, <input v-model="attack.hitbox.bottom" type="number" style="width: 3em;"/>)
+        </li>
+        <li>
+          <label>Constraints:</label>
+          <ul>
+            <li><label>Left facing: <input type="checkbox" :checked="(attack.constraints & 0b00000001) != 0" @change="$event.target.checked ? attack.constraints |= 0b00000001 : attack.constraints &= 0b11111110" /></label></li>
+            <li><label>Right facing: <input type="checkbox" :checked="(attack.constraints & 0b00000010) != 0" @change="$event.target.checked ? attack.constraints |= 0b00000010 : attack.constraints &= 0b11111101" /></label></li>
+            <li><label>Airborn: <input type="checkbox" :checked="(attack.constraints & 0b00000100) != 0" @change="$event.target.checked ? attack.constraints |= 0b00000100 : attack.constraints &= 0b11111011" /></label></li>
+            <li><label>Grounded: <input type="checkbox" :checked="(attack.constraints & 0b00001000) != 0" @change="$event.target.checked ? attack.constraints |= 0b00001000 : attack.constraints &= 0b11110111" /></label></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  `,
+});
+
 
 app.component('dnd-list', {
   props: ['items', 'group', 'direction'],
@@ -2102,6 +2159,102 @@ const CodeTab = {
   `,
 }
 
+const AiTab = {
+  inject: ['tree'],
+
+  methods: {
+    newAction() {
+      this.tree.ai.actions.push({
+        name: '',
+        steps: [],
+        type: 'character_ai_action',
+      });
+    },
+
+    removeAction(idx) {
+      this.tree.ai.actions.splice(idx, 1);
+    },
+
+    newAttack() {
+      this.tree.ai.attacks.push({
+        action: '',
+        constraints: 0,
+        hitbox: {
+          bottom: 0,
+          left: 0,
+          right: 0,
+          top: 0,
+          type: 'character_ai_hitbox'
+        },
+        type: 'character_ai_attack'
+      });
+    },
+
+    removeAttack(idx) {
+      this.tree.ai.attacks.splice(idx, 1);
+    },
+  },
+
+  template: `
+    <div v-if="tree">
+      <h2>Artificial intelligence</h2>
+
+      <div>
+        <h3>Action selectors</h3>
+        <ul class="ai-selectors">
+          <dnd-list
+            :items="tree.ai.action_selectors"
+            direction="vertical"
+            group="ai-selectors"
+          >
+            <template v-slot:item="props">
+              <li><input v-model="tree.ai.action_selectors[props.idx]" style="width: 40%" /></li>
+            </template>
+          </dnd-list>
+          <li><i class="fas fa-plus-square" @click="tree.ai.action_selectors.push('')" /></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3>Actions</h3>
+        <div class="ai-actions">
+          <dnd-list
+            :items="tree.ai.actions"
+            direction="vertical"
+            group="ai-actions"
+          >
+            <template v-slot:item="props">
+              <stb-ai-action :action="props.item" @delete="removeAction(props.idx)" />
+            </template>
+          </dnd-list>
+          <div><i class="fas fa-plus-square" @click="newAction()" /></div>
+        </div>
+      </div>
+
+      <div>
+        <h3>Attacks</h3>
+        <div class="ai-attacks">
+          <dnd-list
+            :items="tree.ai.attacks"
+            direction="vertical"
+            group="ai-attacks"
+          >
+            <template v-slot:item="props">
+              <stb-ai-attack :attack="props.item" @delete="removeAttack(props.idx)" />
+            </template>
+          </dnd-list>
+          <div><i class="fas fa-plus-square" @click="newAttack()" /></div>
+        </div>
+      </div>
+
+      <div>
+        <h2>Source code</h2>
+        <textarea class="sourcecode" v-model="tree.ai.sourcecode" />
+      </div>
+    </div>
+  `,
+}
+
 const HelpTab = {
   template: `
     <ul id="help">
@@ -2194,6 +2347,7 @@ const routes = [
   { path: '/animations/:name/:frame', component: AnimationTab },
   { path: '/colors/', component: ColorsTab },
   { path: '/code/', component: CodeTab },
+  { path: '/ai/', component: AiTab },
   { path: '/help', component: HelpTab },
 ]
 

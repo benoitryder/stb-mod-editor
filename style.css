@@ -14,7 +14,7 @@ body {
 }
 
 #tree {
-  flex: 0 1 200px;
+  flex: 0 1 16em;
   margin: 1em 0.5em;
 }
 
@@ -503,6 +503,11 @@ ul.code-states {
 textarea.sourcecode {
   width: 100%;
   min-height: 600px;
+}
+
+ul.ai-selectors {
+  list-style-type: none;
+  padding: 0.2em;
 }
 
 .stb-state input {
