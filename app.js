@@ -1495,10 +1495,68 @@ app.component('stb-ai-action',  {
 app.component('stb-ai-attack',  {
   props: ['attack'],
   emits: ['delete'],
+  inject: ['tree'],
+
+  data() {
+    return {
+      previewedAnimationName: '',
+      previewZoom: 4,
+    };
+  },
+
+  methods: {
+    boxStyle(box) {
+      const x = (box.left - this.previewRect.x) * this.previewZoom;
+      const y = (box.top - this.previewRect.y) * this.previewZoom;
+      const w = (box.right - box.left) * this.previewZoom;
+      const h = (box.bottom - box.top) * this.previewZoom;
+      return {
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${w}px`,
+        height: `${h}px`,
+      };
+    },
+  },
+
+  computed: {
+    previewedAnimation() {
+      return Utils.getAnimationByName(this.tree, this.previewedAnimationName);
+    },
+    previewRect() {
+      const hitbox_margin = 16;
+      return {
+        x: Math.min(-32, this.attack.hitbox.left - hitbox_margin),
+        y: Math.min(-16, this.attack.hitbox.top - hitbox_margin),
+        width: Math.max(64, this.attack.hitbox.right - this.attack.hitbox.left + hitbox_margin * 2),
+        height: Math.max(48, this.attack.hitbox.bottom - this.attack.hitbox.top + hitbox_margin * 2),
+      };
+    },
+  },
 
   template: `
     <div class="stb-ai-attack">
       <div><strong>Attack</strong> <i class="fas fa-trash-alt" @click="$emit('delete')" /></div>
+
+      <div>
+        <label>Preview animation: </label>
+        <select v-model="previewedAnimationName">
+          <option value="">Off</option>
+          <option v-for="anim in tree.animations" :value="anim.name">{{ anim.name }}</option>
+        </select>
+        <div class="ai-attack-preview" v-if="previewedAnimationName">
+          <div class="ai-attack-canvas">
+            <stb-animation-thumbnail
+              v-if="previewedAnimationName"
+              :animation="previewedAnimation"
+              :zoom="previewZoom"
+              :rect="previewRect"
+             />
+            <div class="frame-hitbox" :style="boxStyle(attack.hitbox)" />
+          </div>
+        </div>
+      </div>
+
       <ul>
         <li><label>Action: <input v-model="attack.action" style="width: 20%;"/></label></li>
         <li>

@@ -510,6 +510,20 @@ ul.ai-selectors {
   padding: 0.2em;
 }
 
+div.ai-attack-preview {
+  display: flex;
+  margin-top: 1em;
+}
+
+div.ai-attack-canvas {
+  flex: 0 0 fit-content;
+  position: relative;
+}
+
+div.ai-attack-canvas canvas {
+  margin: 0;
+}
+
 .stb-state input {
   width: 30em;
 }
