@@ -1413,7 +1413,7 @@ app.component('stb-animation-thumbnail', {
             return;  // nothing to do
           }
           ctx.drawImage(images[position], 0, 0);
-        }, 1000/60);
+        }, 1000/50);
       });
     },
 
