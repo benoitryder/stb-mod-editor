@@ -175,8 +175,8 @@
         "type": "character_ai_attack"
       }
     ],
-    "sourcecode": "pepper_ai_attack_selector:\n.(\n\t; Do not try to attack in incapacited states, it would ruin ai reactivity after such states\n\tlda player_b_state\n\tcmp #PEPPER_STATE_CRASHING\n\tbeq end\n\tcmp #PEPPER_STATE_HYPERSPEED_CRASHING\n\tbeq end\n\t\tjmp ai_attack_selector\n\t\t; No return, jump to subroutine\n\tend:\n\trts\n.)\n\npepper_ai_recover_selector:\n.(\n\tplatform_handler_lsb = tmpfield1\n\tplatform_handler_msb = tmpfield2\n\tendangered = tmpfield3\n\tbest_platform = tmpfield4\n\t;tmpfield5 used by platform handler\n\n\t.(\n\t\t; Skip everything if the player is grounded\n\t\tlda player_b_grounded\n\t\tbne dont_try_to_recover\n\n\t\t; Check that the player is offstage - no platform behind him\n\t\tlda #1\n\t\tsta endangered\n\t\tlda #0\n\t\tsta best_platform\n\n\t\tlda #<platform_handler\n\t\tsta platform_handler_lsb\n\t\tlda #>platform_handler\n\t\tsta platform_handler_msb\n\t\tjsr stage_iterate_all_elements\n\n\t\tlda endangered\n\t\tbne try_to_recover\n\n\t\tdont_try_to_recover:\n\t\t\tjmp end\n\n\t\ttry_to_recover:\n\t\t\t; Set action modifier to the platform's direction\n\t\t\tlda #CONTROLLER_BTN_RIGHT\n\t\t\tsta ai_current_action_modifier\n\t\t\tldy best_platform\n\t\t\tSIGNED_CMP(player_b_x, player_b_x_screen, stage_data+STAGE_PLATFORM_OFFSET_RIGHT COMMA y, #0)\n\t\t\tbmi direction_set\n\t\t\tlda #CONTROLLER_BTN_LEFT\n\t\t\tsta ai_current_action_modifier\n\t\t\tdirection_set:\n\n\t\t\t; Set the idle action if\n\t\t\t;  - the player is on hitstun\n\t\t\t;  - or the platform is lower than player\n\t\t\t;  - or the player is not on falling, thrown nor helpless state\n\t\t\tlda player_b_hitstun\n\t\t\tbne set_idle_action\n\n\t\t\tSIGNED_CMP(player_b_y, player_b_y_screen, stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0)\n\t\t\tbmi set_idle_action\n\n\t\t\tlda player_b_state\n\t\t\tcmp #PEPPER_STATE_FALLING\n\t\t\tbeq dont_set_idle_action\n\t\t\tcmp #PEPPER_STATE_THROWN\n\t\t\tbeq dont_set_idle_action\n\t\t\tcmp #PEPPER_STATE_HELPLESS\n\t\t\tbne set_idle_action\n\t\t\tdont_set_idle_action:\n\n\t\t\t; Wall jump if it is possible\n\t\t\tlda player_b_walled\n\t\t\tbeq skip_walljump\n\t\t\tlda player_b_walljump\n\t\t\tbne set_jump_action\n\t\t\tskip_walljump:\n\n\t\t\t; In helpless mode, do not try anything else\n\t\t\tlda player_b_state\n\t\t\tcmp #PEPPER_STATE_HELPLESS\n\t\t\tbeq set_idle_action\n\n\t\t\t; Air jump if it is possible\n\t\t\tlda player_b_num_aerial_jumps\n\t\t\tcmp #PEPPER_MAX_NUM_AERIAL_JUMPS\n\t\t\tbne set_jump_action\n\n\t\t\t; Special-up since no other action was found\n\t\t\tjmp set_special_up_action\n\n\t\t\t; Set an action\n\t\t\tset_idle_action:\n\t\t\t\tlda #<ai_action_idle\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_idle\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_jump_action:\n\t\t\t\tlda #<ai_action_jump\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_jump\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_special_up_action:\n\t\t\t\tlda #<ai_action_special_up\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_special_up\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\t;jmp begin_action ; useless, fallthrough\n\n\t\t; Reset current action to its begining\n\t\tbegin_action:\n\t\tlda #0\n\t\tsta ai_current_action_step\n\t\tsta ai_current_action_counter\n\t\tjsr ai_delay_action\n\n\t\tend:\n\t\trts\n\t.)\n\n\tplatform_handler:\n\t.(\n\t\tpatched_value = tmpfield5\n\n\t\t; Ignore unknown platforms\n\t\tlda stage_data, y\n\t\tcmp #STAGE_ELEMENT_PLATFORM\n\t\tbeq process\n\t\tcmp #STAGE_ELEMENT_SMOOTH_PLATFORM\n\t\tbeq process\n\t\tjmp end\n\t\tprocess:\n\n\t\t\t; Select any platform as the best\n\t\t\ttya\n\t\t\tsta best_platform\n\n\t\t\t; A platform above the player cannot save him\n\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0, player_b_y, player_b_y_screen)\n\t\t\tbmi end\n\n\t\t\t; A platform on the left of the player cannot save him\n\t\t\tlda stage_data+STAGE_PLATFORM_OFFSET_RIGHT, y\n\t\t\tclc\n\t\t\tadc #1\n\t\t\tsta patched_value\n\t\t\tSIGNED_CMP(patched_value, #0, player_b_x, player_b_x_screen)\n\t\t\tbmi end\n\n\t\t\t; A platform on the right of the player cannot save him\n\t\t\tlda player_b_x\n\t\t\tclc\n\t\t\tadc #1\n\t\t\tsta patched_value\n\t\t\tSIGNED_CMP(patched_value, player_b_x_screen, stage_data+STAGE_PLATFORM_OFFSET_LEFT COMMA y, #0)\n\t\t\tbmi end\n\n\t\t\t; The current platform can save the player, no need to recover\n\t\t\tlda #0\n\t\t\tsta endangered\n\t\t\tldy #$ff\n\n\t\tend:\n\t\trts\n\t.)\n.)\n",
-    "type": "character_ai"
+    "type": "character_ai",
+    "sourcecode": "pepper_ai_attack_selector:\n.(\n\t; Do not try to attack in incapacited states, it would ruin ai reactivity after such states\n\tlda player_b_state\n\tcmp #PEPPER_STATE_CRASHING\n\tbeq end\n\tcmp #PEPPER_STATE_HYPERSPEED_CRASHING\n\tbeq end\n\t\tjmp ai_attack_selector\n\t\t; No return, jump to subroutine\n\tend:\n\trts\n.)\n\npepper_ai_recover_selector:\n.(\n\tplatform_handler_lsb = tmpfield1\n\tplatform_handler_msb = tmpfield2\n\tendangered = tmpfield3\n\tbest_platform = tmpfield4\n\t;tmpfield5 used by platform handler\n\n\t.(\n\t\t; Skip everything if the player is grounded\n\t\tlda player_b_grounded\n\t\tbne dont_try_to_recover\n\n\t\t; Check that the player is offstage - no platform behind him\n\t\tlda #1\n\t\tsta endangered\n\t\tlda #0\n\t\tsta best_platform\n\n\t\tlda #<platform_handler\n\t\tsta platform_handler_lsb\n\t\tlda #>platform_handler\n\t\tsta platform_handler_msb\n\t\tjsr stage_iterate_all_elements\n\n\t\tlda endangered\n\t\tbne try_to_recover\n\n\t\tdont_try_to_recover:\n\t\t\tjmp end\n\n\t\ttry_to_recover:\n\t\t\t; Set action modifier to the platform's direction\n\t\t\tlda #CONTROLLER_BTN_RIGHT\n\t\t\tsta ai_current_action_modifier\n\t\t\tldy best_platform\n\t\t\tSIGNED_CMP(player_b_x, player_b_x_screen, stage_data+STAGE_PLATFORM_OFFSET_RIGHT COMMA y, #0)\n\t\t\tbmi direction_set\n\t\t\tlda #CONTROLLER_BTN_LEFT\n\t\t\tsta ai_current_action_modifier\n\t\t\tdirection_set:\n\n\t\t\t; Set the idle action if\n\t\t\t;  - the player is on hitstun\n\t\t\t;  - or the platform is lower than player\n\t\t\t;  - or the player is not on falling, thrown nor helpless state\n\t\t\tlda player_b_hitstun\n\t\t\tbne set_idle_action\n\n\t\t\tSIGNED_CMP(player_b_y, player_b_y_screen, stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0)\n\t\t\tbmi set_idle_action\n\n\t\t\tlda player_b_state\n\t\t\tcmp #PEPPER_STATE_FALLING\n\t\t\tbeq dont_set_idle_action\n\t\t\tcmp #PEPPER_STATE_THROWN\n\t\t\tbeq dont_set_idle_action\n\t\t\tcmp #PEPPER_STATE_HELPLESS\n\t\t\tbne set_idle_action\n\t\t\tdont_set_idle_action:\n\n\t\t\t; Wall jump if it is possible\n\t\t\tlda player_b_walled\n\t\t\tbeq skip_walljump\n\t\t\tlda player_b_walljump\n\t\t\tbne set_jump_action\n\t\t\tskip_walljump:\n\n\t\t\t; In helpless mode, do not try anything else\n\t\t\tlda player_b_state\n\t\t\tcmp #PEPPER_STATE_HELPLESS\n\t\t\tbeq set_idle_action\n\n\t\t\t; Air jump if it is possible\n\t\t\tlda player_b_num_aerial_jumps\n\t\t\tcmp #PEPPER_MAX_NUM_AERIAL_JUMPS\n\t\t\tbne set_jump_action\n\n\t\t\t; Special-up since no other action was found\n\t\t\tjmp set_special_up_action\n\n\t\t\t; Set an action\n\t\t\tset_idle_action:\n\t\t\t\tlda #<ai_action_idle\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_idle\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_jump_action:\n\t\t\t\tlda #<ai_action_jump\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_jump\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_special_up_action:\n\t\t\t\tlda #<ai_action_special_up\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_special_up\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\t;jmp begin_action ; useless, fallthrough\n\n\t\t; Reset current action to its begining\n\t\tbegin_action:\n\t\tlda #0\n\t\tsta ai_current_action_step\n\t\tsta ai_current_action_counter\n\t\tjsr ai_delay_action\n\n\t\tend:\n\t\trts\n\t.)\n\n\tplatform_handler:\n\t.(\n\t\tpatched_value = tmpfield5\n\n\t\t; Ignore unknown platforms\n\t\tlda stage_data, y\n\t\tcmp #STAGE_ELEMENT_PLATFORM\n\t\tbeq process\n\t\tcmp #STAGE_ELEMENT_SMOOTH_PLATFORM\n\t\tbeq process\n\t\tjmp end\n\t\tprocess:\n\n\t\t\t; Select any platform as the best\n\t\t\ttya\n\t\t\tsta best_platform\n\n\t\t\t; A platform above the player cannot save him\n\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0, player_b_y, player_b_y_screen)\n\t\t\tbmi end\n\n\t\t\t; A platform on the left of the player cannot save him\n\t\t\tlda stage_data+STAGE_PLATFORM_OFFSET_RIGHT, y\n\t\t\tclc\n\t\t\tadc #1\n\t\t\tsta patched_value\n\t\t\tSIGNED_CMP(patched_value, #0, player_b_x, player_b_x_screen)\n\t\t\tbmi end\n\n\t\t\t; A platform on the right of the player cannot save him\n\t\t\tlda player_b_x\n\t\t\tclc\n\t\t\tadc #1\n\t\t\tsta patched_value\n\t\t\tSIGNED_CMP(patched_value, player_b_x_screen, stage_data+STAGE_PLATFORM_OFFSET_LEFT COMMA y, #0)\n\t\t\tbmi end\n\n\t\t\t; The current platform can save the player, no need to recover\n\t\t\tlda #0\n\t\t\tsta endangered\n\t\t\tldy #$ff\n\n\t\tend:\n\t\trts\n\t.)\n.)\n"
   },
   "animations": [
     {
@@ -370,7 +370,7 @@
             "left": 10,
             "right": 26,
             "top": 2,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -452,7 +452,7 @@
             "left": 1,
             "right": 15,
             "top": -10,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -534,7 +534,7 @@
             "left": -16,
             "right": 0,
             "top": 0,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -848,7 +848,7 @@
             "left": -13,
             "right": 3,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -1750,7 +1750,7 @@
             "left": -8,
             "right": 2,
             "top": 3,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -1832,7 +1832,7 @@
             "left": -11,
             "right": 5,
             "top": 5,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -1914,7 +1914,7 @@
             "left": -14,
             "right": 2,
             "top": 10,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -2126,7 +2126,7 @@
             "left": -13,
             "right": 6,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -2224,7 +2224,7 @@
             "left": -13,
             "right": 6,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -2678,7 +2678,7 @@
             "left": -18,
             "right": -3,
             "top": 3,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -2768,7 +2768,7 @@
             "left": -33,
             "right": -18,
             "top": 0,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -2858,7 +2858,7 @@
             "left": -49,
             "right": -34,
             "top": -3,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -2948,7 +2948,7 @@
             "left": -64,
             "right": -49,
             "top": -6,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -3360,7 +3360,7 @@
             "left": 3,
             "right": 7,
             "top": -8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -3450,7 +3450,7 @@
             "left": -9,
             "right": 19,
             "top": -12,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -3540,7 +3540,7 @@
             "left": -9,
             "right": 19,
             "top": -12,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -3646,7 +3646,7 @@
             "left": -9,
             "right": 19,
             "top": -13,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -3952,7 +3952,7 @@
             "left": -5,
             "right": 1,
             "top": 3,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -4026,7 +4026,7 @@
             "left": -15,
             "right": -9,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -4100,7 +4100,7 @@
             "left": -19,
             "right": -7,
             "top": 0,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -4576,7 +4576,7 @@
             "left": -15,
             "right": 15,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -4650,7 +4650,7 @@
             "left": -15,
             "right": 15,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 14,
@@ -4732,7 +4732,7 @@
             "left": -15,
             "right": 15,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -5388,7 +5388,7 @@
             "left": -4,
             "right": 12,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -5860,6 +5860,72 @@
     {
       "frames": [
         {
+          "duration": 7,
+          "hitbox": null,
+          "hurtbox": {
+            "bottom": 16,
+            "left": 0,
+            "right": 8,
+            "top": 0,
+            "type": "animation_hurtbox"
+          },
+          "sprites": [
+            {
+              "attr": 0,
+              "foreground": false,
+              "tile": "PEPPER_TILE_81",
+              "type": "animation_sprite",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "attr": 0,
+              "foreground": false,
+              "tile": "PEPPER_TILE_82",
+              "type": "animation_sprite",
+              "x": 0,
+              "y": 8
+            }
+          ],
+          "type": "animation_frame"
+        },
+        {
+          "duration": 7,
+          "hitbox": null,
+          "hurtbox": {
+            "bottom": 16,
+            "left": 0,
+            "right": 8,
+            "top": 0,
+            "type": "animation_hurtbox"
+          },
+          "sprites": [
+            {
+              "attr": 0,
+              "foreground": false,
+              "tile": "PEPPER_TILE_83",
+              "type": "animation_sprite",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "attr": 0,
+              "foreground": false,
+              "tile": "PEPPER_TILE_84",
+              "type": "animation_sprite",
+              "x": 0,
+              "y": 8
+            }
+          ],
+          "type": "animation_frame"
+        }
+      ],
+      "name": "pepper_anim_owned",
+      "type": "animation"
+    },
+    {
+      "frames": [
+        {
           "duration": 2,
           "hitbox": null,
           "hurtbox": {
@@ -5926,7 +5992,7 @@
             "left": -4,
             "right": 2,
             "top": 5,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -6000,7 +6066,7 @@
             "left": -8,
             "right": -2,
             "top": 5,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -6074,7 +6140,7 @@
             "left": -12,
             "right": -6,
             "top": 5,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -6148,7 +6214,7 @@
             "left": -25,
             "right": -9,
             "top": -1,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -6222,7 +6288,7 @@
             "left": -25,
             "right": -9,
             "top": -1,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -8389,7 +8455,7 @@
             "left": -2,
             "right": 10,
             "top": 2,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 13,
@@ -8445,7 +8511,7 @@
             "left": -2,
             "right": 10,
             "top": 2,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 13,
@@ -8715,7 +8781,7 @@
             "left": 11,
             "right": 19,
             "top": -6,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -8797,7 +8863,7 @@
             "left": -3,
             "right": 13,
             "top": -11,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -8879,7 +8945,7 @@
             "left": -9,
             "right": -1,
             "top": -6,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -9113,7 +9179,7 @@
             "left": -13,
             "right": 3,
             "top": 8,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 15,
@@ -9335,7 +9401,7 @@
             "left": 16,
             "right": 29,
             "top": 10,
-            "type": "animation_hitbox"
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -9832,8 +9898,10 @@
       "PEPPER_ILLUSTRATION_LARGE_47",
       "PEPPER_ILLUSTRATION_LARGE_48"
     ],
+    "type": "tileset",
     "tiles": [
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -9915,10 +9983,10 @@
             0,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -10000,10 +10068,10 @@
             3,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -10085,10 +10153,10 @@
             3,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -10170,10 +10238,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -10255,10 +10323,10 @@
             2,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -10340,10 +10408,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -10369,16 +10437,6 @@
             1,
             1,
             0,
-            3,
-            3,
-            3,
-            3,
-            3
-          ],
-          [
-            1,
-            0,
-            3,
             3,
             3,
             3,
@@ -10417,6 +10475,16 @@
           ],
           [
             1,
+            0,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            1,
             1,
             0,
             3,
@@ -10425,106 +10493,11 @@
             3,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
-          [
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3
-          ],
-          [
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3
-          ],
-          [
-            3,
-            3,
-            3,
-            0,
-            0,
-            0,
-            0,
-            3
-          ],
-          [
-            3,
-            3,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            0,
-            0,
-            2,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            2,
-            2,
-            2,
-            2,
-            2,
-            0,
-            0
-          ],
-          [
-            0,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2,
-            0
-          ]
-        ],
-        "type": "tile"
-      },
-      {
-        "representation": [
-          [
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            0,
-            0
-          ],
           [
             3,
             3,
@@ -10549,6 +10522,101 @@
             3,
             3,
             3,
+            0,
+            0,
+            0,
+            0,
+            3
+          ],
+          [
+            3,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            2,
+            2,
+            2,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
             3,
             3,
             3,
@@ -10595,10 +10663,10 @@
             0,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -10680,10 +10748,10 @@
             2,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -10765,10 +10833,10 @@
             0,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -10850,10 +10918,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -10935,10 +11003,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -11020,10 +11088,10 @@
             2,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -11105,10 +11173,10 @@
             0,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -11190,10 +11258,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -11275,10 +11343,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -11360,10 +11428,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -11445,10 +11513,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -11530,10 +11598,10 @@
             3,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -11615,10 +11683,10 @@
             2,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -11700,10 +11768,10 @@
             1,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -11785,10 +11853,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -11870,10 +11938,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -11955,10 +12023,10 @@
             1,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -12040,10 +12108,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -12125,10 +12193,10 @@
             3,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -12210,10 +12278,10 @@
             2,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -12295,10 +12363,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -12380,10 +12448,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -12465,10 +12533,10 @@
             0,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -12550,10 +12618,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -12635,10 +12703,10 @@
             3,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -12720,10 +12788,10 @@
             0,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -12805,10 +12873,10 @@
             2,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -12890,10 +12958,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -12975,10 +13043,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -13060,10 +13128,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -13145,10 +13213,10 @@
             2,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -13230,10 +13298,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -13315,10 +13383,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -13400,10 +13468,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -13485,10 +13553,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -13570,10 +13638,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -13655,10 +13723,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -13740,10 +13808,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -13825,10 +13893,10 @@
             0,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -13910,11 +13978,9 @@
             2,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       }
-    ],
-    "type": "tileset"
+    ]
   },
   "illustration_small": {
     "name": null,
@@ -13924,33 +13990,35 @@
       "PEPPER_ILLUSTRATION_SMALL_3",
       "PEPPER_ILLUSTRATION_SMALL_4"
     ],
+    "type": "tileset",
     "tiles": [
       {
+        "type": "tile",
         "representation": [
           [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
             1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
+            0,
+            3,
+            3,
+            3,
+            3,
+            3,
             0
           ],
           [
-            0,
             1,
-            3,
-            3,
-            3,
-            3,
-            3,
-            1
-          ],
-          [
-            0,
-            0,
             1,
+            0,
             3,
             3,
             3,
@@ -13958,157 +14026,157 @@
             3
           ],
           [
-            0,
-            0,
-            0,
             1,
+            1,
+            1,
+            0,
             3,
             3,
             3,
             3
           ],
           [
-            0,
-            0,
-            0,
-            0,
             1,
+            1,
+            1,
+            1,
+            0,
             3,
             3,
             3
           ],
           [
-            0,
-            0,
-            0,
-            0,
             1,
+            1,
+            1,
+            1,
+            0,
             3,
             3,
             3
           ],
           [
-            0,
-            0,
-            0,
             1,
             1,
             1,
+            0,
+            0,
+            0,
             3,
-            1
+            0
           ],
           [
+            1,
+            1,
             0,
             0,
-            1,
-            1,
             3,
             3,
-            1,
-            1
+            0,
+            0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            3,
             1,
             1,
             1,
             1,
-            0
-          ],
-          [
             1,
             1,
             1,
-            1,
-            3,
-            3,
-            3,
             1
           ],
           [
             1,
             1,
-            3,
-            3,
-            3,
-            3,
-            3,
+            1,
+            1,
+            1,
+            1,
+            1,
             1
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            3,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            3,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            3,
+            3,
+            3,
+            3,
+            0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
-            1,
-            1,
+            0,
+            0,
             3,
             3,
-            1,
-            1,
-            1,
-            1
+            0,
+            0,
+            0,
+            0
           ],
           [
-            1,
+            0,
             3,
             3,
             3,
@@ -14118,8 +14186,8 @@
             3
           ],
           [
-            0,
             1,
+            0,
             3,
             3,
             3,
@@ -14128,59 +14196,59 @@
             3
           ],
           [
-            0,
-            0,
             1,
             1,
+            0,
+            0,
             3,
             3,
             3,
-            1
+            0
           ],
           [
-            0,
-            0,
-            0,
-            0,
             1,
             1,
             1,
-            1
+            1,
+            0,
+            0,
+            0,
+            0
           ],
           [
-            0,
-            0,
-            0,
-            0,
-            0,
             1,
             1,
-            1
+            1,
+            1,
+            1,
+            0,
+            0,
+            0
           ],
           [
-            0,
-            0,
-            0,
-            0,
-            0,
             1,
             1,
-            1
+            1,
+            1,
+            1,
+            0,
+            0,
+            0
           ],
           [
-            0,
-            0,
-            0,
-            0,
             1,
             1,
             1,
-            1
+            1,
+            0,
+            0,
+            0,
+            0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -14190,177 +14258,175 @@
             3,
             3,
             3,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            0,
+            0,
+            0,
+            0,
             1
           ],
           [
-            3,
-            3,
-            3,
-            1,
-            1,
-            1,
-            1,
-            0
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            2,
-            1,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            1,
-            2,
-            1,
-            0
-          ],
-          [
-            1,
-            2,
-            2,
-            2,
-            2,
-            2,
-            1,
-            0
-          ],
-          [
-            1,
-            2,
-            2,
-            1,
-            2,
-            2,
-            1,
-            0
-          ],
-          [
-            1,
-            1,
-            2,
-            2,
-            1,
-            1,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            1,
             0,
             0,
-            0
+            0,
+            0,
+            2,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            1
+          ],
+          [
+            0,
+            2,
+            2,
+            2,
+            2,
+            2,
+            0,
+            1
+          ],
+          [
+            0,
+            2,
+            2,
+            0,
+            2,
+            2,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            2,
+            2,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1
           ]
-        ],
-        "type": "tile"
+        ]
       }
-    ],
-    "type": "tileset"
+    ]
   },
   "illustration_token": {
     "name": null,
     "tilenames": [
       "PEPPER_ILLUSTRATION_TOKEN_1"
     ],
+    "type": "tileset",
     "tiles": [
       {
+        "type": "tile",
         "representation": [
           [
-            1,
-            1,
-            1,
             0,
             0,
             0,
-            0,
-            0
-          ],
-          [
-            0,
             1,
-            3,
-            1,
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            1,
-            3,
-            1,
-            1,
-            1,
-            1,
-            0
-          ],
-          [
-            0,
-            1,
-            1,
-            1,
-            3,
-            3,
-            3,
-            1
-          ],
-          [
-            0,
-            1,
-            1,
-            3,
             1,
             1,
             1,
             1
           ],
           [
+            1,
+            0,
+            3,
+            0,
             0,
             1,
-            3,
             1,
-            2,
-            2,
-            2,
             1
           ],
           [
             1,
+            0,
             3,
-            3,
-            1,
-            2,
-            2,
-            2,
+            0,
+            0,
+            0,
+            0,
             1
           ],
           [
+            1,
             0,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
+            0,
+            0,
+            3,
+            3,
+            3,
             0
+          ],
+          [
+            1,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            3,
+            0,
+            2,
+            2,
+            2,
+            0
+          ],
+          [
+            0,
+            3,
+            3,
+            0,
+            2,
+            2,
+            2,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
           ]
-        ],
-        "type": "tile"
+        ]
       }
-    ],
-    "type": "tileset"
+    ]
   },
   "menu_select_animation": {
     "frames": [
@@ -14418,7 +14484,6 @@
   },
   "name": "pepper",
   "netload_routine": "pepper_netload",
-  "sourcecode": "!define \"char_name\" {pepper}\n!define \"char_name_upper\" {PEPPER}\n\n;\n; States index\n;\n\nPEPPER_STATE_THROWN = PLAYER_STATE_THROWN\nPEPPER_STATE_RESPAWN_INVISIBLE = PLAYER_STATE_RESPAWN\nPEPPER_STATE_INNEXISTANT = PLAYER_STATE_INNEXISTANT\nPEPPER_STATE_SPAWN = PLAYER_STATE_SPAWN\nPEPPER_STATE_IDLE = PLAYER_STATE_STANDING\nPEPPER_STATE_RUNNING = PLAYER_STATE_RUNNING\nPEPPER_STATE_FALLING = CUSTOM_PLAYER_STATES_BEGIN + 0\nPEPPER_STATE_LANDING = CUSTOM_PLAYER_STATES_BEGIN + 1\nPEPPER_STATE_CRASHING = CUSTOM_PLAYER_STATES_BEGIN + 2\nPEPPER_STATE_HELPLESS = CUSTOM_PLAYER_STATES_BEGIN + 3\nPEPPER_STATE_JUMPING = CUSTOM_PLAYER_STATES_BEGIN + 4\nPEPPER_STATE_SHIELDING = CUSTOM_PLAYER_STATES_BEGIN + 5\nPEPPER_STATE_SHIELDLAG = CUSTOM_PLAYER_STATES_BEGIN + 6\nPEPPER_STATE_WALLJUMPING = CUSTOM_PLAYER_STATES_BEGIN + 7\nPEPPER_STATE_DTILT = CUSTOM_PLAYER_STATES_BEGIN + 8\nPEPPER_STATE_STILT = CUSTOM_PLAYER_STATES_BEGIN + 9\nPEPPER_STATE_UTILT = CUSTOM_PLAYER_STATES_BEGIN + 10\nPEPPER_STATE_FLASH_POTION = CUSTOM_PLAYER_STATES_BEGIN + 11\nPEPPER_STATE_AERIAL_SIDE = CUSTOM_PLAYER_STATES_BEGIN + 12\nPEPPER_STATE_AERIAL_FIREWORK = CUSTOM_PLAYER_STATES_BEGIN + 13\nPEPPER_STATE_HYPERSPEED_LANDING = CUSTOM_PLAYER_STATES_BEGIN + 14\nPEPPER_STATE_HYPERSPEED_CRASHING = CUSTOM_PLAYER_STATES_BEGIN + 15\nPEPPER_STATE_AERIAL_WRENCH_GRAB = CUSTOM_PLAYER_STATES_BEGIN + 16\nPEPPER_STATE_POTION_SMASH = CUSTOM_PLAYER_STATES_BEGIN + 17\nPEPPER_STATE_SEND_CARROT = CUSTOM_PLAYER_STATES_BEGIN + 18\nPEPPER_STATE_WITCH_FLY = CUSTOM_PLAYER_STATES_BEGIN + 19\nPEPPER_STATE_TELEPORT = CUSTOM_PLAYER_STATES_BEGIN + 20\nPEPPER_STATE_WRENCH_GRAB = CUSTOM_PLAYER_STATES_BEGIN + 21\nPEPPER_STATE_DZZZ_CHARGE = CUSTOM_PLAYER_STATES_BEGIN + 22\nPEPPER_STATE_DZZZ_STRIKE = CUSTOM_PLAYER_STATES_BEGIN + 23\nPEPPER_STATE_RESPAWN_PLATFORM = CUSTOM_PLAYER_STATES_BEGIN + 24\n\n;\n; Gameplay constants\n;\n\nPEPPER_MAX_NUM_AERIAL_JUMPS = 1\nPEPPER_MAX_WALLJUMPS = 1\nPEPPER_WALL_JUMP_VELOCITY_H = $0100\nPEPPER_WALL_JUMP_VELOCITY_V = $0480\nPEPPER_WALL_JUMP_SQUAT_END = 4\nPEPPER_AIR_FRICTION_STRENGTH = 7\nPEPPER_AERIAL_DIRECTIONAL_INFLUENCE_STRENGTH = $80\nPEPPER_AERIAL_SPEED = $0100\nPEPPER_FASTFALL_SPEED = $0600\nPEPPER_GROUND_FRICTION_STRENGTH = $40\nPEPPER_JUMP_SQUAT_DURATION_PAL = 4\nPEPPER_JUMP_SQUAT_DURATION_NTSC = 5\nPEPPER_JUMP_SHORT_HOP_EXTRA_TIME_PAL = 4\nPEPPER_JUMP_SHORT_HOP_EXTRA_TIME_NTSC = 5\nPEPPER_JUMP_POWER = $0540\nPEPPER_JUMP_SHORT_HOP_POWER = $0102\nPEPPER_LANDING_MAX_VELOCITY = $0200\nPEPPER_RUNNING_INITIAL_VELOCITY = $0100\nPEPPER_RUNNING_MAX_VELOCITY = $0180\nPEPPER_RUNNING_ACCELERATION = $40\nPEPPER_TECH_SPEED = $0400\n\nPEPPER_CARROT_NOT_PLACED = $80\n\n;\n; Constants data\n;\n\n!include \"characters/std_constant_tables.asm\"\n\n; Offset of 12 bytes reserved in player's object data for storing carrot's animation state\npepper_carrot_anim_per_player:\n.byt (player_a_objects-stage_data)+1, (player_b_objects-stage_data)+1\npepper_carrot_anim_ptr_lsb_per_player:\n.byt <(player_a_objects+1), <(player_b_objects+1)\npepper_carrot_anim_ptr_msb_per_player:\n.byt >(player_a_objects+1), >(player_b_objects+1)\n\n; Sprites reserved for carrot's animation\npepper_first_carrot_sprite_per_player:\n.byt INGAME_PLAYER_A_LAST_SPRITE-1, INGAME_PLAYER_B_LAST_SPRITE-1\npepper_last_carrot_sprite_per_player:\n.byt INGAME_PLAYER_A_LAST_SPRITE, INGAME_PLAYER_B_LAST_SPRITE\npepper_last_anim_sprite_per_player:\n.byt INGAME_PLAYER_A_LAST_SPRITE-2, INGAME_PLAYER_B_LAST_SPRITE-2\n\npepper_netload:\n.(\n\tcpx #0\n\tbeq load_element\n\t\tldx #player_b_objects-player_a_objects\n\tload_element:\n\n\t; Carrot's animation\n\tlda esp_rx_buffer+0, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_X_LSB, x\n\tlda esp_rx_buffer+1, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_X_MSB, x\n\tlda esp_rx_buffer+2, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_Y_LSB, x\n\tlda esp_rx_buffer+3, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_Y_MSB, x\n\tlda esp_rx_buffer+4, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_DATA_VECTOR_LSB, x\n\tlda esp_rx_buffer+5, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_DATA_VECTOR_MSB, x\n\tlda esp_rx_buffer+6, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_DIRECTION, x\n\tlda esp_rx_buffer+7, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_CLOCK, x\n\t;lda esp_rx_buffer+, y\n\t;sta player_a_objects+1+ANIMATION_STATE_OFFSET_FIRST_SPRITE_NUM, x ; Never change\n\t;lda esp_rx_buffer+, y\n\t;sta player_a_objects+1+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM, x ; Never change\n\tlda esp_rx_buffer+8, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_FRAME_VECTOR_LSB, x\n\tlda esp_rx_buffer+9, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_FRAME_VECTOR_MSB, x\n\t;TODO ANIMATION_STATE_OFFSET_NTSC_CNT\n\n\t; Update message's cursor\n\ttya\n\tclc\n\tadc #10\n\ttay\n\n\trts\n.)\n\npepper_init:\n.(\n\n\t; Reserve two sprites for carrot\n\t.(\n\t\tanimation_state_vector = tmpfield2\n\n\t\t; Animation's last sprite num = animation's last sprite num - 2\n\t\tlda anim_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda anim_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\tldy #0\n\t\tlda pepper_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\n\t\t; Same for out of screen indicator\n\t\tlda oos_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda oos_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\t;ldy #0 ; useless, already set above\n\t\tlda pepper_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\t.)\n\n\t; Initialize carrot's animation state\n\t.(\n\t\tlda pepper_carrot_anim_ptr_lsb_per_player, x\n\t\tsta tmpfield11\n\t\tlda pepper_carrot_anim_ptr_msb_per_player, x\n\t\tsta tmpfield12\n\t\tlda #<pepper_anim_carrot\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_carrot\n\t\tsta tmpfield14\n\t\tjsr animation_init_state\n\n\t\tlda pepper_first_carrot_sprite_per_player, x\n\t\tldy #ANIMATION_STATE_OFFSET_FIRST_SPRITE_NUM\n\t\tsta (tmpfield11), y\n\t\tlda pepper_last_carrot_sprite_per_player, x\n\t\tldy #ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\tsta (tmpfield11), y\n\n\t\tlda #PEPPER_CARROT_NOT_PLACED\n\t\tldy #ANIMATION_STATE_OFFSET_X_MSB\n\t\tsta (tmpfield11), y\n\n\t\t; Tick global onground as it reinits walljumps\n\t\tjmp pepper_global_onground\n\t.)\n\n\t;rts ; useless, jump to subrountine\n\n\tanim_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\tanim_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\n\toos_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\toos_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n.)\n\npepper_global_onground:\n.(\n\t; Initialize walljump counter\n\tlda #PEPPER_MAX_WALLJUMPS\n\tsta player_a_walljump, x\n\trts\n.)\n\npepper_global_tick:\n.(\n\t; Update carrot's animation\n\tlda pepper_carrot_anim_ptr_lsb_per_player, x\n\tsta tmpfield11\n\tlda pepper_carrot_anim_ptr_msb_per_player, x\n\tsta tmpfield12\n\tstx player_number\n\n\tlda network_rollback_mode\n\tbne drawn\n\t\tjsr animation_draw\n\tdrawn:\n\tjsr animation_tick\n\n\t; Restore X register\n\tldx player_number\n\n\t; Check if carrot has been hit\n\t.(\n\t\t; boxes_overlap parameters\n\t\thitbox_left_pixel = tmpfield1 ; Rectangle 1 left (pixel)\n\t\thitbox_right_pixel = tmpfield2 ; Rectangle 1 right (pixel)\n\t\thitbox_top_pixel = tmpfield3 ; Rectangle 1 top (pixel)\n\t\thitbox_bot_pixel = tmpfield4 ; Rectangle 1 bottom (pixel)\n\t\thurtbox_left_pixel = tmpfield5 ; Rectangle 2 left (pixel)\n\t\thurtbox_right_pixel = tmpfield6 ; Rectangle 2 right (pixel)\n\t\thurtbox_top_pixel = tmpfield7 ; Rectangle 2 top (pixel)\n\t\thurtbox_bot_pixel = tmpfield8 ; Rectangle 2 bottom (pixel)\n\t\thitbox_left_screen = tmpfield9 ; Rectangle 1 left (screen)\n\t\thitbox_right_screen = tmpfield10 ; Rectangle 1 right (screen)\n\t\thitbox_top_screen = tmpfield11 ; Rectangle 1 top (screen)\n\t\thitbox_bot_screen = tmpfield12 ; Rectangle 1 bottom (screen)\n\t\thurtbox_left_screen = tmpfield13 ; Rectangle 2 left (screen)\n\t\thurtbox_right_screen = tmpfield14 ; Rectangle 2 right (screen)\n\t\thurtbox_top_screen = tmpfield15 ; Rectangle 2 top (screen)\n\t\thurtbox_bot_screen = tmpfield16 ; Rectangle 2 bottom (screen)\n\n\t\t; Y = offset to carrot's animation\n\t\tldy pepper_carrot_anim_per_player, x\n\n\t\t; Check that carrot is placed, else skip doing anything\n\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\tcmp #PEPPER_CARROT_NOT_PLACED\n\t\tbeq end_carrot_hit\n\n\t\t; Check if opponent's hitbox is active\n\t\tSWITCH_SELECTED_PLAYER\n\t\tlda player_a_hitbox_enabled, x\n\t\tbeq end_carrot_hit\n\n\t\t\t; Store opponent's hitbox in collision routine parameters\n\t\t\tlda player_a_hitbox_left, x\n\t\t\tsta hitbox_left_pixel\n\t\t\tlda player_a_hitbox_right, x\n\t\t\tsta hitbox_right_pixel\n\t\t\tlda player_a_hitbox_top, x\n\t\t\tsta hitbox_top_pixel\n\t\t\tlda player_a_hitbox_bottom, x\n\t\t\tsta hitbox_bot_pixel\n\n\t\t\tlda player_a_hitbox_left_msb, x\n\t\t\tsta hitbox_left_screen\n\t\t\tlda player_a_hitbox_right_msb, x\n\t\t\tsta hitbox_right_screen\n\t\t\tlda player_a_hitbox_top_msb, x\n\t\t\tsta hitbox_top_screen\n\t\t\tlda player_a_hitbox_bottom_msb, x\n\t\t\tsta hitbox_bot_screen\n\n\t\t\t; Store carrot's hurtbox in collision routine parameters\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_LSB, y\n\t\t\tsta hurtbox_left_pixel\n\t\t\tclc\n\t\t\tadc #8\n\t\t\tsta hurtbox_right_pixel\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tsta hurtbox_left_screen\n\t\t\tadc #0\n\t\t\tsta hurtbox_right_screen\n\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_LSB, y\n\t\t\tsta hurtbox_top_pixel\n\t\t\tclc\n\t\t\tadc #16\n\t\t\tsta hurtbox_bot_pixel\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_MSB, y\n\t\t\tsta hurtbox_top_screen\n\t\t\tadc #0\n\t\t\tsta hurtbox_bot_screen\n\n\t\t\t; Do the collision check\n\t\t\tjsr boxes_overlap\n\t\t\tbne end_carrot_hit\n\n\t\t\t\t; Carrot was hit, remove him\n\t\t\t\tlda #PEPPER_CARROT_NOT_PLACED\n\t\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\n\t\tend_carrot_hit:\n\t\tldx player_number\n\t.)\n\n\trts\n.)\n\n; Input table for aerial moves, special values are\n;  fast_fall - mandatorily on INPUT_NONE to take effect on release of DOWN\n;  jump      - automatically choose between aerial jump or wall jump\n;  no_input  - expected default\n!define \"PEPPER_AERIAL_INPUTS_TABLE\" {\n\t.(\n\t\tcontroller_inputs\n\t\t.byt CONTROLLER_INPUT_NONE,              CONTROLLER_INPUT_SPECIAL_RIGHT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_LEFT,      CONTROLLER_INPUT_JUMP\n\t\t.byt CONTROLLER_INPUT_JUMP_RIGHT,        CONTROLLER_INPUT_JUMP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_LEFT,       CONTROLLER_INPUT_ATTACK_RIGHT\n\t\t.byt CONTROLLER_INPUT_DOWN_TILT,         CONTROLLER_INPUT_ATTACK_UP\n\t\t.byt CONTROLLER_INPUT_JAB,               CONTROLLER_INPUT_SPECIAL\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP,        CONTROLLER_INPUT_SPECIAL_DOWN,\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP_RIGHT,   CONTROLLER_INPUT_ATTACK_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP_RIGHT,  CONTROLLER_INPUT_SPECIAL_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_DOWN_LEFT,  CONTROLLER_INPUT_ATTACK_DOWN_RIGHT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_DOWN_LEFT, CONTROLLER_INPUT_SPECIAL_DOWN_RIGHT\n\t\tcontroller_callbacks_lo\n\t\t.byt <fast_fall,                        <pepper_start_dzzz_right\n\t\t.byt <pepper_start_dzzz_left,           <jump\n\t\t.byt <jump,                             <jump\n\t\t.byt <pepper_start_aerial_side,         <pepper_start_aerial_side\n\t\t.byt <pepper_start_hyperspeed_landing,  <pepper_start_aerial_firework\n\t\t.byt <pepper_start_potion_smash,        <pepper_start_plan_7b\n\t\t.byt <pepper_start_witch_fly,           <pepper_start_aerial_wrench_grab\n\t\t.byt <pepper_start_aerial_firework,     <pepper_start_aerial_firework\n\t\t.byt <pepper_start_witch_fly_right,     <pepper_start_witch_fly_left\n\t\t.byt <pepper_start_hyperspeed_landing,  <pepper_start_hyperspeed_landing\n\t\t.byt <pepper_start_aerial_wrench_grab,  <pepper_start_aerial_wrench_grab\n\t\tcontroller_callbacks_hi\n\t\t.byt >fast_fall,                        >pepper_start_dzzz_right\n\t\t.byt >pepper_start_dzzz_left,           >jump\n\t\t.byt >jump,                             >jump\n\t\t.byt >pepper_start_aerial_side,         >pepper_start_aerial_side\n\t\t.byt >pepper_start_hyperspeed_landing,  >pepper_start_aerial_firework\n\t\t.byt >pepper_start_potion_smash,        >pepper_start_plan_7b\n\t\t.byt >pepper_start_witch_fly,           >pepper_start_aerial_wrench_grab\n\t\t.byt >pepper_start_aerial_firework,     >pepper_start_aerial_firework\n\t\t.byt >pepper_start_witch_fly_right,     >pepper_start_witch_fly_left\n\t\t.byt >pepper_start_hyperspeed_landing,  >pepper_start_hyperspeed_landing\n\t\t.byt >pepper_start_aerial_wrench_grab,  >pepper_start_aerial_wrench_grab\n\t\tcontroller_default_callback\n\t\t.word no_input\n\t\t&INPUT_TABLE_LENGTH = controller_callbacks_lo - controller_inputs\n\t.)\n}\n\n; Input table for idle state, special values are\n;  input_idle_jump_left - Force LEFT direction and jump\n;  input_idle_jump_right - Force RIGHT direction and jump\n;  input_idle_tilt_left - Left tilt\n;  input_idle_tilt_right - Right tilt\n;  input_idle_left - Run to the left\n;  input_idle_right - Run to the right\n;  no_input - Default\n!define \"PEPPER_IDLE_INPUTS_TABLE\" {\n\t.(\n\t\tcontroller_inputs:\n\t\t.byt CONTROLLER_INPUT_LEFT,               CONTROLLER_INPUT_RIGHT\n\t\t.byt CONTROLLER_INPUT_JUMP,               CONTROLLER_INPUT_JUMP_RIGHT\n\t\t.byt CONTROLLER_INPUT_JUMP_LEFT,          CONTROLLER_INPUT_TECH\n\t\t.byt CONTROLLER_INPUT_TECH_LEFT,          CONTROLLER_INPUT_TECH_RIGHT\n\t\t.byt CONTROLLER_INPUT_DOWN_TILT,          CONTROLLER_INPUT_ATTACK_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_RIGHT,       CONTROLLER_INPUT_SPECIAL_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_RIGHT,      CONTROLLER_INPUT_SPECIAL\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP,         CONTROLLER_INPUT_SPECIAL_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP_RIGHT,   CONTROLLER_INPUT_ATTACK_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP_RIGHT,    CONTROLLER_INPUT_ATTACK_UP\n\t\t.byt CONTROLLER_INPUT_JAB,                CONTROLLER_INPUT_SPECIAL_DOWN_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_DOWN_RIGHT, CONTROLLER_INPUT_SPECIAL_DOWN\n\t\t.byt CONTROLLER_INPUT_ATTACK_DOWN_LEFT,   CONTROLLER_INPUT_ATTACK_DOWN_RIGHT\n\t\tcontroller_callbacks_lsb:\n\t\t.byt <input_idle_left,                  <input_idle_right\n\t\t.byt <pepper_start_jumping,             <input_idle_jump_right\n\t\t.byt <input_idle_jump_left,             <pepper_start_shielding\n\t\t.byt <pepper_start_shielding,           <pepper_start_shielding\n\t\t.byt <pepper_start_down_tilt,           <input_idle_tilt_left\n\t\t.byt <input_idle_tilt_right,            <pepper_start_dzzz_left\n\t\t.byt <pepper_start_dzzz_right,          <pepper_start_plan_7b\n\t\t.byt <pepper_start_witch_fly,           <pepper_start_witch_fly_left\n\t\t.byt <pepper_start_witch_fly_right,     <pepper_start_up_tilt\n\t\t.byt <pepper_start_up_tilt,             <pepper_start_up_tilt\n\t\t.byt <pepper_start_flash_potion,        <pepper_start_wrench_grab\n\t\t.byt <pepper_start_wrench_grab,         <pepper_start_wrench_grab\n\t\t.byt <pepper_start_down_tilt,           <pepper_start_down_tilt\n\t\tcontroller_callbacks_msb:\n\t\t.byt >input_idle_left,                  >input_idle_right\n\t\t.byt >pepper_start_jumping,             >input_idle_jump_right\n\t\t.byt >input_idle_jump_left,             >pepper_start_shielding\n\t\t.byt >pepper_start_shielding,           >pepper_start_shielding\n\t\t.byt >pepper_start_down_tilt,           >input_idle_tilt_left\n\t\t.byt >input_idle_tilt_right,            >pepper_start_dzzz_left\n\t\t.byt >pepper_start_dzzz_right,          >pepper_start_plan_7b\n\t\t.byt >pepper_start_witch_fly,           >pepper_start_witch_fly_left\n\t\t.byt >pepper_start_witch_fly_right,     >pepper_start_up_tilt\n\t\t.byt >pepper_start_up_tilt,             >pepper_start_up_tilt\n\t\t.byt >pepper_start_flash_potion,        >pepper_start_wrench_grab\n\t\t.byt >pepper_start_wrench_grab,         >pepper_start_wrench_grab\n\t\t.byt >pepper_start_down_tilt,           >pepper_start_down_tilt\n\t\tcontroller_default_callback:\n\t\t.word no_input\n\t\t&INPUT_TABLE_LENGTH = controller_callbacks_lsb - controller_inputs\n\t.)\n}\n\n; Input table for running state, special values are\n;  input_running_left - Change running direction to the left (if not already running to the left)\n;  input_runnning_right - Change running direction to the right (if not already running to the right)\n!define \"PEPPER_RUNNING_INPUTS_TABLE\" {\n\t.(\n\t\tcontroller_inputs:\n\t\t.byt CONTROLLER_INPUT_LEFT,               CONTROLLER_INPUT_RIGHT\n\t\t.byt CONTROLLER_INPUT_JUMP,               CONTROLLER_INPUT_JUMP_RIGHT,\n\t\t.byt CONTROLLER_INPUT_JUMP_LEFT,          CONTROLLER_INPUT_TECH\n\t\t.byt CONTROLLER_INPUT_TECH_LEFT,          CONTROLLER_INPUT_TECH_RIGHT\n\t\t.byt CONTROLLER_INPUT_DOWN_TILT,          CONTROLLER_INPUT_ATTACK_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_RIGHT,       CONTROLLER_INPUT_SPECIAL_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_RIGHT,      CONTROLLER_INPUT_SPECIAL\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP,         CONTROLLER_INPUT_SPECIAL_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP_RIGHT,   CONTROLLER_INPUT_SPECIAL_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP_RIGHT,    CONTROLLER_INPUT_ATTACK_UP\n\t\t.byt CONTROLLER_INPUT_JAB,                CONTROLLER_INPUT_SPECIAL_DOWN_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_DOWN_RIGHT, CONTROLLER_INPUT_SPECIAL_DOWN\n\t\t.byt CONTROLLER_INPUT_ATTACK_DOWN_LEFT,   CONTROLLER_INPUT_ATTACK_DOWN_RIGHT\n\t\tcontroller_callbacks_lsb:\n\t\t.byt <input_running_left,               <input_running_right\n\t\t.byt <pepper_start_jumping,             <pepper_start_jumping\n\t\t.byt <pepper_start_jumping,             <pepper_start_shielding\n\t\t.byt <pepper_start_shielding,           <pepper_start_shielding\n\t\t.byt <pepper_start_down_tilt,           <pepper_start_side_tilt\n\t\t.byt <pepper_start_side_tilt,           <pepper_start_dzzz_left\n\t\t.byt <pepper_start_dzzz_right,          <pepper_start_plan_7b\n\t\t.byt <pepper_start_witch_fly,           <pepper_start_witch_fly_left\n\t\t.byt <pepper_start_witch_fly_right,     <pepper_start_up_tilt\n\t\t.byt <pepper_start_up_tilt,             <pepper_start_up_tilt\n\t\t.byt <pepper_start_flash_potion,        <pepper_start_wrench_grab\n\t\t.byt <pepper_start_wrench_grab,         <pepper_start_wrench_grab\n\t\t.byt <pepper_start_down_tilt,           <pepper_start_down_tilt\n\t\tcontroller_callbacks_msb:\n\t\t.byt >input_running_left,               >input_running_right\n\t\t.byt >pepper_start_jumping,             >pepper_start_jumping\n\t\t.byt >pepper_start_jumping,             >pepper_start_shielding\n\t\t.byt >pepper_start_shielding,           >pepper_start_shielding\n\t\t.byt >pepper_start_down_tilt,           >pepper_start_side_tilt\n\t\t.byt >pepper_start_side_tilt,           >pepper_start_dzzz_left\n\t\t.byt >pepper_start_dzzz_right,          >pepper_start_plan_7b\n\t\t.byt >pepper_start_witch_fly,           >pepper_start_witch_fly_left\n\t\t.byt >pepper_start_witch_fly_right,     >pepper_start_up_tilt\n\t\t.byt >pepper_start_up_tilt,             >pepper_start_up_tilt\n\t\t.byt >pepper_start_flash_potion,        >pepper_start_wrench_grab\n\t\t.byt >pepper_start_wrench_grab,         >pepper_start_wrench_grab\n\t\t.byt >pepper_start_down_tilt,           >pepper_start_down_tilt\n\t\tcontroller_default_callback:\n\t\t.word pepper_start_idle\n\n\t\t&INPUT_TABLE_LENGTH = controller_callbacks_lsb - controller_inputs\n\t.)\n}\n\n; Input table for jumping state state (only used during jumpsquat), special values are\n;  no_input - default\n!define \"PEPPER_JUMPSQUAT_INPUTS_TABLE\" {\n\t.(\n\t\tcontroller_inputs:\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP,       CONTROLLER_INPUT_ATTACK_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP_RIGHT, CONTROLLER_INPUT_SPECIAL_UP\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP_LEFT, CONTROLLER_INPUT_SPECIAL_UP_RIGHT\n\t\tcontroller_callbacks_lo:\n\t\t.byt <pepper_start_up_tilt,            <pepper_start_up_tilt\n\t\t.byt <pepper_start_up_tilt,            <pepper_start_witch_fly\n\t\t.byt <pepper_start_witch_fly_left,     <pepper_start_witch_fly_right\n\t\tcontroller_callbacks_hi:\n\t\t.byt >pepper_start_up_tilt,            >pepper_start_up_tilt\n\t\t.byt >pepper_start_up_tilt,            >pepper_start_witch_fly\n\t\t.byt >pepper_start_witch_fly_left,     >pepper_start_witch_fly_right\n\t\tcontroller_default_callback:\n\t\t.word no_input\n\t\t&INPUT_TABLE_LENGTH = controller_callbacks_lo - controller_inputs\n\t.)\n}\n\n!include \"characters/std_aerial_input.asm\"\n!include \"characters/std_crashing.asm\"\n!include \"characters/std_thrown.asm\"\n!include \"characters/std_respawn.asm\"\n!include \"characters/std_innexistant.asm\"\n!include \"characters/std_spawn.asm\"\n!include \"characters/std_idle.asm\"\n!include \"characters/std_running.asm\"\n!include \"characters/std_jumping.asm\"\n!include \"characters/std_landing.asm\"\n!include \"characters/std_helpless.asm\"\n!include \"characters/std_shielding.asm\"\n!include \"characters/std_walljumping.asm\"\n\n;\n; Aerial wrench grab\n;\n\n;TODO could use tpl_aerial_attack if there was a way to add extra code to init\n.(\n\tpepper_anim_aerial_wrench_grab_dur:\n\t\t.byt pepper_anim_aerial_wrench_grab_dur_pal, pepper_anim_aerial_wrench_grab_dur_ntsc\n\n\t&pepper_start_aerial_wrench_grab:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_AERIAL_WRENCH_GRAB\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_aerial_wrench_grab_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Cancel momentum\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_aerial_wrench_grab\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_aerial_wrench_grab\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_aerial_wrench_grab:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go to falling state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_falling\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\trts\n\t.)\n.)\n\n.(\n\tPOTION_SMASH_DURATION = 34\n\tPOTION_SMASH_DURATION_NTSC = POTION_SMASH_DURATION+(((((POTION_SMASH_DURATION)*10)/5)+5)/10)\n\n\tpotion_smash_duration:\n\t\t.byt POTION_SMASH_DURATION, POTION_SMASH_DURATION_NTSC\n\tpotion_smash_gravity_time:\n\t\t.byt POTION_SMASH_DURATION-14, POTION_SMASH_DURATION_NTSC-16 ; frame perfect constant, just at the begining on idle pose\n\n\t&pepper_start_potion_smash:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_POTION_SMASH\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda potion_smash_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Cancel momentum\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_potion_smash\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_potion_smash\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_potion_smash:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go to falling state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_falling\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\t; Apply gravity, only after active frames\n\t\tldy system_index\n\t\tlda potion_smash_gravity_time, y\n\t\tcmp player_a_state_clock, x\n\t\tbcc end\n\t\t\tjmp apply_player_gravity\n\t\t\t; No return, jump to subroutine\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n!define \"anim\" {pepper_anim_dtilt}\n!define \"state\" {PEPPER_STATE_DTILT}\n!define \"routine\" {down_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n.(\n\tSTILT_DURATION = 20\n\tduration_table(STILT_DURATION, stilt_duration)\n\n\t&pepper_start_side_tilt:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_STILT\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda stilt_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_dark_stare\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_dark_stare\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_side_tilt = pepper_std_grounded_tick\n.)\n\n!define \"anim\" {pepper_anim_up_tilt}\n!define \"state\" {PEPPER_STATE_UTILT}\n!define \"routine\" {up_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n!define \"anim\" {pepper_anim_flash_potion}\n!define \"state\" {PEPPER_STATE_FLASH_POTION}\n!define \"routine\" {flash_potion}\n!include \"characters/tpl_grounded_attack.asm\"\n\n.(\n\tHIT_TIME_PAL = 6\n\tHIT_TIME_NTSC = 7\n\n\tpepper_anim_aerial_wrench_dur:\n\t\t.byt pepper_anim_aerial_wrench_dur_pal, pepper_anim_aerial_wrench_dur_ntsc\n\thit_time:\n\t\t.byt pepper_anim_aerial_wrench_dur_pal-HIT_TIME_PAL, pepper_anim_aerial_wrench_dur_ntsc-HIT_TIME_NTSC\n\n\t&pepper_start_aerial_side:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_AERIAL_SIDE\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_aerial_wrench_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_aerial_wrench\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_aerial_wrench\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_aerial_side:\n\t.(\n\t\t; Set little upward velocity on the strong hit frame, dramatic effect\n\t\t; Note - no NTSC conversion, it is barely one pixel per frame, would be unoticable if lower\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp hit_time, y\n\t\tbne ok\n\t\t\tlda #$fe\n\t\t\tsta player_a_velocity_v, x\n\t\t\tsta player_a_velocity_v_low, x\n\t\tok:\n\n\t\t;rts ; Fallthrough to generic aerial tick\n\t.)\n\t&pepper_tick_aerial_firework:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go to falling state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_falling\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\tjsr pepper_aerial_directional_influence ;NOTE this line makes it not like other aerial attacks which do not allow influence (maybe others should be changed)\n\t\tjmp apply_player_gravity\n\t\t;rts ; useless, jump to subroutine\n\t.)\n.)\n\n;TODO could be \"tpl_aerial_move\" if aerial moves could have aerial_directional_influence (se NOTE above)\n.(\n\tpepper_anim_firework_dur:\n\t\t.byt pepper_anim_firework_dur_pal, pepper_anim_firework_dur_ntsc\n\n\t&pepper_start_aerial_firework:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_AERIAL_FIREWORK\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_firework_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_firework\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_firework\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n.)\n\n.(\n\t;FIXME keyframe system is not ntsc-friendly\n\t&pepper_start_hyperspeed_landing:\n\t.(\n\t\tkeyframe_index = player_a_state_field1\n\n\t\t; Set state\n\t\tlda #PEPPER_STATE_HYPERSPEED_LANDING\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tlda #0\n\t\tsta player_a_state_clock, x\n\t\tsta keyframe_index, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_hyperspeed_flying\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_hyperspeed_flying\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_hyperspeed_landing:\n\t.(\n\t\tkeyframe_index = player_a_state_field1\n\n\t\t; Store next keyframe index in register Y, skip keyframe logic if after the end\n\t\tldy keyframe_index, x\n\t\tcmp #KEYFRAMES_END\n\t\tbeq end\n\n\t\t\t; Set velocity if on velocity keyframe\n\t\t\t.(\n\t\t\t\tlda velocity_keyframes_clock, y\n\t\t\t\tcmp player_a_state_clock, x\n\t\t\t\tbne ok\n\n\t\t\t\t\t; Set vertical velocity (direct)\n\t\t\t\t\tlda velocity_keyframes_v_lsb, y\n\t\t\t\t\tsta player_a_velocity_v_low, x\n\t\t\t\t\tlda velocity_keyframes_v_msb, y\n\t\t\t\t\tsta player_a_velocity_v, x\n\n\t\t\t\t\t; Set horizontal velocity (negated if right facing)\n\t\t\t\t\tlda player_a_direction, x\n\t\t\t\t\tbne right\n\t\t\t\t\t\tleft:\n\t\t\t\t\t\t\tlda velocity_keyframes_h_lsb, y\n\t\t\t\t\t\t\tsta player_a_velocity_h_low, x\n\t\t\t\t\t\t\tlda velocity_keyframes_h_msb, y\n\t\t\t\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\t\t\t\tjmp velocity_ok\n\t\t\t\t\t\tright:\n\t\t\t\t\t\t\tlda velocity_keyframes_h_lsb, y\n\t\t\t\t\t\t\teor #%11111111\n\t\t\t\t\t\t\tclc\n\t\t\t\t\t\t\tadc #1\n\t\t\t\t\t\t\tsta player_a_velocity_h_low, x\n\n\t\t\t\t\t\t\tlda velocity_keyframes_h_msb, y\n\t\t\t\t\t\t\teor #%11111111\n\t\t\t\t\t\t\tadc #0\n\t\t\t\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\t\t\tvelocity_ok:\n\n\t\t\t\t\t; Update next keyframe\n\t\t\t\t\tinc keyframe_index, x\n\n\t\t\t\tok:\n\t\t\t.)\n\n\t\t\t; Tick clock\n\t\t\tinc player_a_state_clock, x\n\n\t\tend:\n\t\trts\n\n\t\tvelocity_keyframes_clock:\n\t\t.byt 0,   12, 20\n\t\tvelocity_keyframes_v_lsb:\n\t\t.byt $00, $00, $00\n\t\tvelocity_keyframes_v_msb:\n\t\t.byt $00, $01, $04\n\t\tvelocity_keyframes_h_lsb:\n\t\t.byt $00, $c0, $00\n\t\tvelocity_keyframes_h_msb:\n\t\t.byt $00, $ff, $ff\n\t\tKEYFRAMES_END = velocity_keyframes_v_lsb - velocity_keyframes_clock + 1\n\t.)\n.)\n\n;TODO could be \"tpl_grounded_attack\" if there was a way to play audio sound (not sure it should be, it is definitely not a standard attack)\n.(\n\tpepper_anim_hyperspeed_crash_dur:\n\t\t.byt pepper_anim_hyperspeed_crash_dur_pal, pepper_anim_hyperspeed_crash_dur_ntsc\n\n\t&pepper_start_hyperspeed_crashing:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_HYPERSPEED_CRASHING\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_hyperspeed_crash_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_hyperspeed_crash\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_hyperspeed_crash\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Play crash sound\n\t\tjmp audio_play_crash\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_hyperspeed_crashing = pepper_std_grounded_tick\n.)\n\n;\n; Plan 7-B\n;\n\n.(\n\t&pepper_start_plan_7b:\n\t.(\n\t\t; Check that carrot is placed\n\t\t;  if not - place him\n\t\t;  else - teleport\n\t\tldy pepper_carrot_anim_per_player, x\n\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\tcmp #PEPPER_CARROT_NOT_PLACED\n\t\tbeq pepper_start_send_carrot\n\n\t\t\tplaced:\n\t\t\t\tjmp pepper_start_teleport\n\t\t\t\t; No return, jump to subroutine\n\t.)\n.)\n\n.(\n\tpepper_anim_send_carrot_dur:\n\t\t.byt pepper_anim_send_carrot_dur_pal, pepper_anim_send_carrot_dur_ntsc\n\n\t&pepper_start_send_carrot:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_SEND_CARROT\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_send_carrot_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Cancel any momentum\n\t\t;lda #0\n\t\t;sta player_a_velocity_h, x\n\t\t;sta player_a_velocity_h_low, x\n\t\t;sta player_a_velocity_v, x\n\t\t;sta player_a_velocity_v_low, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_send_carrot\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_send_carrot\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_send_carrot:\n\t.(\n\t\tcarrot_anim_direction = tmpfield1\n\t\tstage_element_handler_lsb = tmpfield1\n\t\tstage_element_handler_msb = tmpfield2\n\t\tcollision_point_x_lsb = tmpfield3\n\t\tcollision_point_y_lsb = tmpfield4\n\t\tcollision_point_x_msb = tmpfield5\n\t\tcollision_point_y_msb = tmpfield6\n\t\tcarrot_offset_x_lsb = tmpfield7\n\t\tcarrot_offset_x_msb = tmpfield8\n\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, place carrot and return to inactive state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\t; Put carrot offset in fixed location\n\t\t\tldy player_a_direction, x\n\t\t\tsty carrot_anim_direction\n\n\t\t\tlda carrot_offset_x_lsb_per_direction, y\n\t\t\tsta carrot_offset_x_lsb\n\t\t\tlda carrot_offset_x_msb_per_direction, y\n\t\t\tsta carrot_offset_x_msb\n\n\t\t\t; Place carrot\n\t\t\tldy pepper_carrot_anim_per_player, x\n\n\t\t\tlda player_a_x, x\n\t\t\tclc\n\t\t\tadc carrot_offset_x_lsb\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_LSB, y\n\t\t\tsta collision_point_x_lsb\n\t\t\tlda player_a_x_screen, x\n\t\t\tadc carrot_offset_x_msb\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tsta collision_point_x_msb\n\n\t\t\tlda player_a_y, x\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_Y_LSB, y\n\t\t\tsta collision_point_y_lsb\n\t\t\tlda player_a_y_screen, x\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_Y_MSB, y\n\t\t\tsta collision_point_y_msb\n\n\t\t\tlda carrot_anim_direction\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_DIRECTION, y\n\n\t\t\t; Remove carrot if in a platform\n\t\t\t.(\n\t\t\t\tlda #<check_in_platform\n\t\t\t\tsta stage_element_handler_lsb\n\t\t\t\tlda #>check_in_platform\n\t\t\t\tsta stage_element_handler_msb\n\t\t\t\tjsr stage_iterate_all_elements\n\t\t\t\t; Note - expects none of stage_iterate_all_elements nor check_in_platform to overwrite register X\n\n\t\t\t\tcpy #$ff\n\t\t\t\tbne ok\n\t\t\t\t\tlda #PEPPER_CARROT_NOT_PLACED\n\t\t\t\t\tldy pepper_carrot_anim_per_player, x\n\t\t\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\t\tok:\n\t\t\t.)\n\n\t\t\t; Return to inactive state\n\t\t\tjmp pepper_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\n\t\tdo_tick:\n\t\t\t; Apply friction and gravity\n\t\t\tjmp pepper_apply_friction_lite\n\t\t\t; No return, jump to subroutine\n\n\t\t;rts ; useless, no branch returns\n\n\t\tcarrot_offset_x_lsb_per_direction:\n\t\t.byt $e8, $18\n\t\tcarrot_offset_x_msb_per_direction:\n\t\t.byt $ff, $00\n\t.)\n.)\n\n.(\n\tTELEPORT_TP_TIME_PAL = 8\n\tTELEPORT_MOVE_TIME_PAL = 6\n\tTELEPORT_TP_TIME_NTSC = 9\n\tTELEPORT_MOVE_TIME_NTSC = 7\n\n\tpepper_anim_teleport_dur:\n\t\t.byt pepper_anim_teleport_dur_pal, pepper_anim_teleport_dur_ntsc\n\ttp_time:\n\t\t.byt pepper_anim_teleport_dur_pal-TELEPORT_TP_TIME_PAL, pepper_anim_teleport_dur_ntsc-TELEPORT_TP_TIME_NTSC\n\tmove_time:\n\t\t.byt pepper_anim_teleport_dur_pal-TELEPORT_MOVE_TIME_PAL+1, pepper_anim_teleport_dur_ntsc-TELEPORT_MOVE_TIME_NTSC+1\n\n\t&pepper_start_teleport:\n\t.(\n\t\tmove_step_x = player_a_state_field1\n\t\tmove_step_y = player_a_state_field2\n\n\t\t; Set state\n\t\tlda #PEPPER_STATE_TELEPORT\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_teleport_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Reset velocity\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Compute move step distance\n\t\t.(\n\t\t\t; Y = offset to carrot's animation\n\t\t\tldy pepper_carrot_anim_per_player, x\n\n\t\t\t; move_step_x = (carrot_x - player_x) / 4\n\t\t\t;FIXME check that divide by 4 works with ntsc (if move time is 5 frames, it may appear strange, or even SD if near blastline)\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_LSB, y\n\t\t\tsec\n\t\t\tsbc player_a_x, x\n\t\t\tsta move_step_x, x\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tsbc player_a_x_screen, x\n\t\t\tlsr\n\t\t\tror move_step_x, x\n\t\t\tlsr\n\t\t\tror move_step_x, x\n\n\t\t\t; move_step_y = (carrot_y - player_y) / 4\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_LSB, y\n\t\t\tsec\n\t\t\tsbc player_a_y, x\n\t\t\tsta move_step_y, x\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_MSB, y\n\t\t\tsbc player_a_y_screen, x\n\t\t\tlsr\n\t\t\tror move_step_y, x\n\t\t\tlsr\n\t\t\tror move_step_y, x\n\t\t.)\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_teleport\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_teleport\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_teleport:\n\t.(\n\t\tmove_step_x = player_a_state_field1\n\t\tmove_step_y = player_a_state_field2\n\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go to inactive state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\t; Apply logic depending on time\n\t\t;  Disapear animation - Do nothing\n\t\t;  Traveling - Move toward Carrot\n\t\t;  Reapear animation - Place exactly on Carrot and remove Carrot\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp tp_time, y\n\t\tbeq final_position ; at teleport time\n\t\tcmp move_time, y\n\t\tbeq start_move\n\t\tjmp end\n\n\t\tstart_move:\n\n\t\t\t; Set velocity to pre-computed values\n\t\t\tlda move_step_x, x\n\t\t\tsta player_a_velocity_h, x\n\t\t\tlda move_step_y, x\n\t\t\tsta player_a_velocity_v, x\n\t\t\t; No need to set low bytes, already at zero\n\t\t\tjmp end\n\n\t\tfinal_position:\n\n\t\t\t; Y = offset to carrot's animation\n\t\t\tldy pepper_carrot_anim_per_player, x\n\n\t\t\t; Reset velocity\n\t\t\tlda #0\n\t\t\tsta player_a_velocity_h_low, x\n\t\t\tsta player_a_velocity_h, x\n\t\t\tsta player_a_velocity_v_low, x\n\t\t\tsta player_a_velocity_v, x\n\n\t\t\t; Check that carrot is placed, else skip doing anything\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tcmp #PEPPER_CARROT_NOT_PLACED\n\t\t\tbeq end\n\n\t\t\t; Change Pepper's position\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tsta player_a_x_screen, x\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_LSB, y\n\t\t\tsta player_a_x, x\n\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_LSB, y\n\t\t\tsta player_a_y, x\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_MSB, y\n\t\t\tsta player_a_y_screen, x\n\n\t\t\tlda #0\n\t\t\tsta player_a_x_low, x\n\t\t\tsta player_a_y_low, x\n\n\t\t\t; Remove carrot\n\t\t\tlda #PEPPER_CARROT_NOT_PLACED\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n.(\n\tFLY_DURATION = 25\n\tVELOCITY_H = $0200\n\tVELOCITY_V = $0100\n\tVELOCITY_H_NTSC = (VELOCITY_H*5)/6\n\n\tduration_table(FLY_DURATION, fly_duration)\n\tvelocity_table(-VELOCITY_V, velocity_v_msb, velocity_v_lsb)\n\n\t&pepper_start_witch_fly_right:\n\t.(\n\t\tlda DIRECTION_RIGHT\n\t\tsta player_a_direction, x\n\t\tjmp pepper_start_witch_fly\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\t&pepper_start_witch_fly_left:\n\t.(\n\t\tlda DIRECTION_LEFT\n\t\tsta player_a_direction, x\n\t\tjmp pepper_start_witch_fly\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\t&pepper_start_witch_fly:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_WITCH_FLY\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda fly_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set momentum\n\t\tlda system_index\n\t\tasl\n\t\tclc\n\t\tadc player_a_direction, x\n\t\ttay\n\n\t\tlda witch_fly_velocity_h_lsb_per_direction, y\n\t\tsta player_a_velocity_h_low, x\n\t\tlda witch_fly_velocity_h_msb_per_direction, y\n\t\tsta player_a_velocity_h, x\n\n\t\tldy system_index\n\t\tlda velocity_v_lsb, y\n\t\tsta player_a_velocity_v_low,x\n\t\tlda velocity_v_msb, y\n\t\tsta player_a_velocity_v, x\n\n\t\t; Reset fall speed\n\t\tjsr reset_default_gravity\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_witch_fly\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_witch_fly\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\n\t\twitch_fly_velocity_h_lsb_per_direction:\n\t\t\t.byt <-VELOCITY_H, <VELOCITY_H\n\t\t\t.byt <-VELOCITY_H_NTSC, <VELOCITY_H_NTSC\n\t\twitch_fly_velocity_h_msb_per_direction:\n\t\t\t.byt >-VELOCITY_H, >VELOCITY_H\n\t\t\t.byt >-VELOCITY_H_NTSC, >VELOCITY_H_NTSC\n\t.)\n\n\t&pepper_tick_witch_fly:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go helpless\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_helpless\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\trts\n\t.)\n.)\n\n!define \"anim\" {pepper_anim_wrench_grab}\n!define \"state\" {PEPPER_STATE_WRENCH_GRAB}\n!define \"routine\" {wrench_grab}\n!include \"characters/tpl_grounded_attack.asm\"\n\n;\n; Dzzz\n;\n\n.(\n\tPEPPER_DZZZ_GRAVITY = $0100\n\n\tstrike_duration:\n\t\t.byt pepper_anim_dzzz_strike_dur_pal, pepper_anim_dzzz_strike_dur_ntsc\n\n\tanim_duration_table(25, charge_duration)\n\n\tvelocity_table(PEPPER_DZZZ_GRAVITY, pepper_dzzz_gravity_msb, pepper_dzzz_gravity_lsb)\n\n\t&pepper_start_dzzz_left:\n\t.(\n\t\tlda DIRECTION_LEFT\n\t\tsta player_a_direction, x\n\t\tjmp pepper_start_dzzz\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_start_dzzz_right:\n\t.(\n\t\tlda DIRECTION_RIGHT\n\t\tsta player_a_direction, x\n\t\t; Falthrough to pepper_start_dzzz\n\t.)\n\n\t&pepper_start_dzzz:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_DZZZ_CHARGE\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda charge_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Cancel vertical momentum\n\t\tlda #0\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Lower horizontal momentum\n\t\tlda player_a_velocity_h, x ; Set sign bit in carry flag, so the following bitshift is a signed division\n\t\trol\n\n\t\tror player_a_velocity_h, x\n\t\tror player_a_velocity_h_low, x\n\n\t\t; Lower gravity\n\t\tldy system_index\n\t\tlda pepper_dzzz_gravity_lsb, y\n\t\tsta player_a_gravity_lsb, x\n\t\tlda pepper_dzzz_gravity_msb, y\n\t\tsta player_a_gravity_msb, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_dzzz_charge\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_dzzz_charge\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_dzzz_charge:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\tdec player_a_state_clock, x\n\t\tbne tick\n\t\t\tjmp pepper_start_dzzz_strike\n\t\t\t; No return, jump to subroutine\n\t\ttick:\n\t\t\tjmp pepper_apply_friction_lite\n\t\t\t; No return, jump to subroutine\n\t\t;rts ; useless, no branch return\n\t.)\n\n\tpepper_start_dzzz_strike:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_DZZZ_STRIKE\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda strike_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_dzzz_strike\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_dzzz_strike\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_dzzz_strike:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\tdec player_a_state_clock, x\n\t\tbne tick\n\t\t\tjsr reset_default_gravity\n\t\t\tjmp pepper_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\t\ttick:\n\t\t\tjmp pepper_apply_friction_lite\n\t\t\t; No return, jump to subroutine\n\t\t;rts ; useless, no branch return\n\t.)\n.)\n\n!include \"characters/std_friction_routines.asm\"\n",
   "states": [
     {
       "input_routine": "pepper_input_thrown",
@@ -14459,6 +14524,16 @@
       "start_routine": "pepper_start_spawn",
       "type": "character_state",
       "update_routine": "pepper_tick_spawn"
+    },
+    {
+      "input_routine": "dummy_routine",
+      "name": "PEPPER_STATE_OWNED",
+      "offground_routine": "dummy_routine",
+      "onground_routine": "dummy_routine",
+      "onhurt_routine": "dummy_routine",
+      "start_routine": "pepper_start_owned",
+      "type": "character_state",
+      "update_routine": "dummy_routine"
     },
     {
       "input_routine": "pepper_input_idle",
@@ -14814,10 +14889,16 @@
       "PEPPER_TILE_77",
       "PEPPER_TILE_78",
       "PEPPER_TILE_79",
-      "PEPPER_TILE_80"
+      "PEPPER_TILE_80",
+      "PEPPER_TILE_81",
+      "PEPPER_TILE_82",
+      "PEPPER_TILE_83",
+      "PEPPER_TILE_84"
     ],
+    "type": "tileset",
     "tiles": [
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -14899,10 +14980,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -14984,10 +15065,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -15069,10 +15150,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -15154,10 +15235,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -15239,10 +15320,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -15324,10 +15405,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -15409,10 +15490,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -15494,10 +15575,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -15579,10 +15660,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -15664,10 +15745,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -15749,10 +15830,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -15834,10 +15915,10 @@
             2,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -15919,10 +16000,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -16004,10 +16085,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -16089,10 +16170,10 @@
             1,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -16174,10 +16255,10 @@
             1,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -16259,10 +16340,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -16344,10 +16425,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -16429,10 +16510,10 @@
             1,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -16514,10 +16595,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -16599,10 +16680,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -16684,10 +16765,10 @@
             0,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -16769,10 +16850,10 @@
             0,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -16854,10 +16935,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -16939,10 +17020,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17024,10 +17105,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17109,10 +17190,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -17194,10 +17275,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17279,10 +17360,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17364,10 +17445,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17449,10 +17530,10 @@
             3,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17534,10 +17615,10 @@
             3,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17619,10 +17700,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17704,180 +17785,10 @@
             1,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            3,
-            3,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            0,
-            3,
-            2,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            2,
-            2,
-            2,
-            2,
-            3,
-            3
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            2,
-            3,
-            0,
-            0
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            3,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            3,
-            0,
-            0,
-            0
-          ]
-        ],
-        "type": "tile"
-      },
-      {
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            3,
-            3,
-            3,
-            2,
-            3
-          ],
-          [
-            0,
-            0,
-            3,
-            3,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            3,
-            2,
-            2,
-            2,
-            3,
-            2
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            2,
-            2,
-            3,
-            3
-          ],
-          [
-            3,
-            3,
-            2,
-            2,
-            3,
-            3,
-            0,
-            0
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            2,
-            3,
-            0,
-            0
-          ]
-        ],
-        "type": "tile"
-      },
-      {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -17916,6 +17827,176 @@
             2,
             2,
             2,
+            2,
+            2
+          ],
+          [
+            0,
+            3,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            3,
+            3,
+            3,
+            2,
+            3
+          ],
+          [
+            0,
+            0,
+            3,
+            3,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            3,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            3,
+            3,
+            2,
+            2,
+            2,
+            3,
+            2
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            2,
+            2,
+            3,
+            3,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            3,
+            3,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            3,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            3,
+            2,
+            2,
+            2,
+            2,
             3,
             3
           ],
@@ -17959,10 +18040,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18044,10 +18125,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18129,10 +18210,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18214,10 +18295,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18299,10 +18380,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18384,10 +18465,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18469,10 +18550,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -18554,10 +18635,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18639,10 +18720,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18724,10 +18805,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18809,10 +18890,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -18894,10 +18975,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -18979,10 +19060,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -19064,10 +19145,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19149,10 +19230,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19234,10 +19315,10 @@
             3,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19319,10 +19400,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19404,10 +19485,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19489,10 +19570,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19574,10 +19655,10 @@
             2,
             2
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -19659,10 +19740,10 @@
             3,
             3
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19744,10 +19825,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19829,10 +19910,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -19914,10 +19995,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             3,
@@ -19999,10 +20080,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20084,10 +20165,10 @@
             3,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -20169,10 +20250,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20254,10 +20335,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20339,10 +20420,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20424,10 +20505,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20509,10 +20590,10 @@
             2,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20594,10 +20675,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20679,10 +20760,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -20764,10 +20845,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20849,10 +20930,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -20934,435 +21015,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
-        "representation": [
-          [
-            0,
-            0,
-            1,
-            3,
-            1,
-            1,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            3,
-            3,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            1,
-            2,
-            3,
-            2,
-            2
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            3,
-            3,
-            3,
-            3
-          ],
-          [
-            2,
-            0,
-            0,
-            1,
-            3,
-            2,
-            2,
-            3
-          ],
-          [
-            0,
-            1,
-            0,
-            0,
-            1,
-            3,
-            3,
-            3
-          ],
-          [
-            1,
-            3,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1
-          ]
-        ],
-        "type": "tile"
-      },
-      {
-        "representation": [
-          [
-            1,
-            1,
-            3,
-            3,
-            3,
-            3,
-            1,
-            0
-          ],
-          [
-            3,
-            1,
-            1,
-            3,
-            1,
-            1,
-            3,
-            1
-          ],
-          [
-            1,
-            3,
-            1,
-            1,
-            1,
-            0,
-            1,
-            0
-          ],
-          [
-            1,
-            1,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            3,
-            1,
-            3,
-            3,
-            1,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            1,
-            0,
-            1,
-            0
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            0,
-            0
-          ]
-        ],
-        "type": "tile"
-      },
-      {
-        "representation": [
-          [
-            1,
-            3,
-            2,
-            3,
-            3,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            1,
-            1,
-            1,
-            1,
-            1,
-            2,
-            3
-          ],
-          [
-            2,
-            0,
-            0,
-            0,
-            0,
-            1,
-            2,
-            2
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            1,
-            2,
-            2,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            1,
-            3,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            1,
-            2,
-            1,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-            0
-          ]
-        ],
-        "type": "tile"
-      },
-      {
-        "representation": [
-          [
-            2,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            3,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            1,
-            2,
-            3,
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            1,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ],
-        "type": "tile"
-      },
-      {
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            1
-          ]
-        ],
-        "type": "tile"
-      },
-      {
+        "type": "tile",
         "representation": [
           [
             0,
@@ -21415,6 +21071,431 @@
             3
           ],
           [
+            2,
+            0,
+            0,
+            1,
+            3,
+            2,
+            2,
+            3
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            1,
+            3,
+            3,
+            3
+          ],
+          [
+            1,
+            3,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            1,
+            1,
+            3,
+            3,
+            3,
+            3,
+            1,
+            0
+          ],
+          [
+            3,
+            1,
+            1,
+            3,
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            3,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0
+          ],
+          [
+            1,
+            1,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            3,
+            1,
+            3,
+            3,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            1,
+            3,
+            2,
+            3,
+            3,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            0,
+            0,
+            0,
+            0,
+            1,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            2,
+            2,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            3,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            2,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            2,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            3,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            1,
+            2,
+            3,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            0,
+            0,
+            1,
+            3,
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            2,
+            3,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
             0,
             0,
             0,
@@ -21444,10 +21525,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -21529,10 +21610,10 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             1,
@@ -21614,10 +21695,10 @@
             1,
             1
           ]
-        ],
-        "type": "tile"
+        ]
       },
       {
+        "type": "tile",
         "representation": [
           [
             2,
@@ -21699,11 +21780,349 @@
             0,
             0
           ]
-        ],
-        "type": "tile"
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            2,
+            1,
+            3,
+            1,
+            0
+          ],
+          [
+            0,
+            1,
+            3,
+            2,
+            2,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            3,
+            3,
+            2,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            3,
+            2,
+            3,
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            0,
+            1,
+            3,
+            3,
+            1,
+            3,
+            1,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1,
+            3,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            1,
+            1,
+            3,
+            1,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            1,
+            3,
+            2,
+            2,
+            1,
+            3,
+            1,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            1,
+            3,
+            1,
+            0
+          ],
+          [
+            0,
+            1,
+            2,
+            2,
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            1,
+            3,
+            1,
+            0
+          ],
+          [
+            0,
+            1,
+            3,
+            2,
+            2,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            3,
+            3,
+            3,
+            3,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            3,
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            0,
+            1,
+            3,
+            3,
+            1,
+            3,
+            1,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1,
+            3,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            1,
+            1,
+            3,
+            1,
+            0
+          ]
+        ]
+      },
+      {
+        "type": "tile",
+        "representation": [
+          [
+            1,
+            3,
+            2,
+            2,
+            1,
+            3,
+            1,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            1,
+            0,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            1,
+            0,
+            1,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
       }
-    ],
-    "type": "tileset"
+    ]
   },
   "type": "character",
   "victory_animation": {
@@ -21759,5 +22178,6 @@
     ],
     "name": "pepper_anim_victory",
     "type": "animation"
-  }
+  },
+  "sourcecode": "!define \"char_name\" {pepper}\n!define \"char_name_upper\" {PEPPER}\n\n;\n; States index\n;\n\nPEPPER_STATE_THROWN = PLAYER_STATE_THROWN\nPEPPER_STATE_RESPAWN_INVISIBLE = PLAYER_STATE_RESPAWN\nPEPPER_STATE_INNEXISTANT = PLAYER_STATE_INNEXISTANT\nPEPPER_STATE_SPAWN = PLAYER_STATE_SPAWN\nPEPPER_STATE_OWNED = PLAYER_STATE_OWNED\nPEPPER_STATE_IDLE = PLAYER_STATE_STANDING\nPEPPER_STATE_RUNNING = PLAYER_STATE_RUNNING\nPEPPER_STATE_FALLING = CUSTOM_PLAYER_STATES_BEGIN + 0\nPEPPER_STATE_LANDING = CUSTOM_PLAYER_STATES_BEGIN + 1\nPEPPER_STATE_CRASHING = CUSTOM_PLAYER_STATES_BEGIN + 2\nPEPPER_STATE_HELPLESS = CUSTOM_PLAYER_STATES_BEGIN + 3\nPEPPER_STATE_JUMPING = CUSTOM_PLAYER_STATES_BEGIN + 4\nPEPPER_STATE_SHIELDING = CUSTOM_PLAYER_STATES_BEGIN + 5\nPEPPER_STATE_SHIELDLAG = CUSTOM_PLAYER_STATES_BEGIN + 6\nPEPPER_STATE_WALLJUMPING = CUSTOM_PLAYER_STATES_BEGIN + 7\nPEPPER_STATE_DTILT = CUSTOM_PLAYER_STATES_BEGIN + 8\nPEPPER_STATE_STILT = CUSTOM_PLAYER_STATES_BEGIN + 9\nPEPPER_STATE_UTILT = CUSTOM_PLAYER_STATES_BEGIN + 10\nPEPPER_STATE_FLASH_POTION = CUSTOM_PLAYER_STATES_BEGIN + 11\nPEPPER_STATE_AERIAL_SIDE = CUSTOM_PLAYER_STATES_BEGIN + 12\nPEPPER_STATE_AERIAL_FIREWORK = CUSTOM_PLAYER_STATES_BEGIN + 13\nPEPPER_STATE_HYPERSPEED_LANDING = CUSTOM_PLAYER_STATES_BEGIN + 14\nPEPPER_STATE_HYPERSPEED_CRASHING = CUSTOM_PLAYER_STATES_BEGIN + 15\nPEPPER_STATE_AERIAL_WRENCH_GRAB = CUSTOM_PLAYER_STATES_BEGIN + 16\nPEPPER_STATE_POTION_SMASH = CUSTOM_PLAYER_STATES_BEGIN + 17\nPEPPER_STATE_SEND_CARROT = CUSTOM_PLAYER_STATES_BEGIN + 18\nPEPPER_STATE_WITCH_FLY = CUSTOM_PLAYER_STATES_BEGIN + 19\nPEPPER_STATE_TELEPORT = CUSTOM_PLAYER_STATES_BEGIN + 20\nPEPPER_STATE_WRENCH_GRAB = CUSTOM_PLAYER_STATES_BEGIN + 21\nPEPPER_STATE_DZZZ_CHARGE = CUSTOM_PLAYER_STATES_BEGIN + 22\nPEPPER_STATE_DZZZ_STRIKE = CUSTOM_PLAYER_STATES_BEGIN + 23\nPEPPER_STATE_RESPAWN_PLATFORM = CUSTOM_PLAYER_STATES_BEGIN + 24\n\n;\n; Gameplay constants\n;\n\nPEPPER_MAX_NUM_AERIAL_JUMPS = 1\nPEPPER_MAX_WALLJUMPS = 1\nPEPPER_WALL_JUMP_VELOCITY_H = $0100\nPEPPER_WALL_JUMP_VELOCITY_V = $0480\nPEPPER_WALL_JUMP_SQUAT_END = 4\nPEPPER_AIR_FRICTION_STRENGTH = 7\nPEPPER_AERIAL_DIRECTIONAL_INFLUENCE_STRENGTH = $80\nPEPPER_AERIAL_SPEED = $0100\nPEPPER_FASTFALL_SPEED = $0600\nPEPPER_GROUND_FRICTION_STRENGTH = $40\nPEPPER_JUMP_SQUAT_DURATION_PAL = 4\nPEPPER_JUMP_SQUAT_DURATION_NTSC = 5\nPEPPER_JUMP_SHORT_HOP_EXTRA_TIME_PAL = 4\nPEPPER_JUMP_SHORT_HOP_EXTRA_TIME_NTSC = 5\nPEPPER_JUMP_POWER = $0540\nPEPPER_JUMP_SHORT_HOP_POWER = $0102\nPEPPER_LANDING_MAX_VELOCITY = $0200\nPEPPER_RUNNING_INITIAL_VELOCITY = $0100\nPEPPER_RUNNING_MAX_VELOCITY = $0180\nPEPPER_RUNNING_ACCELERATION = $40\nPEPPER_TECH_SPEED = $0400\n\nPEPPER_CARROT_NOT_PLACED = $80\n\n;\n; Constants data\n;\n\n!include \"characters/std_constant_tables.asm\"\n\n; Offset of 12 bytes reserved in player's object data for storing carrot's animation state\npepper_carrot_anim_per_player:\n.byt (player_a_objects-stage_data)+1, (player_b_objects-stage_data)+1\npepper_carrot_anim_ptr_lsb_per_player:\n.byt <(player_a_objects+1), <(player_b_objects+1)\npepper_carrot_anim_ptr_msb_per_player:\n.byt >(player_a_objects+1), >(player_b_objects+1)\n\n; Sprites reserved for carrot's animation\npepper_first_carrot_sprite_per_player:\n.byt INGAME_PLAYER_A_LAST_SPRITE-1, INGAME_PLAYER_B_LAST_SPRITE-1\npepper_last_carrot_sprite_per_player:\n.byt INGAME_PLAYER_A_LAST_SPRITE, INGAME_PLAYER_B_LAST_SPRITE\npepper_last_anim_sprite_per_player:\n.byt INGAME_PLAYER_A_LAST_SPRITE-2, INGAME_PLAYER_B_LAST_SPRITE-2\n\npepper_netload:\n.(\n\tcpx #0\n\tbeq load_element\n\t\tldx #player_b_objects-player_a_objects\n\tload_element:\n\n\t; Carrot's animation\n\tlda esp_rx_buffer+0, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_X_LSB, x\n\tlda esp_rx_buffer+1, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_X_MSB, x\n\tlda esp_rx_buffer+2, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_Y_LSB, x\n\tlda esp_rx_buffer+3, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_Y_MSB, x\n\tlda esp_rx_buffer+4, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_DATA_VECTOR_LSB, x\n\tlda esp_rx_buffer+5, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_DATA_VECTOR_MSB, x\n\tlda esp_rx_buffer+6, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_DIRECTION, x\n\tlda esp_rx_buffer+7, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_CLOCK, x\n\t;lda esp_rx_buffer+, y\n\t;sta player_a_objects+1+ANIMATION_STATE_OFFSET_FIRST_SPRITE_NUM, x ; Never change\n\t;lda esp_rx_buffer+, y\n\t;sta player_a_objects+1+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM, x ; Never change\n\tlda esp_rx_buffer+8, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_FRAME_VECTOR_LSB, x\n\tlda esp_rx_buffer+9, y\n\tsta player_a_objects+1+ANIMATION_STATE_OFFSET_FRAME_VECTOR_MSB, x\n\t;TODO ANIMATION_STATE_OFFSET_NTSC_CNT\n\n\t; Update message's cursor\n\ttya\n\tclc\n\tadc #10\n\ttay\n\n\trts\n.)\n\npepper_init:\n.(\n\n\t; Reserve two sprites for carrot\n\t.(\n\t\tanimation_state_vector = tmpfield2\n\n\t\t; Animation's last sprite num = animation's last sprite num - 2\n\t\tlda anim_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda anim_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\tldy #0\n\t\tlda pepper_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\n\t\t; Same for out of screen indicator\n\t\tlda oos_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda oos_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\t;ldy #0 ; useless, already set above\n\t\tlda pepper_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\t.)\n\n\t; Initialize carrot's animation state\n\t.(\n\t\tlda pepper_carrot_anim_ptr_lsb_per_player, x\n\t\tsta tmpfield11\n\t\tlda pepper_carrot_anim_ptr_msb_per_player, x\n\t\tsta tmpfield12\n\t\tlda #<pepper_anim_carrot\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_carrot\n\t\tsta tmpfield14\n\t\tjsr animation_init_state\n\n\t\tlda pepper_first_carrot_sprite_per_player, x\n\t\tldy #ANIMATION_STATE_OFFSET_FIRST_SPRITE_NUM\n\t\tsta (tmpfield11), y\n\t\tlda pepper_last_carrot_sprite_per_player, x\n\t\tldy #ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\tsta (tmpfield11), y\n\n\t\tlda #PEPPER_CARROT_NOT_PLACED\n\t\tldy #ANIMATION_STATE_OFFSET_X_MSB\n\t\tsta (tmpfield11), y\n\n\t\t; Tick global onground as it reinits walljumps\n\t\tjmp pepper_global_onground\n\t.)\n\n\t;rts ; useless, jump to subrountine\n\n\tanim_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\tanim_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\n\toos_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\toos_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n.)\n\npepper_global_onground:\n.(\n\t; Initialize walljump counter\n\tlda #PEPPER_MAX_WALLJUMPS\n\tsta player_a_walljump, x\n\trts\n.)\n\npepper_global_tick:\n.(\n\t; Update carrot's animation\n\tlda pepper_carrot_anim_ptr_lsb_per_player, x\n\tsta tmpfield11\n\tlda pepper_carrot_anim_ptr_msb_per_player, x\n\tsta tmpfield12\n\tstx player_number\n\n\tlda network_rollback_mode\n\tbne drawn\n\t\tjsr animation_draw\n\tdrawn:\n\tjsr animation_tick\n\n\t; Restore X register\n\tldx player_number\n\n\t; Check if carrot has been hit\n\t.(\n\t\t; boxes_overlap parameters\n\t\thitbox_left_pixel = tmpfield1 ; Rectangle 1 left (pixel)\n\t\thitbox_right_pixel = tmpfield2 ; Rectangle 1 right (pixel)\n\t\thitbox_top_pixel = tmpfield3 ; Rectangle 1 top (pixel)\n\t\thitbox_bot_pixel = tmpfield4 ; Rectangle 1 bottom (pixel)\n\t\thurtbox_left_pixel = tmpfield5 ; Rectangle 2 left (pixel)\n\t\thurtbox_right_pixel = tmpfield6 ; Rectangle 2 right (pixel)\n\t\thurtbox_top_pixel = tmpfield7 ; Rectangle 2 top (pixel)\n\t\thurtbox_bot_pixel = tmpfield8 ; Rectangle 2 bottom (pixel)\n\t\thitbox_left_screen = tmpfield9 ; Rectangle 1 left (screen)\n\t\thitbox_right_screen = tmpfield10 ; Rectangle 1 right (screen)\n\t\thitbox_top_screen = tmpfield11 ; Rectangle 1 top (screen)\n\t\thitbox_bot_screen = tmpfield12 ; Rectangle 1 bottom (screen)\n\t\thurtbox_left_screen = tmpfield13 ; Rectangle 2 left (screen)\n\t\thurtbox_right_screen = tmpfield14 ; Rectangle 2 right (screen)\n\t\thurtbox_top_screen = tmpfield15 ; Rectangle 2 top (screen)\n\t\thurtbox_bot_screen = tmpfield16 ; Rectangle 2 bottom (screen)\n\n\t\t; Y = offset to carrot's animation\n\t\tldy pepper_carrot_anim_per_player, x\n\n\t\t; Check that carrot is placed, else skip doing anything\n\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\tcmp #PEPPER_CARROT_NOT_PLACED\n\t\tbeq end_carrot_hit\n\n\t\t; Check if opponent's hitbox is active\n\t\tSWITCH_SELECTED_PLAYER\n\t\tlda player_a_hitbox_enabled, x\n\t\tbeq end_carrot_hit\n\n\t\t\t; Store opponent's hitbox in collision routine parameters\n\t\t\tlda player_a_hitbox_left, x\n\t\t\tsta hitbox_left_pixel\n\t\t\tlda player_a_hitbox_right, x\n\t\t\tsta hitbox_right_pixel\n\t\t\tlda player_a_hitbox_top, x\n\t\t\tsta hitbox_top_pixel\n\t\t\tlda player_a_hitbox_bottom, x\n\t\t\tsta hitbox_bot_pixel\n\n\t\t\tlda player_a_hitbox_left_msb, x\n\t\t\tsta hitbox_left_screen\n\t\t\tlda player_a_hitbox_right_msb, x\n\t\t\tsta hitbox_right_screen\n\t\t\tlda player_a_hitbox_top_msb, x\n\t\t\tsta hitbox_top_screen\n\t\t\tlda player_a_hitbox_bottom_msb, x\n\t\t\tsta hitbox_bot_screen\n\n\t\t\t; Store carrot's hurtbox in collision routine parameters\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_LSB, y\n\t\t\tsta hurtbox_left_pixel\n\t\t\tclc\n\t\t\tadc #8\n\t\t\tsta hurtbox_right_pixel\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tsta hurtbox_left_screen\n\t\t\tadc #0\n\t\t\tsta hurtbox_right_screen\n\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_LSB, y\n\t\t\tsta hurtbox_top_pixel\n\t\t\tclc\n\t\t\tadc #16\n\t\t\tsta hurtbox_bot_pixel\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_MSB, y\n\t\t\tsta hurtbox_top_screen\n\t\t\tadc #0\n\t\t\tsta hurtbox_bot_screen\n\n\t\t\t; Do the collision check\n\t\t\tjsr boxes_overlap\n\t\t\tbne end_carrot_hit\n\n\t\t\t\t; Carrot was hit, remove him\n\t\t\t\tlda #PEPPER_CARROT_NOT_PLACED\n\t\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\n\t\tend_carrot_hit:\n\t\tldx player_number\n\t.)\n\n\trts\n.)\n\n; Input table for aerial moves, special values are\n;  fast_fall - mandatorily on INPUT_NONE to take effect on release of DOWN\n;  jump      - automatically choose between aerial jump or wall jump\n;  no_input  - expected default\n!define \"PEPPER_AERIAL_INPUTS_TABLE\" {\n\t.(\n\t\tcontroller_inputs\n\t\t.byt CONTROLLER_INPUT_NONE,              CONTROLLER_INPUT_SPECIAL_RIGHT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_LEFT,      CONTROLLER_INPUT_JUMP\n\t\t.byt CONTROLLER_INPUT_JUMP_RIGHT,        CONTROLLER_INPUT_JUMP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_LEFT,       CONTROLLER_INPUT_ATTACK_RIGHT\n\t\t.byt CONTROLLER_INPUT_DOWN_TILT,         CONTROLLER_INPUT_ATTACK_UP\n\t\t.byt CONTROLLER_INPUT_JAB,               CONTROLLER_INPUT_SPECIAL\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP,        CONTROLLER_INPUT_SPECIAL_DOWN,\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP_RIGHT,   CONTROLLER_INPUT_ATTACK_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP_RIGHT,  CONTROLLER_INPUT_SPECIAL_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_DOWN_LEFT,  CONTROLLER_INPUT_ATTACK_DOWN_RIGHT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_DOWN_LEFT, CONTROLLER_INPUT_SPECIAL_DOWN_RIGHT\n\t\tcontroller_callbacks_lo\n\t\t.byt <fast_fall,                        <pepper_start_dzzz_right\n\t\t.byt <pepper_start_dzzz_left,           <jump\n\t\t.byt <jump,                             <jump\n\t\t.byt <pepper_start_aerial_side,         <pepper_start_aerial_side\n\t\t.byt <pepper_start_hyperspeed_landing,  <pepper_start_aerial_firework\n\t\t.byt <pepper_start_potion_smash,        <pepper_start_plan_7b\n\t\t.byt <pepper_start_witch_fly,           <pepper_start_aerial_wrench_grab\n\t\t.byt <pepper_start_aerial_firework,     <pepper_start_aerial_firework\n\t\t.byt <pepper_start_witch_fly_right,     <pepper_start_witch_fly_left\n\t\t.byt <pepper_start_hyperspeed_landing,  <pepper_start_hyperspeed_landing\n\t\t.byt <pepper_start_aerial_wrench_grab,  <pepper_start_aerial_wrench_grab\n\t\tcontroller_callbacks_hi\n\t\t.byt >fast_fall,                        >pepper_start_dzzz_right\n\t\t.byt >pepper_start_dzzz_left,           >jump\n\t\t.byt >jump,                             >jump\n\t\t.byt >pepper_start_aerial_side,         >pepper_start_aerial_side\n\t\t.byt >pepper_start_hyperspeed_landing,  >pepper_start_aerial_firework\n\t\t.byt >pepper_start_potion_smash,        >pepper_start_plan_7b\n\t\t.byt >pepper_start_witch_fly,           >pepper_start_aerial_wrench_grab\n\t\t.byt >pepper_start_aerial_firework,     >pepper_start_aerial_firework\n\t\t.byt >pepper_start_witch_fly_right,     >pepper_start_witch_fly_left\n\t\t.byt >pepper_start_hyperspeed_landing,  >pepper_start_hyperspeed_landing\n\t\t.byt >pepper_start_aerial_wrench_grab,  >pepper_start_aerial_wrench_grab\n\t\tcontroller_default_callback\n\t\t.word no_input\n\t\t&INPUT_TABLE_LENGTH = controller_callbacks_lo - controller_inputs\n\t.)\n}\n\n; Input table for idle state, special values are\n;  input_idle_jump_left - Force LEFT direction and jump\n;  input_idle_jump_right - Force RIGHT direction and jump\n;  input_idle_tilt_left - Left tilt\n;  input_idle_tilt_right - Right tilt\n;  input_idle_left - Run to the left\n;  input_idle_right - Run to the right\n;  no_input - Default\n!define \"PEPPER_IDLE_INPUTS_TABLE\" {\n\t.(\n\t\tcontroller_inputs:\n\t\t.byt CONTROLLER_INPUT_LEFT,               CONTROLLER_INPUT_RIGHT\n\t\t.byt CONTROLLER_INPUT_JUMP,               CONTROLLER_INPUT_JUMP_RIGHT\n\t\t.byt CONTROLLER_INPUT_JUMP_LEFT,          CONTROLLER_INPUT_TECH\n\t\t.byt CONTROLLER_INPUT_TECH_LEFT,          CONTROLLER_INPUT_TECH_RIGHT\n\t\t.byt CONTROLLER_INPUT_DOWN_TILT,          CONTROLLER_INPUT_ATTACK_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_RIGHT,       CONTROLLER_INPUT_SPECIAL_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_RIGHT,      CONTROLLER_INPUT_SPECIAL\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP,         CONTROLLER_INPUT_SPECIAL_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP_RIGHT,   CONTROLLER_INPUT_ATTACK_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP_RIGHT,    CONTROLLER_INPUT_ATTACK_UP\n\t\t.byt CONTROLLER_INPUT_JAB,                CONTROLLER_INPUT_SPECIAL_DOWN_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_DOWN_RIGHT, CONTROLLER_INPUT_SPECIAL_DOWN\n\t\t.byt CONTROLLER_INPUT_ATTACK_DOWN_LEFT,   CONTROLLER_INPUT_ATTACK_DOWN_RIGHT\n\t\tcontroller_callbacks_lsb:\n\t\t.byt <input_idle_left,                  <input_idle_right\n\t\t.byt <pepper_start_jumping,             <input_idle_jump_right\n\t\t.byt <input_idle_jump_left,             <pepper_start_shielding\n\t\t.byt <pepper_start_shielding,           <pepper_start_shielding\n\t\t.byt <pepper_start_down_tilt,           <input_idle_tilt_left\n\t\t.byt <input_idle_tilt_right,            <pepper_start_dzzz_left\n\t\t.byt <pepper_start_dzzz_right,          <pepper_start_plan_7b\n\t\t.byt <pepper_start_witch_fly,           <pepper_start_witch_fly_left\n\t\t.byt <pepper_start_witch_fly_right,     <pepper_start_up_tilt\n\t\t.byt <pepper_start_up_tilt,             <pepper_start_up_tilt\n\t\t.byt <pepper_start_flash_potion,        <pepper_start_wrench_grab\n\t\t.byt <pepper_start_wrench_grab,         <pepper_start_wrench_grab\n\t\t.byt <pepper_start_down_tilt,           <pepper_start_down_tilt\n\t\tcontroller_callbacks_msb:\n\t\t.byt >input_idle_left,                  >input_idle_right\n\t\t.byt >pepper_start_jumping,             >input_idle_jump_right\n\t\t.byt >input_idle_jump_left,             >pepper_start_shielding\n\t\t.byt >pepper_start_shielding,           >pepper_start_shielding\n\t\t.byt >pepper_start_down_tilt,           >input_idle_tilt_left\n\t\t.byt >input_idle_tilt_right,            >pepper_start_dzzz_left\n\t\t.byt >pepper_start_dzzz_right,          >pepper_start_plan_7b\n\t\t.byt >pepper_start_witch_fly,           >pepper_start_witch_fly_left\n\t\t.byt >pepper_start_witch_fly_right,     >pepper_start_up_tilt\n\t\t.byt >pepper_start_up_tilt,             >pepper_start_up_tilt\n\t\t.byt >pepper_start_flash_potion,        >pepper_start_wrench_grab\n\t\t.byt >pepper_start_wrench_grab,         >pepper_start_wrench_grab\n\t\t.byt >pepper_start_down_tilt,           >pepper_start_down_tilt\n\t\tcontroller_default_callback:\n\t\t.word no_input\n\t\t&INPUT_TABLE_LENGTH = controller_callbacks_lsb - controller_inputs\n\t.)\n}\n\n; Input table for running state, special values are\n;  input_running_left - Change running direction to the left (if not already running to the left)\n;  input_runnning_right - Change running direction to the right (if not already running to the right)\n!define \"PEPPER_RUNNING_INPUTS_TABLE\" {\n\t.(\n\t\tcontroller_inputs:\n\t\t.byt CONTROLLER_INPUT_LEFT,               CONTROLLER_INPUT_RIGHT\n\t\t.byt CONTROLLER_INPUT_JUMP,               CONTROLLER_INPUT_JUMP_RIGHT,\n\t\t.byt CONTROLLER_INPUT_JUMP_LEFT,          CONTROLLER_INPUT_TECH\n\t\t.byt CONTROLLER_INPUT_TECH_LEFT,          CONTROLLER_INPUT_TECH_RIGHT\n\t\t.byt CONTROLLER_INPUT_DOWN_TILT,          CONTROLLER_INPUT_ATTACK_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_RIGHT,       CONTROLLER_INPUT_SPECIAL_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_RIGHT,      CONTROLLER_INPUT_SPECIAL\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP,         CONTROLLER_INPUT_SPECIAL_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP_RIGHT,   CONTROLLER_INPUT_SPECIAL_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP_RIGHT,    CONTROLLER_INPUT_ATTACK_UP\n\t\t.byt CONTROLLER_INPUT_JAB,                CONTROLLER_INPUT_SPECIAL_DOWN_LEFT\n\t\t.byt CONTROLLER_INPUT_SPECIAL_DOWN_RIGHT, CONTROLLER_INPUT_SPECIAL_DOWN\n\t\t.byt CONTROLLER_INPUT_ATTACK_DOWN_LEFT,   CONTROLLER_INPUT_ATTACK_DOWN_RIGHT\n\t\tcontroller_callbacks_lsb:\n\t\t.byt <input_running_left,               <input_running_right\n\t\t.byt <pepper_start_jumping,             <pepper_start_jumping\n\t\t.byt <pepper_start_jumping,             <pepper_start_shielding\n\t\t.byt <pepper_start_shielding,           <pepper_start_shielding\n\t\t.byt <pepper_start_down_tilt,           <pepper_start_side_tilt\n\t\t.byt <pepper_start_side_tilt,           <pepper_start_dzzz_left\n\t\t.byt <pepper_start_dzzz_right,          <pepper_start_plan_7b\n\t\t.byt <pepper_start_witch_fly,           <pepper_start_witch_fly_left\n\t\t.byt <pepper_start_witch_fly_right,     <pepper_start_up_tilt\n\t\t.byt <pepper_start_up_tilt,             <pepper_start_up_tilt\n\t\t.byt <pepper_start_flash_potion,        <pepper_start_wrench_grab\n\t\t.byt <pepper_start_wrench_grab,         <pepper_start_wrench_grab\n\t\t.byt <pepper_start_down_tilt,           <pepper_start_down_tilt\n\t\tcontroller_callbacks_msb:\n\t\t.byt >input_running_left,               >input_running_right\n\t\t.byt >pepper_start_jumping,             >pepper_start_jumping\n\t\t.byt >pepper_start_jumping,             >pepper_start_shielding\n\t\t.byt >pepper_start_shielding,           >pepper_start_shielding\n\t\t.byt >pepper_start_down_tilt,           >pepper_start_side_tilt\n\t\t.byt >pepper_start_side_tilt,           >pepper_start_dzzz_left\n\t\t.byt >pepper_start_dzzz_right,          >pepper_start_plan_7b\n\t\t.byt >pepper_start_witch_fly,           >pepper_start_witch_fly_left\n\t\t.byt >pepper_start_witch_fly_right,     >pepper_start_up_tilt\n\t\t.byt >pepper_start_up_tilt,             >pepper_start_up_tilt\n\t\t.byt >pepper_start_flash_potion,        >pepper_start_wrench_grab\n\t\t.byt >pepper_start_wrench_grab,         >pepper_start_wrench_grab\n\t\t.byt >pepper_start_down_tilt,           >pepper_start_down_tilt\n\t\tcontroller_default_callback:\n\t\t.word pepper_start_idle\n\n\t\t&INPUT_TABLE_LENGTH = controller_callbacks_lsb - controller_inputs\n\t.)\n}\n\n; Input table for jumping state state (only used during jumpsquat), special values are\n;  no_input - default\n!define \"PEPPER_JUMPSQUAT_INPUTS_TABLE\" {\n\t.(\n\t\tcontroller_inputs:\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP,       CONTROLLER_INPUT_ATTACK_UP_LEFT\n\t\t.byt CONTROLLER_INPUT_ATTACK_UP_RIGHT, CONTROLLER_INPUT_SPECIAL_UP\n\t\t.byt CONTROLLER_INPUT_SPECIAL_UP_LEFT, CONTROLLER_INPUT_SPECIAL_UP_RIGHT\n\t\tcontroller_callbacks_lo:\n\t\t.byt <pepper_start_up_tilt,            <pepper_start_up_tilt\n\t\t.byt <pepper_start_up_tilt,            <pepper_start_witch_fly\n\t\t.byt <pepper_start_witch_fly_left,     <pepper_start_witch_fly_right\n\t\tcontroller_callbacks_hi:\n\t\t.byt >pepper_start_up_tilt,            >pepper_start_up_tilt\n\t\t.byt >pepper_start_up_tilt,            >pepper_start_witch_fly\n\t\t.byt >pepper_start_witch_fly_left,     >pepper_start_witch_fly_right\n\t\tcontroller_default_callback:\n\t\t.word no_input\n\t\t&INPUT_TABLE_LENGTH = controller_callbacks_lo - controller_inputs\n\t.)\n}\n\n!include \"characters/std_aerial_input.asm\"\n!include \"characters/std_crashing.asm\"\n!include \"characters/std_thrown.asm\"\n!include \"characters/std_respawn.asm\"\n!include \"characters/std_innexistant.asm\"\n!include \"characters/std_spawn.asm\"\n!include \"characters/std_idle.asm\"\n!include \"characters/std_running.asm\"\n!include \"characters/std_jumping.asm\"\n!include \"characters/std_landing.asm\"\n!include \"characters/std_helpless.asm\"\n!include \"characters/std_shielding.asm\"\n!include \"characters/std_walljumping.asm\"\n!include \"characters/std_owned.asm\"\n\n;\n; Aerial wrench grab\n;\n\n;TODO could use tpl_aerial_attack if there was a way to add extra code to init\n.(\n\tpepper_anim_aerial_wrench_grab_dur:\n\t\t.byt pepper_anim_aerial_wrench_grab_dur_pal, pepper_anim_aerial_wrench_grab_dur_ntsc\n\n\t&pepper_start_aerial_wrench_grab:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_AERIAL_WRENCH_GRAB\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_aerial_wrench_grab_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Cancel momentum\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_aerial_wrench_grab\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_aerial_wrench_grab\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_aerial_wrench_grab:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go to falling state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_falling\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\trts\n\t.)\n.)\n\n.(\n\tPOTION_SMASH_DURATION = 34\n\tPOTION_SMASH_DURATION_NTSC = POTION_SMASH_DURATION+(((((POTION_SMASH_DURATION)*10)/5)+5)/10)\n\n\tpotion_smash_duration:\n\t\t.byt POTION_SMASH_DURATION, POTION_SMASH_DURATION_NTSC\n\tpotion_smash_gravity_time:\n\t\t.byt POTION_SMASH_DURATION-14, POTION_SMASH_DURATION_NTSC-16 ; frame perfect constant, just at the begining on idle pose\n\n\t&pepper_start_potion_smash:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_POTION_SMASH\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda potion_smash_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Cancel momentum\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_potion_smash\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_potion_smash\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_potion_smash:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go to falling state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_falling\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\t; Apply gravity, only after active frames\n\t\tldy system_index\n\t\tlda potion_smash_gravity_time, y\n\t\tcmp player_a_state_clock, x\n\t\tbcc end\n\t\t\tjmp apply_player_gravity\n\t\t\t; No return, jump to subroutine\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n!define \"anim\" {pepper_anim_dtilt}\n!define \"state\" {PEPPER_STATE_DTILT}\n!define \"routine\" {down_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n.(\n\tSTILT_DURATION = 20\n\tduration_table(STILT_DURATION, stilt_duration)\n\n\t&pepper_start_side_tilt:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_STILT\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda stilt_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_dark_stare\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_dark_stare\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_side_tilt = pepper_std_grounded_tick\n.)\n\n!define \"anim\" {pepper_anim_up_tilt}\n!define \"state\" {PEPPER_STATE_UTILT}\n!define \"routine\" {up_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n!define \"anim\" {pepper_anim_flash_potion}\n!define \"state\" {PEPPER_STATE_FLASH_POTION}\n!define \"routine\" {flash_potion}\n!include \"characters/tpl_grounded_attack.asm\"\n\n.(\n\tHIT_TIME_PAL = 6\n\tHIT_TIME_NTSC = 7\n\n\tpepper_anim_aerial_wrench_dur:\n\t\t.byt pepper_anim_aerial_wrench_dur_pal, pepper_anim_aerial_wrench_dur_ntsc\n\thit_time:\n\t\t.byt pepper_anim_aerial_wrench_dur_pal-HIT_TIME_PAL, pepper_anim_aerial_wrench_dur_ntsc-HIT_TIME_NTSC\n\n\t&pepper_start_aerial_side:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_AERIAL_SIDE\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_aerial_wrench_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_aerial_wrench\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_aerial_wrench\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_aerial_side:\n\t.(\n\t\t; Set little upward velocity on the strong hit frame, dramatic effect\n\t\t; Note - no NTSC conversion, it is barely one pixel per frame, would be unoticable if lower\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp hit_time, y\n\t\tbne ok\n\t\t\tlda #$fe\n\t\t\tsta player_a_velocity_v, x\n\t\t\tsta player_a_velocity_v_low, x\n\t\tok:\n\n\t\t;rts ; Fallthrough to generic aerial tick\n\t.)\n\t&pepper_tick_aerial_firework:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go to falling state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_falling\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\tjsr pepper_aerial_directional_influence ;NOTE this line makes it not like other aerial attacks which do not allow influence (maybe others should be changed)\n\t\tjmp apply_player_gravity\n\t\t;rts ; useless, jump to subroutine\n\t.)\n.)\n\n;TODO could be \"tpl_aerial_move\" if aerial moves could have aerial_directional_influence (se NOTE above)\n.(\n\tpepper_anim_firework_dur:\n\t\t.byt pepper_anim_firework_dur_pal, pepper_anim_firework_dur_ntsc\n\n\t&pepper_start_aerial_firework:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_AERIAL_FIREWORK\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_firework_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_firework\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_firework\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n.)\n\n.(\n\t;FIXME keyframe system is not ntsc-friendly\n\t&pepper_start_hyperspeed_landing:\n\t.(\n\t\tkeyframe_index = player_a_state_field1\n\n\t\t; Set state\n\t\tlda #PEPPER_STATE_HYPERSPEED_LANDING\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tlda #0\n\t\tsta player_a_state_clock, x\n\t\tsta keyframe_index, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_hyperspeed_flying\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_hyperspeed_flying\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_hyperspeed_landing:\n\t.(\n\t\tkeyframe_index = player_a_state_field1\n\n\t\t; Store next keyframe index in register Y, skip keyframe logic if after the end\n\t\tldy keyframe_index, x\n\t\tcmp #KEYFRAMES_END\n\t\tbeq end\n\n\t\t\t; Set velocity if on velocity keyframe\n\t\t\t.(\n\t\t\t\tlda velocity_keyframes_clock, y\n\t\t\t\tcmp player_a_state_clock, x\n\t\t\t\tbne ok\n\n\t\t\t\t\t; Set vertical velocity (direct)\n\t\t\t\t\tlda velocity_keyframes_v_lsb, y\n\t\t\t\t\tsta player_a_velocity_v_low, x\n\t\t\t\t\tlda velocity_keyframes_v_msb, y\n\t\t\t\t\tsta player_a_velocity_v, x\n\n\t\t\t\t\t; Set horizontal velocity (negated if right facing)\n\t\t\t\t\tlda player_a_direction, x\n\t\t\t\t\tbne right\n\t\t\t\t\t\tleft:\n\t\t\t\t\t\t\tlda velocity_keyframes_h_lsb, y\n\t\t\t\t\t\t\tsta player_a_velocity_h_low, x\n\t\t\t\t\t\t\tlda velocity_keyframes_h_msb, y\n\t\t\t\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\t\t\t\tjmp velocity_ok\n\t\t\t\t\t\tright:\n\t\t\t\t\t\t\tlda velocity_keyframes_h_lsb, y\n\t\t\t\t\t\t\teor #%11111111\n\t\t\t\t\t\t\tclc\n\t\t\t\t\t\t\tadc #1\n\t\t\t\t\t\t\tsta player_a_velocity_h_low, x\n\n\t\t\t\t\t\t\tlda velocity_keyframes_h_msb, y\n\t\t\t\t\t\t\teor #%11111111\n\t\t\t\t\t\t\tadc #0\n\t\t\t\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\t\t\tvelocity_ok:\n\n\t\t\t\t\t; Update next keyframe\n\t\t\t\t\tinc keyframe_index, x\n\n\t\t\t\tok:\n\t\t\t.)\n\n\t\t\t; Tick clock\n\t\t\tinc player_a_state_clock, x\n\n\t\tend:\n\t\trts\n\n\t\tvelocity_keyframes_clock:\n\t\t.byt 0,   12, 20\n\t\tvelocity_keyframes_v_lsb:\n\t\t.byt $00, $00, $00\n\t\tvelocity_keyframes_v_msb:\n\t\t.byt $00, $01, $04\n\t\tvelocity_keyframes_h_lsb:\n\t\t.byt $00, $c0, $00\n\t\tvelocity_keyframes_h_msb:\n\t\t.byt $00, $ff, $ff\n\t\tKEYFRAMES_END = velocity_keyframes_v_lsb - velocity_keyframes_clock + 1\n\t.)\n.)\n\n;TODO could be \"tpl_grounded_attack\" if there was a way to play audio sound (not sure it should be, it is definitely not a standard attack)\n.(\n\tpepper_anim_hyperspeed_crash_dur:\n\t\t.byt pepper_anim_hyperspeed_crash_dur_pal, pepper_anim_hyperspeed_crash_dur_ntsc\n\n\t&pepper_start_hyperspeed_crashing:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_HYPERSPEED_CRASHING\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_hyperspeed_crash_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_hyperspeed_crash\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_hyperspeed_crash\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Play crash sound\n\t\tjmp audio_play_crash\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_hyperspeed_crashing = pepper_std_grounded_tick\n.)\n\n;\n; Plan 7-B\n;\n\n.(\n\t&pepper_start_plan_7b:\n\t.(\n\t\t; Check that carrot is placed\n\t\t;  if not - place him\n\t\t;  else - teleport\n\t\tldy pepper_carrot_anim_per_player, x\n\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\tcmp #PEPPER_CARROT_NOT_PLACED\n\t\tbeq pepper_start_send_carrot\n\n\t\t\tplaced:\n\t\t\t\tjmp pepper_start_teleport\n\t\t\t\t; No return, jump to subroutine\n\t.)\n.)\n\n.(\n\tpepper_anim_send_carrot_dur:\n\t\t.byt pepper_anim_send_carrot_dur_pal, pepper_anim_send_carrot_dur_ntsc\n\n\t&pepper_start_send_carrot:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_SEND_CARROT\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_send_carrot_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Cancel any momentum\n\t\t;lda #0\n\t\t;sta player_a_velocity_h, x\n\t\t;sta player_a_velocity_h_low, x\n\t\t;sta player_a_velocity_v, x\n\t\t;sta player_a_velocity_v_low, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_send_carrot\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_send_carrot\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_send_carrot:\n\t.(\n\t\tcarrot_anim_direction = tmpfield1\n\t\tstage_element_handler_lsb = tmpfield1\n\t\tstage_element_handler_msb = tmpfield2\n\t\tcollision_point_x_lsb = tmpfield3\n\t\tcollision_point_y_lsb = tmpfield4\n\t\tcollision_point_x_msb = tmpfield5\n\t\tcollision_point_y_msb = tmpfield6\n\t\tcarrot_offset_x_lsb = tmpfield7\n\t\tcarrot_offset_x_msb = tmpfield8\n\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, place carrot and return to inactive state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\t; Put carrot offset in fixed location\n\t\t\tldy player_a_direction, x\n\t\t\tsty carrot_anim_direction\n\n\t\t\tlda carrot_offset_x_lsb_per_direction, y\n\t\t\tsta carrot_offset_x_lsb\n\t\t\tlda carrot_offset_x_msb_per_direction, y\n\t\t\tsta carrot_offset_x_msb\n\n\t\t\t; Place carrot\n\t\t\tldy pepper_carrot_anim_per_player, x\n\n\t\t\tlda player_a_x, x\n\t\t\tclc\n\t\t\tadc carrot_offset_x_lsb\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_LSB, y\n\t\t\tsta collision_point_x_lsb\n\t\t\tlda player_a_x_screen, x\n\t\t\tadc carrot_offset_x_msb\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tsta collision_point_x_msb\n\n\t\t\tlda player_a_y, x\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_Y_LSB, y\n\t\t\tsta collision_point_y_lsb\n\t\t\tlda player_a_y_screen, x\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_Y_MSB, y\n\t\t\tsta collision_point_y_msb\n\n\t\t\tlda carrot_anim_direction\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_DIRECTION, y\n\n\t\t\t; Remove carrot if in a platform\n\t\t\t.(\n\t\t\t\tlda #<check_in_platform\n\t\t\t\tsta stage_element_handler_lsb\n\t\t\t\tlda #>check_in_platform\n\t\t\t\tsta stage_element_handler_msb\n\t\t\t\tjsr stage_iterate_all_elements\n\t\t\t\t; Note - expects none of stage_iterate_all_elements nor check_in_platform to overwrite register X\n\n\t\t\t\tcpy #$ff\n\t\t\t\tbne ok\n\t\t\t\t\tlda #PEPPER_CARROT_NOT_PLACED\n\t\t\t\t\tldy pepper_carrot_anim_per_player, x\n\t\t\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\t\tok:\n\t\t\t.)\n\n\t\t\t; Return to inactive state\n\t\t\tjmp pepper_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\n\t\tdo_tick:\n\t\t\t; Apply friction and gravity\n\t\t\tjmp pepper_apply_friction_lite\n\t\t\t; No return, jump to subroutine\n\n\t\t;rts ; useless, no branch returns\n\n\t\tcarrot_offset_x_lsb_per_direction:\n\t\t.byt $e8, $18\n\t\tcarrot_offset_x_msb_per_direction:\n\t\t.byt $ff, $00\n\t.)\n.)\n\n.(\n\tTELEPORT_TP_TIME_PAL = 8\n\tTELEPORT_MOVE_TIME_PAL = 6\n\tTELEPORT_TP_TIME_NTSC = 9\n\tTELEPORT_MOVE_TIME_NTSC = 7\n\n\tpepper_anim_teleport_dur:\n\t\t.byt pepper_anim_teleport_dur_pal, pepper_anim_teleport_dur_ntsc\n\ttp_time:\n\t\t.byt pepper_anim_teleport_dur_pal-TELEPORT_TP_TIME_PAL, pepper_anim_teleport_dur_ntsc-TELEPORT_TP_TIME_NTSC\n\tmove_time:\n\t\t.byt pepper_anim_teleport_dur_pal-TELEPORT_MOVE_TIME_PAL+1, pepper_anim_teleport_dur_ntsc-TELEPORT_MOVE_TIME_NTSC+1\n\n\t&pepper_start_teleport:\n\t.(\n\t\tmove_step_x = player_a_state_field1\n\t\tmove_step_y = player_a_state_field2\n\n\t\t; Set state\n\t\tlda #PEPPER_STATE_TELEPORT\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda pepper_anim_teleport_dur, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Reset velocity\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Compute move step distance\n\t\t.(\n\t\t\t; Y = offset to carrot's animation\n\t\t\tldy pepper_carrot_anim_per_player, x\n\n\t\t\t; move_step_x = (carrot_x - player_x) / 4\n\t\t\t;FIXME check that divide by 4 works with ntsc (if move time is 5 frames, it may appear strange, or even SD if near blastline)\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_LSB, y\n\t\t\tsec\n\t\t\tsbc player_a_x, x\n\t\t\tsta move_step_x, x\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tsbc player_a_x_screen, x\n\t\t\tlsr\n\t\t\tror move_step_x, x\n\t\t\tlsr\n\t\t\tror move_step_x, x\n\n\t\t\t; move_step_y = (carrot_y - player_y) / 4\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_LSB, y\n\t\t\tsec\n\t\t\tsbc player_a_y, x\n\t\t\tsta move_step_y, x\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_MSB, y\n\t\t\tsbc player_a_y_screen, x\n\t\t\tlsr\n\t\t\tror move_step_y, x\n\t\t\tlsr\n\t\t\tror move_step_y, x\n\t\t.)\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_teleport\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_teleport\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_teleport:\n\t.(\n\t\tmove_step_x = player_a_state_field1\n\t\tmove_step_y = player_a_state_field2\n\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go to inactive state\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\t; Apply logic depending on time\n\t\t;  Disapear animation - Do nothing\n\t\t;  Traveling - Move toward Carrot\n\t\t;  Reapear animation - Place exactly on Carrot and remove Carrot\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp tp_time, y\n\t\tbeq final_position ; at teleport time\n\t\tcmp move_time, y\n\t\tbeq start_move\n\t\tjmp end\n\n\t\tstart_move:\n\n\t\t\t; Set velocity to pre-computed values\n\t\t\tlda move_step_x, x\n\t\t\tsta player_a_velocity_h, x\n\t\t\tlda move_step_y, x\n\t\t\tsta player_a_velocity_v, x\n\t\t\t; No need to set low bytes, already at zero\n\t\t\tjmp end\n\n\t\tfinal_position:\n\n\t\t\t; Y = offset to carrot's animation\n\t\t\tldy pepper_carrot_anim_per_player, x\n\n\t\t\t; Reset velocity\n\t\t\tlda #0\n\t\t\tsta player_a_velocity_h_low, x\n\t\t\tsta player_a_velocity_h, x\n\t\t\tsta player_a_velocity_v_low, x\n\t\t\tsta player_a_velocity_v, x\n\n\t\t\t; Check that carrot is placed, else skip doing anything\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tcmp #PEPPER_CARROT_NOT_PLACED\n\t\t\tbeq end\n\n\t\t\t; Change Pepper's position\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\t\t\tsta player_a_x_screen, x\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_X_LSB, y\n\t\t\tsta player_a_x, x\n\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_LSB, y\n\t\t\tsta player_a_y, x\n\t\t\tlda stage_data+ANIMATION_STATE_OFFSET_Y_MSB, y\n\t\t\tsta player_a_y_screen, x\n\n\t\t\tlda #0\n\t\t\tsta player_a_x_low, x\n\t\t\tsta player_a_y_low, x\n\n\t\t\t; Remove carrot\n\t\t\tlda #PEPPER_CARROT_NOT_PLACED\n\t\t\tsta stage_data+ANIMATION_STATE_OFFSET_X_MSB, y\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n.(\n\tFLY_DURATION = 25\n\tVELOCITY_H = $0200\n\tVELOCITY_V = $0100\n\tVELOCITY_H_NTSC = (VELOCITY_H*5)/6\n\n\tduration_table(FLY_DURATION, fly_duration)\n\tvelocity_table(-VELOCITY_V, velocity_v_msb, velocity_v_lsb)\n\n\t&pepper_start_witch_fly_right:\n\t.(\n\t\tlda DIRECTION_RIGHT\n\t\tsta player_a_direction, x\n\t\tjmp pepper_start_witch_fly\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\t&pepper_start_witch_fly_left:\n\t.(\n\t\tlda DIRECTION_LEFT\n\t\tsta player_a_direction, x\n\t\tjmp pepper_start_witch_fly\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\t&pepper_start_witch_fly:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_WITCH_FLY\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda fly_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set momentum\n\t\tlda system_index\n\t\tasl\n\t\tclc\n\t\tadc player_a_direction, x\n\t\ttay\n\n\t\tlda witch_fly_velocity_h_lsb_per_direction, y\n\t\tsta player_a_velocity_h_low, x\n\t\tlda witch_fly_velocity_h_msb_per_direction, y\n\t\tsta player_a_velocity_h, x\n\n\t\tldy system_index\n\t\tlda velocity_v_lsb, y\n\t\tsta player_a_velocity_v_low,x\n\t\tlda velocity_v_msb, y\n\t\tsta player_a_velocity_v, x\n\n\t\t; Reset fall speed\n\t\tjsr reset_default_gravity\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_witch_fly\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_witch_fly\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\n\t\twitch_fly_velocity_h_lsb_per_direction:\n\t\t\t.byt <-VELOCITY_H, <VELOCITY_H\n\t\t\t.byt <-VELOCITY_H_NTSC, <VELOCITY_H_NTSC\n\t\twitch_fly_velocity_h_msb_per_direction:\n\t\t\t.byt >-VELOCITY_H, >VELOCITY_H\n\t\t\t.byt >-VELOCITY_H_NTSC, >VELOCITY_H_NTSC\n\t.)\n\n\t&pepper_tick_witch_fly:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\t; After move's time is out, go helpless\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp pepper_start_helpless\n\t\t\t; No return, jump to subroutine\n\t\tdo_tick:\n\n\t\trts\n\t.)\n.)\n\n!define \"anim\" {pepper_anim_wrench_grab}\n!define \"state\" {PEPPER_STATE_WRENCH_GRAB}\n!define \"routine\" {wrench_grab}\n!include \"characters/tpl_grounded_attack.asm\"\n\n;\n; Dzzz\n;\n\n.(\n\tPEPPER_DZZZ_GRAVITY = $0100\n\n\tstrike_duration:\n\t\t.byt pepper_anim_dzzz_strike_dur_pal, pepper_anim_dzzz_strike_dur_ntsc\n\n\tanim_duration_table(25, charge_duration)\n\n\tvelocity_table(PEPPER_DZZZ_GRAVITY, pepper_dzzz_gravity_msb, pepper_dzzz_gravity_lsb)\n\n\t&pepper_start_dzzz_left:\n\t.(\n\t\tlda DIRECTION_LEFT\n\t\tsta player_a_direction, x\n\t\tjmp pepper_start_dzzz\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_start_dzzz_right:\n\t.(\n\t\tlda DIRECTION_RIGHT\n\t\tsta player_a_direction, x\n\t\t; Falthrough to pepper_start_dzzz\n\t.)\n\n\t&pepper_start_dzzz:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_DZZZ_CHARGE\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda charge_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Cancel vertical momentum\n\t\tlda #0\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Lower horizontal momentum\n\t\tlda player_a_velocity_h, x ; Set sign bit in carry flag, so the following bitshift is a signed division\n\t\trol\n\n\t\tror player_a_velocity_h, x\n\t\tror player_a_velocity_h_low, x\n\n\t\t; Lower gravity\n\t\tldy system_index\n\t\tlda pepper_dzzz_gravity_lsb, y\n\t\tsta player_a_gravity_lsb, x\n\t\tlda pepper_dzzz_gravity_msb, y\n\t\tsta player_a_gravity_msb, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_dzzz_charge\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_dzzz_charge\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_dzzz_charge:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\tdec player_a_state_clock, x\n\t\tbne tick\n\t\t\tjmp pepper_start_dzzz_strike\n\t\t\t; No return, jump to subroutine\n\t\ttick:\n\t\t\tjmp pepper_apply_friction_lite\n\t\t\t; No return, jump to subroutine\n\t\t;rts ; useless, no branch return\n\t.)\n\n\tpepper_start_dzzz_strike:\n\t.(\n\t\t; Set state\n\t\tlda #PEPPER_STATE_DZZZ_STRIKE\n\t\tsta player_a_state, x\n\n\t\t; Reset clock\n\t\tldy system_index\n\t\tlda strike_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<pepper_anim_dzzz_strike\n\t\tsta tmpfield13\n\t\tlda #>pepper_anim_dzzz_strike\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&pepper_tick_dzzz_strike:\n\t.(\n\t\tjsr pepper_global_tick\n\n\t\tdec player_a_state_clock, x\n\t\tbne tick\n\t\t\tjsr reset_default_gravity\n\t\t\tjmp pepper_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\t\ttick:\n\t\t\tjmp pepper_apply_friction_lite\n\t\t\t; No return, jump to subroutine\n\t\t;rts ; useless, no branch return\n\t.)\n.)\n\n!include \"characters/std_friction_routines.asm\"\n"
 }
