@@ -798,6 +798,9 @@ const app = Vue.createApp({
         <router-view :key="routerKey"></router-view>
       </div>
     </div>
+    <footer id="footer">
+      Source code: <a href="https://github.com/benoitryder/stb-mod-editor" target="_blank"><i class="fab fa-github"/> benoitryder/stb-mod-editor</a>
+    </footer>
   `,
 });
 

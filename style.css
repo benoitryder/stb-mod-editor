@@ -32,6 +32,17 @@ body {
   margin: 1em 0.5em;
 }
 
+#footer {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  color: #404040;
+}
+#footer a:link, #footer a:visited {
+  color: #404040;
+}
+
+
 button.icon {
   background-color: #ddd;
   color: black;
