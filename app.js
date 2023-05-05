@@ -771,8 +771,8 @@ const app = Vue.createApp({
           <li><i class="fas fa-fw fa-palette" /> <router-link to="/colors">Color swaps</router-link></li>
           <li><i class="fas fa-fw fa-code" /> <router-link to="/code">Source code</router-link></li>
           <li><i class="fas fa-fw fa-robot" /> <router-link to="/ai">Artificial intelligence</router-link></li>
+          <li style="margin-top: 1em"><i class="far fa-fw fa-question-circle" /> <router-link to="/help">Help</router-link></li>
         </ul>
-        <p><router-link to="/help">Help</router-link></p>
       </div>
       <div class="tree-files">
         <div class="tree-file-bar">
