@@ -2337,7 +2337,7 @@ const HelpTab = {
           <li>Use <i class="fas fa-upload"/> to reload the current file</li>
           <li>Click on a file name to reload it</li>
           <li>Use <i class="fas fa-trash-alt"/> to remove a saved file</li>
-          <li>Files preceded with <i class="fa-external-link-alt" /> are loaded from a predefined URL.</li>
+          <li>Files preceded with <i class="fas fa-external-link-alt" /> are loaded from a predefined URL.</li>
         </ul>
       </li>
       <li>
