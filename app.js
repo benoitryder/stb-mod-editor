@@ -2194,8 +2194,12 @@ const CodeTab = {
   template: `
     <div v-if="tree">
       <h2>Source code</h2>
-      <div>
-        <label>Net load routine: <input v-model="tree.netload_routine" style="width: 40%" /></label>
+      <div class="character-routines">
+        <ul>
+          <li><label><span>Global tick routine:</span> <input v-model="tree.global_tick_routine" /></label></li>
+          <li><label><span>Projectile hit routine:</span> <input v-model="tree.projectile_hit_routine" style="width: 40%" /></label></li>
+          <li><label><span>Net load routine:</span> <input v-model="tree.netload_routine" style="width: 40%" /></label></li>
+        </ul>
       </div>
       <div>
         <h3>States</h3>
