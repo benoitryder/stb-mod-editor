@@ -1128,6 +1128,14 @@ app.component('stb-animation-frame', {
       }
     },
 
+    selectSprite(index) {
+      if (this.selectedSprite === index) {
+        this.selectedSprite = null;
+      } else {
+        this.selectedSprite = index;
+      }
+    },
+
     dragStartSpriteOnGrid(ev, sprite) {
       this.selectedSprite = sprite
 
@@ -1245,7 +1253,7 @@ app.component('stb-animation-frame', {
               <stb-sprite-thumbnail
                 :sprite="props.item"
                 :class="{ selected: props.item === selectedSprite }"
-                @click="selectedSprite = props.item"
+                @click="selectSprite(props.item)"
                />
             </template>
           </dnd-list>
