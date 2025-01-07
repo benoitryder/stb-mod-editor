@@ -3,6 +3,7 @@
     "sinbad": "data/sinbad.json",
     "kiki": "data/kiki.json",
     "pepper": "data/pepper.json",
-    "vgsage": "data/vgsage.json"
+    "vgsage": "data/vgsage.json",
+    "sunny": "data/sunny.json"
   }
 }
