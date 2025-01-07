@@ -953,6 +953,7 @@ app.component('stb-animation-frame', {
   },
 
   mounted() {
+    this.$watch('frame', () => { this.selectedSprite = null });
     this.$watch('frame.duration', (newval, oldval) => { if (newval < 1) this.frame.duration = oldval });
     this.$watch('frame.hurtbox.left', (newval, oldval) => { if (this.frame.hurtbox && newval > this.frame.hurtbox.right) this.frame.hurtbox.left = oldval });
     this.$watch('frame.hurtbox.top', (newval, oldval) => { if (this.frame.hurtbox && newval > this.frame.hurtbox.bottom) this.frame.hurtbox.top = oldval });
