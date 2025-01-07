@@ -1453,7 +1453,7 @@ app.component('stb-state', {
   },
 
   template: `
-    <div class="stb-state">
+    <div class="code-routines">
       <i class="fas fa-chevron-down" @click="unroll = !unroll" /> <input v-model="state.name" /> <i class="fas fa-trash-alt" @click="$emit('delete')" />
       <ul v-show="unroll">
         <li><label><span>Start routine:</span> <input :value="state.start_routine" @change="state.start_routine = $event.target.value || null" /></label></li>
@@ -2194,7 +2194,7 @@ const CodeTab = {
   template: `
     <div v-if="tree">
       <h2>Source code</h2>
-      <div class="character-routines">
+      <div class="code-routines">
         <ul>
           <li><label><span>Global tick routine:</span> <input v-model="tree.global_tick_routine" /></label></li>
           <li><label><span>Projectile hit routine:</span> <input v-model="tree.projectile_hit_routine" style="width: 40%" /></label></li>

@@ -535,49 +535,26 @@ div.ai-attack-canvas canvas {
   margin: 0;
 }
 
-.stb-state input {
+.code-routines input {
   width: 30em;
 }
 
-.stb-state ul {
+.code-routines ul {
   list-style-type: none;
   padding: 0;
   margin: 0.2em 0 0.5em 2em;
 }
-.stb-state li label {
+.code-routines li label {
   display: flex;
   width: 30%;
   min-width: 40em;
   padding: 0.1em;
 }
-.stb-state li span {
+.code-routines li span {
   flex: 1;
 }
-.stb-state li input {
+.code-routines li input {
   flex: 3;
-}
-
-.character-routines input {
-  width: 30em;
-}
-
-.character-routines ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0.2em 0 0.5em 2em;
-}
-.character-routines li label {
-  display: flex;
-  width: 30%;
-  min-width: 40em;
-  padding: 0.1em;
-}
-.character-routines li span {
-  flex: 2;
-  text-wrap: nowrap;
-}
-.character-routines li input {
-  flex: 5;
 }
 
 #help i.fas {
