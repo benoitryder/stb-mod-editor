@@ -166,10 +166,10 @@ class Utils {
     }
   }
 
-  static animationRect(animation, { margin = 0 }) {
+  static animationRect(animation, { boxes = false, origin = false, margin = 0 }) {
     const rects = animation.frames
       .filter(f => f.sprites.length !== 0)
-      .map(f => this.frameRect(f, { margin }));
+      .map(f => this.frameRect(f, { boxes, origin, margin }));
     const x0 = Math.min(...rects.map(r => r.x));
     const y0 = Math.min(...rects.map(r => r.y));
     const x1 = Math.max(...rects.map(r => r.x + r.width));
@@ -937,7 +937,7 @@ app.component('stb-illustration', {
 
 
 app.component('stb-animation-frame', {
-  props: ['frame'],
+  props: ['frame', 'rect'],
   inject: ['tree', 'conf'],
 
   data() {
@@ -947,10 +947,6 @@ app.component('stb-animation-frame', {
   },
 
   computed: {
-    rect() {
-      return Utils.frameRect(this.frame, { boxes: true, origin: true, margin: 1 });
-    },
-
     hitboxType() {
       return this.frame.hitbox === null ? 'none' : ({'animation_direct_hitbox': 'direct', 'animation_custom_hitbox': 'custom'}[this.frame.hitbox.type]);
     },
@@ -1887,9 +1883,12 @@ const AnimationTab = {
   },
 
   computed: {
-    rect() {
+    thumbnailRect() {
       //XXX Rect is "aligned" on sprites, not invidual pixels
       return Utils.animationRect(this.animation, { margin: 1 });
+    },
+    frameRect() {
+      return Utils.animationRect(this.animation, { boxes: true, origin: true, margin: 1 });
     },
   },
 
@@ -2025,7 +2024,7 @@ const AnimationTab = {
             <stb-frame-thumbnail
               :frame="props.item"
               :zoom="2"
-              :rect="rect"
+              :rect="thumbnailRect"
               :class="{ selected: props.item === selectedFrame }"
               @click="updateFrame(props.item)"
              />
@@ -2042,10 +2041,10 @@ const AnimationTab = {
         <div class="icon" @click="removeSelectedFrame()" v-show="selectedFrame">
           <i class="fas fa-trash-alt" />
         </div>
-        <stb-animation-thumbnail :animation="animation" :zoom="2" :rect="rect" />
+        <stb-animation-thumbnail :animation="animation" :zoom="2" :rect="thumbnailRect" />
       </div>
       <div>
-        <stb-animation-frame v-if="selectedFrame" :frame="selectedFrame" draggable />
+        <stb-animation-frame v-if="selectedFrame" :frame="selectedFrame" :rect="frameRect" draggable />
       </div>
     </div>
   `,
