@@ -46,6 +46,23 @@ const cloneData = function(data) {
   return JSON.parse(JSON.stringify(data));
 }
 
+// Hold and manage event listener handlers
+class EventHandlers {
+  handlers = [];
+
+  register(target, name, handler) {
+    this.handlers.push([target, name, handler]);
+    target.addEventListener(name, handler);
+  }
+
+  remove() {
+    for (let [target, name, handler] of this.handlers) {
+      target.removeEventListener(name, handler);
+    }
+  }
+};
+
+
 // Convert a CSS-style rgb color to an hex color
 const rgb2hex = function(rgb) {
   return '#' + (rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
@@ -558,10 +575,10 @@ const app = Vue.createApp({
   },
 
   created() {
-    this.eventHandlers = [];
+    this.eventHandlers = new EventHandlers();
 
     // Setup simple key bindings
-    this.registerEventListener(document, 'keydown', (ev) => {
+    this.eventHandlers.register(document, 'keydown', (ev) => {
       if (ev.target !== document.body) {
         return;
       }
@@ -586,7 +603,7 @@ const app = Vue.createApp({
 
     // Setup the storage
     this.storage = new CharacterFileStorage(localStorage, this.reloadCharacterFileIndex);
-    this.registerEventListener(document, 'storage', (ev) => {
+    this.eventHandlers.register(document, 'storage', (ev) => {
       if (ev.storageArea !== this.storage.storage) {
         return;
       }
@@ -598,7 +615,7 @@ const app = Vue.createApp({
     this.reloadCharacterFileIndex();
 
     // Group all mousemove changes from a single mouse down/up
-    this.registerEventListener(window, 'mousedown', (ev) => {
+    this.eventHandlers.register(window, 'mousedown', (ev) => {
       this.historyPausedChanges = false;
     });
     let unpauseHistoryHandler = (ev) => {
@@ -608,12 +625,12 @@ const app = Vue.createApp({
         this.commitHistoryState();
       }
     }
-    this.registerEventListener(window, 'mouseup', unpauseHistoryHandler);
-    this.registerEventListener(window, 'dragend', unpauseHistoryHandler);
+    this.eventHandlers.register(window, 'mouseup', unpauseHistoryHandler);
+    this.eventHandlers.register(window, 'dragend', unpauseHistoryHandler);
   },
 
   beforeUnmount() {
-    this.removeEventListeners();
+    this.eventHandlers.remove();
   },
 
   methods: {
@@ -725,17 +742,6 @@ const app = Vue.createApp({
     downloadAsJson() {
       console.debug("download character data as JSON");
       downloadJson(this.tree, this.tree.name + '.json');
-    },
-
-    registerEventListener(target, name, handler) {
-      this.eventHandlers.push([target, name, handler]);
-      target.addEventListener(name, handler);
-    },
-
-    removeEventListeners() {
-      for (let [target, name, handler] of this.eventHandlers) {
-        target.removeEventListener(name, handler);
-      }
     },
 
     commitHistoryState() {
@@ -1905,8 +1911,25 @@ const AnimationTab = {
     this.$watch(() => this.$route.params, () => this.updateAnimation());
     this.$watch('tree', () => this.updateAnimation());
     this.updateAnimation();
+
+    // Key bindings specific to this view
+    this.eventHandlers = new EventHandlers();
+    this.eventHandlers.register(document, 'keydown', (ev) => {
+      if (ev.target !== document.body) {
+        return;
+      }
+      if (ev.key == 'j') {
+        this.scrollSelectedFrame(1);
+      } else if (ev.key == 'k') {
+        this.scrollSelectedFrame(-1);
+      }
+    });
   },
- 
+
+  beforeUnmount() {
+    this.eventHandlers.remove();
+  },
+
   methods: {
     updateAnimation() {
       if (!this.tree) {
@@ -1991,6 +2014,19 @@ const AnimationTab = {
       }
     },
 
+    scrollSelectedFrame(offset) {
+      if (!offset || !this.selectedFrame || !this.animation.frames.length) {
+        return;
+      }
+      const frames = this.animation.frames;
+      const idx = frames.indexOf(this.selectedFrame);
+      let new_idx = (idx + offset) % frames.length;
+      if (new_idx < 0) {
+        new_idx += frames.length;
+      }
+      this.selectedFrame = this.updateFrame(frames[new_idx]);
+    },
+
     isMandatoryAnimation() {
       return !this.tree.animations.includes(this.animation);
     },
@@ -2022,7 +2058,7 @@ const AnimationTab = {
           <i class="fas fa-trash-alt" />
         </div>
       </div>
-      <div class="frame-thumbnails">
+      <div class="frame-thumbnails" @wheel="ev => scrollSelectedFrame(Math.sign(ev.deltaY))">
         <dnd-list
           :items="animation.frames"
           group="frames"
@@ -2405,6 +2441,8 @@ const HelpTab = {
           <li><kbd>g</kbd> Cycle through grid modes</li>
           <li><kbd>b</kbd> Toggle display of hitboxes and hurtboxes</li>
           <li><kbd>Ctrl-Z</kbd> Undo changes</li>
+          <li><kbd>j</kbd> Frame edition: cycle frames forward</li>
+          <li><kbd>k</kbd> Frame edition: cycle frames backwards</li>
         </ul>
       </li>
     </ul>
