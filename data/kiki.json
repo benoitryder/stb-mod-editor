@@ -131,8 +131,8 @@
         "type": "character_ai_attack"
       }
     ],
-    "type": "character_ai",
-    "sourcecode_file": "characters/kiki/ai.asm"
+    "sourcecode": "kiki_ai_action_bottom_platform:\nAI_ACTION_STEP(CONTROLLER_INPUT_SPECIAL_UP, 0)\nAI_ACTION_END_STEPS\n\nkiki_ai_attack_selector:\n.(\n\t; Do not try to attack in incapacited states, it would ruin ai reactivity after such states\n\tlda player_b_state\n\tcmp #KIKI_STATE_CRASHING\n\tbeq end\n\t\tjmp ai_attack_selector\n\t\t; No return, jump to subroutine\n\tend:\n\trts\n.)\n\nkiki_ai_recover_selector:\n.(\n\tplatform_handler_lsb = tmpfield1\n\tplatform_handler_msb = tmpfield2\n\tendangered = tmpfield9\n\tlowest_platform_top = tmpfield10\n\tlowest_platform = tmpfield11\n\n\t.(\n\t\t; Check that the player is offstage, and lower than lowest platform\n\t\tlda player_b_grounded\n\t\tbne dont_try_to_recover\n\n\t\tlda #0\n\t\tsta lowest_platform_top\n\n\t\tlda #<platform_handler\n\t\tsta platform_handler_lsb\n\t\tlda #>platform_handler\n\t\tsta platform_handler_msb\n\t\tjsr stage_iterate_all_elements\n\n\t\tSIGNED_CMP(lowest_platform_top, #0, player_b_y, player_b_y_screen)\n\t\tbmi try_to_recover\n\n\t\tdont_try_to_recover:\n\t\t\tjmp end\n\n\t\ttry_to_recover:\n\t\t\t; Set action modifier to the platform's direction\n\t\t\tlda #CONTROLLER_BTN_RIGHT\n\t\t\tsta ai_current_action_modifier\n\t\t\tldy lowest_platform\n\t\t\tSIGNED_CMP(player_b_x, player_b_x_screen, stage_data+STAGE_PLATFORM_OFFSET_RIGHT COMMA y, #0)\n\t\t\tbmi direction_set\n\t\t\tlda #CONTROLLER_BTN_LEFT\n\t\t\tsta ai_current_action_modifier\n\t\t\tdirection_set:\n\n\t\t\t; Set the idle action if\n\t\t\t;  - the player is on hitstun\n\t\t\t;  - or the player is not on falling nor thrown state\n\t\t\tlda player_b_hitstun\n\t\t\tbne set_idle_action\n\n\t\t\tlda player_b_state\n\t\t\tcmp #KIKI_STATE_FALLING\n\t\t\tbeq dont_set_idle_action\n\t\t\tcmp #KIKI_STATE_THROWN\n\t\t\tbeq dont_set_idle_action\n\t\t\tcmp #KIKI_STATE_HELPLESS\n\t\t\tbne set_idle_action\n\t\t\tdont_set_idle_action:\n\n\t\t\t; Wall jump if it is possible\n\t\t\tlda player_b_walled\n\t\t\tbeq skip_walljump\n\t\t\tlda player_b_special_jumps\n\t\t\tand #%00000001\n\t\t\tbne set_jump_action\n\t\t\tskip_walljump:\n\n\t\t\t; In helpless mode, do not try anything else\n\t\t\tlda player_b_state\n\t\t\tcmp #SINBAD_STATE_HELPLESS\n\t\t\tbeq set_idle_action\n\n\t\t\t; Air jump if it is possible\n\t\t\tlda player_b_num_aerial_jumps\n\t\t\tcmp #KIKI_MAX_NUM_AERIAL_JUMPS\n\t\t\tbne set_jump_action\n\n\t\t\t; Create some floor if it is possible\n\t\t\tbit kiki_b_platform_state\n\t\t\tbpl no_platform_allowed\n\t\t\t\tjmp set_draw_low_platform_action\n\t\t\tno_platform_allowed:\n\n\t\t\t; No action found, fallthrough to set_idle_action\n\n\t\t\t; Set an action\n\t\t\tset_idle_action:\n\t\t\t\tlda #<ai_action_idle\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_idle\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_jump_action:\n\t\t\t\tlda #<ai_action_jump\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_jump\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_draw_low_platform_action:\n\t\t\t\tlda #$00\n\t\t\t\tsta ai_current_action_modifier\n\t\t\t\tlda #<kiki_ai_action_bottom_platform\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>kiki_ai_action_bottom_platform\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\t;jmp begin_action ; useless, fallthrough\n\n\t\t; Reset current action to its begining\n\t\tbegin_action:\n\t\tlda #0\n\t\tsta ai_current_action_step\n\t\tsta ai_current_action_counter\n\t\tjsr ai_delay_action\n\n\t\tend:\n\t\trts\n\t.)\n\n\tplatform_handler:\n\t.(\n\t\t; Ignore unknown platforms\n\t\tlda stage_data, y\n\t\tcmp #STAGE_ELEMENT_PLATFORM\n\t\tbeq process_simple_platform\n\t\tcmp #STAGE_ELEMENT_SMOOTH_PLATFORM\n\t\tbeq process_simple_platform\n\t\tjmp end\n\n\t\tprocess_simple_platform:\n\t\t\t; Save the top of lowest platform\n\t\t\tlda stage_data+STAGE_PLATFORM_OFFSET_TOP, y\n\t\t\tcmp lowest_platform_top\n\t\t\tbcc end\n\t\t\t\tsta lowest_platform_top\n\t\t\t\tsty lowest_platform\n\n\t\tend:\n\n\t\trts\n\t.)\n.)\n",
+    "type": "character_ai"
   },
   "animations": [
     {
@@ -2277,10 +2277,10 @@
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
+              "type": "animation_sprite",
               "x": -4,
               "y": -7
             }
@@ -2347,18 +2347,18 @@
               "y": 9
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
+              "type": "animation_sprite",
               "x": -4,
               "y": -7
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
+              "type": "animation_sprite",
               "x": 4,
               "y": -7
             }
@@ -2425,18 +2425,18 @@
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
+              "type": "animation_sprite",
               "x": -4,
               "y": -7
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
+              "type": "animation_sprite",
               "x": 4,
               "y": -7
             }
@@ -2452,17 +2452,17 @@
         {
           "duration": 6,
           "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": -4,
-            "top": -7,
-            "right": 12,
-            "bottom": -4,
             "base_h": -400,
             "base_v": -1500,
+            "bottom": -4,
+            "damages": 2,
+            "enabled": true,
             "force_h": -1,
             "force_v": -3,
-            "damages": 2,
-            "enabled": true
+            "left": -4,
+            "right": 12,
+            "top": -7,
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -2489,18 +2489,18 @@
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
+              "type": "animation_sprite",
               "x": -4,
               "y": -7
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
+              "type": "animation_sprite",
               "x": 4,
               "y": -7
             }
@@ -2510,17 +2510,17 @@
         {
           "duration": 6,
           "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": -4,
-            "top": -7,
-            "right": 12,
-            "bottom": -4,
             "base_h": -400,
             "base_v": -1500,
+            "bottom": -4,
+            "damages": 2,
+            "enabled": true,
             "force_h": -1,
             "force_v": -3,
-            "damages": 2,
-            "enabled": true
+            "left": -4,
+            "right": 12,
+            "top": -7,
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -2547,18 +2547,18 @@
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
+              "type": "animation_sprite",
               "x": -4,
               "y": -7
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
+              "type": "animation_sprite",
               "x": 4,
               "y": -7
             }
@@ -2568,17 +2568,17 @@
         {
           "duration": 6,
           "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": -4,
-            "top": -7,
-            "right": 12,
-            "bottom": -4,
             "base_h": -400,
             "base_v": -1500,
+            "bottom": -4,
+            "damages": 2,
+            "enabled": true,
             "force_h": -1,
             "force_v": -3,
-            "damages": 2,
-            "enabled": true
+            "left": -4,
+            "right": 12,
+            "top": -7,
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -2605,18 +2605,18 @@
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
+              "type": "animation_sprite",
               "x": -4,
               "y": -7
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
+              "type": "animation_sprite",
               "x": 4,
               "y": -7
             }
@@ -2624,78 +2624,78 @@
           "type": "animation_frame"
         },
         {
-          "type": "animation_frame",
           "duration": 6,
+          "hitbox": {
+            "base_h": -400,
+            "base_v": -1500,
+            "bottom": -4,
+            "damages": 2,
+            "enabled": true,
+            "force_h": -1,
+            "force_v": -3,
+            "left": -4,
+            "right": 12,
+            "top": -7,
+            "type": "animation_direct_hitbox"
+          },
+          "hurtbox": {
+            "bottom": 14,
+            "left": 1,
+            "right": 16,
+            "top": 0,
+            "type": "animation_hurtbox"
+          },
           "sprites": [
             {
-              "type": "animation_sprite",
+              "attr": 0,
+              "foreground": false,
               "tile": "KIKI_TILE_25",
-              "attr": 0,
-              "foreground": false,
+              "type": "animation_sprite",
               "x": 0,
               "y": 0
             },
             {
-              "type": "animation_sprite",
+              "attr": 0,
+              "foreground": false,
               "tile": "KIKI_TILE_26",
-              "attr": 0,
-              "foreground": false,
+              "type": "animation_sprite",
               "x": 8,
               "y": 0
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_27",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_27",
+              "type": "animation_sprite",
               "x": 0,
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_28",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_28",
+              "type": "animation_sprite",
               "x": 8,
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT",
+              "type": "animation_sprite",
               "x": -4,
               "y": -7
             },
             {
-              "type": "animation_sprite",
-              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
               "attr": 0,
               "foreground": false,
+              "tile": "KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT",
+              "type": "animation_sprite",
               "x": 4,
               "y": -7
             }
           ],
-          "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": -4,
-            "top": -7,
-            "right": 12,
-            "bottom": -4,
-            "base_h": -400,
-            "base_v": -1500,
-            "force_h": -1,
-            "force_v": -3,
-            "damages": 2,
-            "enabled": true
-          },
-          "hurtbox": {
-            "type": "animation_hurtbox",
-            "left": 1,
-            "top": 0,
-            "right": 16,
-            "bottom": 14
-          }
+          "type": "animation_frame"
         }
       ],
       "name": "kiki_anim_parachute",
@@ -6524,6 +6524,7 @@
     "name": "kiki_anim_defeat",
     "type": "animation"
   },
+  "global_tick_routine": "dummy_routine",
   "illustration_large": {
     "name": null,
     "tilenames": [
@@ -6576,10 +6577,8 @@
       "KIKI_ILLUSTRATION_LARGE_47",
       "KIKI_ILLUSTRATION_LARGE_48"
     ],
-    "type": "tileset",
     "tiles": [
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -6661,10 +6660,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -6746,10 +6745,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -6831,10 +6830,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -6916,10 +6915,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -7001,10 +7000,10 @@
             2,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -7086,10 +7085,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -7171,10 +7170,10 @@
             2,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -7256,10 +7255,10 @@
             0,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -7341,10 +7340,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -7426,10 +7425,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -7511,10 +7510,10 @@
             2,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -7596,10 +7595,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -7681,10 +7680,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -7766,10 +7765,10 @@
             0,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -7851,10 +7850,10 @@
             1,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -7936,10 +7935,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -8021,10 +8020,10 @@
             1,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -8106,10 +8105,10 @@
             0,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -8191,10 +8190,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -8276,10 +8275,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -8361,10 +8360,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -8446,10 +8445,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -8531,10 +8530,10 @@
             3,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -8616,10 +8615,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -8701,10 +8700,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -8786,10 +8785,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -8871,10 +8870,10 @@
             2,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -8956,10 +8955,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -9041,10 +9040,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -9126,10 +9125,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -9211,10 +9210,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -9296,10 +9295,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -9381,10 +9380,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -9466,10 +9465,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -9551,10 +9550,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -9636,10 +9635,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -9721,10 +9720,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -9806,10 +9805,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -9891,10 +9890,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -9976,10 +9975,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -10061,10 +10060,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -10146,10 +10145,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10231,10 +10230,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10316,10 +10315,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10401,10 +10400,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10486,10 +10485,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10571,10 +10570,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10656,9 +10655,11 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       }
-    ]
+    ],
+    "type": "tileset"
   },
   "illustration_small": {
     "name": null,
@@ -10668,10 +10669,8 @@
       "KIKI_ILLUSTRATION_SMALL_3",
       "KIKI_ILLUSTRATION_SMALL_4"
     ],
-    "type": "tileset",
     "tiles": [
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10753,10 +10752,10 @@
             0,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10838,10 +10837,10 @@
             3,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10923,10 +10922,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -11008,19 +11007,19 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       }
-    ]
+    ],
+    "type": "tileset"
   },
   "illustration_token": {
     "name": null,
     "tilenames": [
       "KIKI_ILLUSTRATION_TOKEN_1"
     ],
-    "type": "tileset",
     "tiles": [
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -11102,9 +11101,11 @@
             0,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       }
-    ]
+    ],
+    "type": "tileset"
   },
   "menu_select_animation": {
     "frames": [
@@ -11170,6 +11171,8 @@
   },
   "name": "kiki",
   "netload_routine": "kiki_netload",
+  "projectile_hit_routine": "dummy_routine",
+  "sourcecode": "!define \"char_name\" {kiki}\n!define \"char_name_upper\" {KIKI}\n\n;\n; Gameplay constants\n;\n\nKIKI_AERIAL_DIRECTIONAL_INFLUENCE_STRENGTH = $80\nKIKI_AERIAL_SPEED = $0100\nKIKI_AIR_FRICTION_STRENGTH = 7\nKIKI_COUNTER_GRAVITY = $0100\nKIKI_FASTFALL_SPEED = $0400\nKIKI_GROUND_FRICTION_STRENGTH = $40\nKIKI_JUMP_SQUAT_DURATION_PAL = 4\nKIKI_JUMP_SQUAT_DURATION_NTSC = 5\nKIKI_JUMP_SHORT_HOP_EXTRA_TIME_PAL = 4\nKIKI_JUMP_SHORT_HOP_EXTRA_TIME_NTSC = 5\nKIKI_JUMP_SHORT_HOP_AERIAL_TIME_PAL = 2 ;  Number of frames after jumpsquat at which an attack input stops converting is into a short hop-aerial\nKIKI_JUMP_SHORT_HOP_AERIAL_TIME_NTSC = 2\nKIKI_JUMP_POWER = $0480\nKIKI_JUMP_SHORT_HOP_POWER = $0102\nKIKI_LANDING_MAX_VELOCITY = $0200\nKIKI_MAX_NUM_AERIAL_JUMPS = 1\nKIKI_ALL_SPECIAL_JUMPS = %10000001\nKIKI_PLATFORM_DURATION = 100 ; Note, 106 (ntsc->127) is the max, we have only 7 bits to store the value\nKIKI_PLATFORM_BLINK_THRESHOLD_MASK = %01100000 ; Platform is blinking if \"timer > 0 && (MASK & timer == 0)\"\nKIKI_PLATFORM_BLINK_MASK = %00000100 ; Blinking platform is shown on frames where \"MASK & timer == 1\"\nKIKI_RUNNING_INITIAL_VELOCITY = $0100\nKIKI_RUNNING_MAX_VELOCITY = $0180\nKIKI_RUNNING_ACCELERATION = $40\nKIKI_TECH_SPEED = $0400\nKIKI_WALL_JUMP_SQUAT_END = 4\nKIKI_WALL_JUMP_VELOCITY_V = $0500\nKIKI_WALL_JUMP_VELOCITY_H = $0100\nKIKI_PARACHUTE_GRAVITY = $0080\n\n;\n; Constants data\n;\n\n!include \"characters/std_constant_tables.asm\"\n\nduration_table(KIKI_PLATFORM_DURATION, kiki_platform_duration)\nvelocity_table(KIKI_PARACHUTE_GRAVITY, kiki_parachute_gravity_msb, kiki_parachute_gravity_lsb)\n\nkiki_wall_attributes_per_player:\n.byt 1, 3\n\nkiki_first_wall_sprite_per_player:\n.byt INGAME_PLAYER_A_LAST_SPRITE-1, INGAME_PLAYER_B_LAST_SPRITE-1\n\n; Offset of 2 bytes reserved in player's object data for storing current platform sprites Y position on screen\nkiki_first_wall_sprite_y_per_player:\n.byt (player_a_objects-stage_data)+STAGE_ELEMENT_SIZE+1, (player_b_objects-stage_data)+STAGE_ELEMENT_SIZE+1\n\nkiki_last_anim_sprite_per_player:\n.byt INGAME_PLAYER_A_LAST_SPRITE-2, INGAME_PLAYER_B_LAST_SPRITE-2\n\nkiki_first_tile_index_per_player:\n.byt CHARACTERS_CHARACTER_A_FIRST_TILE, CHARACTERS_CHARACTER_B_FIRST_TILE\n\nkiki_a_platform_state = player_a_state_field3 ; aTTT TTTT - a, allowed to create a new platform - T, platform timer\nkiki_b_platform_state = player_b_state_field3\n\n;\n; Implementation\n;\n\nkiki_init:\n.(\n\t; Reserve two sprites for walls\n\t.(\n\t\tanimation_state_vector = tmpfield2\n\n\t\t; Animation's last sprite num = animation's last sprite num - 2\n\t\tlda anim_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda anim_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\tldy #0\n\t\tlda kiki_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\n\t\t; Same for out of screen indicator\n\t\tlda oos_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda oos_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\t;ldy #0 ; useless, already set above\n\t\tlda kiki_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\t.)\n\n\t; Set wall sprites attributes\n\t.(\n\t\tlda kiki_first_wall_sprite_per_player, x\n\t\tasl\n\t\tasl\n\t\ttay\n\n\t\tlda kiki_wall_attributes_per_player, x\n\t\tsta oam_mirror+2, y ; First sprite attributes\n\t\tsta oam_mirror+6, y ; Second sprite attributes\n\t.)\n\n\t; Init platform state\n\t.(\n\t\tlda #%10000000\n\t\tsta kiki_a_platform_state, x\n\t.)\n\n\t; Setup player's elements\n\t; - First byte is ELEMENT_END (deactivated platform)\n\t; - Stop player's elements after the platform\n\t.(\n\t\tldy #0\n\t\tcpx #0\n\t\tbeq load_element\n\t\t\tldy #player_b_objects-player_a_objects\n\t\tload_element:\n\n\t\tlda #STAGE_ELEMENT_END\n\t\tsta player_a_objects+0, y\n\t\tsta player_a_objects+STAGE_ELEMENT_SIZE, y\n\t.)\n\n\t; Initialize special jump flags\n\tlda #KIKI_ALL_SPECIAL_JUMPS\n\tsta player_a_special_jumps, x\n\n\trts\n\n\t;TODO may be optmizable\n\t;     storing the index of the byte from player_a_animation, means one byte per player\n\t;     and only have to load it in y and access the byte in \"absolute,Y\" instead of \"(indirect),Y\"\n\tanim_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\tanim_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\n\toos_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\toos_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n.)\n\nkiki_netload:\n.(\n\tcpx #0\n\tbeq load_element\n\t\tldx #player_b_objects-player_a_objects\n\tload_element:\n\n\t; Platform stage-element\n\tlda esp_rx_buffer+0, y\n\tsta player_a_objects+0, x\n\tlda esp_rx_buffer+1, y\n\tsta player_a_objects+1, x\n\tlda esp_rx_buffer+2, y\n\tsta player_a_objects+2, x\n\tlda esp_rx_buffer+3, y\n\tsta player_a_objects+3, x\n\tlda esp_rx_buffer+4, y\n\tsta player_a_objects+4, x\n\tlda esp_rx_buffer+5, y\n\tsta player_a_objects+5, x\n\tlda esp_rx_buffer+6, y\n\tsta player_a_objects+6, x\n\tlda esp_rx_buffer+7, y\n\tsta player_a_objects+7, x\n\tlda esp_rx_buffer+8, y\n\tsta player_a_objects+8, x\n\n#if STAGE_ELEMENT_SIZE <> 9\n#error above code expects stage elements to be 9 bytes\n#endif\n\n\t; Y pos of the platform (kiki_first_wall_sprite_y_per_player)\n\tlda esp_rx_buffer+9, y\n\tsta player_a_objects+10, x\n\tlda esp_rx_buffer+10, y\n\tsta player_a_objects+11, x\n\n\t; X pos of the platform tiles\n\tldx player_number\n\tlda kiki_first_wall_sprite_per_player, x\n\tasl\n\tasl\n\ttax\n\n\tlda esp_rx_buffer+11, y\n\tsta oam_mirror+3, x\n\tlda esp_rx_buffer+12, y\n\tsta oam_mirror+4+3, x\n\n\t; Platform tiles\n\tlda esp_rx_buffer+13, y\n\tsta oam_mirror+1, x\n\tlda esp_rx_buffer+14, y\n\tsta oam_mirror+4+1, x\n\n\t; Save buffer cursor\n\ttya\n\tclc\n\tadc #15\n\tpha\n\n\t; Ensure platform is correctly displayed\n\t.(\n\t\t; Shall be drawn if\n\t\t;  timer > blink threshold, or\n\t\t;  blink is in a visible tick\n\t\tldx player_number\n\t\tlda kiki_a_platform_state, x\n\t\tand #KIKI_PLATFORM_BLINK_THRESHOLD_MASK\n\t\tbne displayed\n\t\tlda kiki_a_platform_state, x\n\t\tand #KIKI_PLATFORM_BLINK_MASK\n\t\tbne displayed\n\n\t\t\thidden:\n\t\t\t\tjsr kiki_hide_platform\n\t\t\t\tjmp end_place_platform\n\n\t\t\tdisplayed:\n\t\t\t\tjsr kiki_show_platform\n\n\t\tend_place_platform:\n\t.)\n\n\t; Store updated buffer cursor\n\tpla\n\ttay\n\n\trts\n.)\n\nkiki_hide_platform:\n.(\n\t; Hide platform (set sprites Y position offscreen)\n\tlda kiki_first_wall_sprite_per_player, x\n\tasl\n\tasl\n\ttay\n\n\tlda #$fe\n\tsta oam_mirror+4, y\n\tsta oam_mirror, y\n\n\trts\n.)\n\nkiki_show_platform:\n.(\n\t; Show platform (set sprites Y position to the original one)\n\tldy kiki_first_wall_sprite_y_per_player, x\n\tlda stage_data, y\n\tpha\n\tiny\n\tlda stage_data, y\n\tpha\n\n\tlda kiki_first_wall_sprite_per_player, x\n\tasl\n\tasl\n\ttay\n\n\tpla\n\tsta oam_mirror+4, y\n\tpla\n\tsta oam_mirror, y\n\n\trts\n.)\n\nkiki_global_tick:\n.(\n\t; Handle platform's lifetime\n\t.(\n\t\t; Decrement counter, destroy platform when it would go negative\n\t\tlda kiki_a_platform_state, x\n\t\tand #%01111111\n\t\tbeq destroy_platform\n\n\t\t\tdec_timer:\n\t\t\t\t; Decrement platform timer\n\t\t\t\tdec kiki_a_platform_state, x\n\t\t\t\tjmp end_lifetime\n\n\t\t\tdestroy_platform:\n\t\t\t\t; Destroy platform object\n\t\t\t\tldy #0\n\t\t\t\tcpx #0\n\t\t\t\tbeq offset_ok\n\t\t\t\t\tldy #player_b_objects-player_a_objects\n\t\t\t\toffset_ok:\n#if STAGE_ELEMENT_END <> 0\n#error this code expects STAGE_ELEMENT_END to be zero\n#endif\n\t\t\t\t;lda #STAGE_ELEMENT_END ; useless, ensured by beq\n\t\t\t\tsta player_a_objects, y ; type\n\n\t\t\t\t; useless, ensured by blinking\n\t\t\t\t;; Hide platform sprites\n\t\t\t\t;lda kiki_first_wall_sprite_per_player, x\n\t\t\t\t;asl\n\t\t\t\t;asl\n\t\t\t\t;tay\n\n\t\t\t\t;lda #$fe\n\t\t\t\t;sta oam_mirror, y\n\t\t\t\t;sta oam_mirror+4,y\n\n\t\tend_lifetime:\n\t.)\n\n\t; Make platform blink on end of life\n\t.(\n\t\t;TODO ntsc timing, if it feels wrong with shared timing\n\t\t; Do not blink until the platform is about to disapear\n\t\tlda kiki_a_platform_state, x\n\t\ttay\n\t\tand #KIKI_PLATFORM_BLINK_THRESHOLD_MASK\n\t\tbne end_blinking\n\n\t\t\ttya\n\t\t\tand #KIKI_PLATFORM_BLINK_MASK\n\t\t\tbeq hide\n\n\t\t\t\tshow:\n\t\t\t\t\tjsr kiki_show_platform\n\t\t\t\t\tjmp end_blinking\n\n\t\t\t\thide:\n\t\t\t\t\tjsr kiki_hide_platform\n\n\t\tend_blinking:\n\t.)\n\n\t; Call global on-ground\n\t.(\n\t\t; Do not reset if not on a legit stage platform\n\t\tlda player_a_grounded, x\n\t\tbeq end_ground_reset ; Not on ground\n\t\t\tjsr kiki_global_onground\n\t\tend_ground_reset:\n\t.)\n\n\trts\n.)\n\nkiki_global_onground:\n.(\n\t; Initialize special jump flags\n\tlda #KIKI_ALL_SPECIAL_JUMPS\n\tsta player_a_special_jumps, x\n\n\t; Reset allowed flag on stage's ground (not on player-made platforms)\n\t.(\n\t\tlda player_a_grounded, x\n\t\tcmp #player_a_objects-stage_data\n\t\tbcs end_ground_reset ; Grounded on any player platform\n\n\t\t\t; Set allowed flag\n\t\t\tlda #%10000000\n\t\t\tora kiki_a_platform_state, x\n\t\t\tsta kiki_a_platform_state, x\n\n\t\tend_ground_reset:\n\t.)\n\n\trts\n.)\n\n\n; Input table for aerial moves, special values are\n;  fast_fall - mandatorily on INPUT_NONE to take effect on release of DOWN\n;  jump      - automatically choose between aerial jump or wall jump\n;  no_input  - expected default\n!input-table-define \"KIKI_AERIAL_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_NONE                fast_fall\n\tCONTROLLER_INPUT_SPECIAL_RIGHT       kiki_start_side_spe_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT        kiki_start_side_spe_left\n\tCONTROLLER_INPUT_JUMP                jump\n\tCONTROLLER_INPUT_JUMP_RIGHT          jump\n\tCONTROLLER_INPUT_JUMP_LEFT           jump\n\tCONTROLLER_INPUT_ATTACK_LEFT         kiki_start_side_aerial_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT        kiki_start_side_aerial_right\n\tCONTROLLER_INPUT_DOWN_TILT           kiki_start_down_aerial\n\tCONTROLLER_INPUT_ATTACK_UP           kiki_start_up_aerial\n\tCONTROLLER_INPUT_JAB                 kiki_start_neutral_aerial\n\tCONTROLLER_INPUT_SPECIAL             kiki_start_parachute_deploy\n\tCONTROLLER_INPUT_SPECIAL_UP          kiki_start_down_wall\n\tCONTROLLER_INPUT_SPECIAL_DOWN        kiki_start_counter_guard\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT     kiki_start_up_aerial_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT      kiki_start_up_aerial_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT    kiki_start_down_wall_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT     kiki_start_down_wall_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT   kiki_start_down_aerial_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT    kiki_start_down_aerial_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT  kiki_start_counter_guard_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT   kiki_start_counter_guard_left\n\n\tno_input\n}\n\n; Input table for idle state, special values are\n;  no_input - Default\n!input-table-define \"KIKI_IDLE_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_LEFT               kiki_start_running_left\n\tCONTROLLER_INPUT_RIGHT              kiki_start_running_right\n\tCONTROLLER_INPUT_JUMP               kiki_start_jumping\n\tCONTROLLER_INPUT_JUMP_RIGHT         kiki_start_jumping_right\n\tCONTROLLER_INPUT_JUMP_LEFT          kiki_start_jumping_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT       kiki_start_side_tilt_right\n\tCONTROLLER_INPUT_ATTACK_LEFT        kiki_start_side_tilt_left\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      kiki_start_side_spe_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT       kiki_start_side_spe_left\n\tCONTROLLER_INPUT_TECH               kiki_start_shielding\n\tCONTROLLER_INPUT_SPECIAL_DOWN       kiki_start_counter_guard\n\tCONTROLLER_INPUT_SPECIAL_UP         kiki_start_down_wall\n\tCONTROLLER_INPUT_ATTACK_UP          kiki_start_up_tilt\n\tCONTROLLER_INPUT_DOWN_TILT          kiki_start_down_tilt\n\tCONTROLLER_INPUT_JAB                kiki_start_jabbing\n\tCONTROLLER_INPUT_SPECIAL            kiki_start_top_wall\n\tCONTROLLER_INPUT_TECH_LEFT          kiki_start_shielding_left\n\tCONTROLLER_INPUT_TECH_RIGHT         kiki_start_shielding_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    kiki_start_down_wall_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   kiki_start_down_wall_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     kiki_start_up_tilt_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    kiki_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  kiki_start_counter_guard_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT kiki_start_counter_guard_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   kiki_start_down_tilt_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  kiki_start_down_tilt_right\n\n\tno_input\n}\n\n; Input table for running state, special values are\n;  input_running_left - Change running direction to the left (if not already running to the left)\n;  input_runnning_right - Change running direction to the right (if not already running to the right)\n!input-table-define \"KIKI_RUNNING_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_LEFT               input_running_left\n\tCONTROLLER_INPUT_RIGHT              input_running_right\n\tCONTROLLER_INPUT_JUMP               kiki_start_jumping\n\tCONTROLLER_INPUT_JUMP_RIGHT         kiki_start_jumping_right\n\tCONTROLLER_INPUT_JUMP_LEFT          kiki_start_jumping_left\n\tCONTROLLER_INPUT_ATTACK_LEFT        kiki_start_side_tilt_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT       kiki_start_side_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT       kiki_start_side_spe_left\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      kiki_start_side_spe_right\n\tCONTROLLER_INPUT_TECH               kiki_start_shielding\n\tCONTROLLER_INPUT_SPECIAL_DOWN       kiki_start_counter_guard\n\tCONTROLLER_INPUT_SPECIAL_UP         kiki_start_down_wall\n\tCONTROLLER_INPUT_ATTACK_UP          kiki_start_up_tilt\n\tCONTROLLER_INPUT_DOWN_TILT          kiki_start_down_tilt\n\tCONTROLLER_INPUT_JAB                kiki_start_jabbing\n\tCONTROLLER_INPUT_SPECIAL            kiki_start_top_wall\n\tCONTROLLER_INPUT_TECH_LEFT          kiki_start_shielding_left\n\tCONTROLLER_INPUT_TECH_RIGHT         kiki_start_shielding_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    kiki_start_down_wall_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   kiki_start_down_wall_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     kiki_start_up_tilt_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    kiki_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  kiki_start_counter_guard_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT kiki_start_counter_guard_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   kiki_start_down_tilt_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  kiki_start_down_tilt_right\n\n\tkiki_start_idle\n}\n\n; Input table for jumping state state (only used during jumpsquat), special values are\n;  no_input - default\n!input-table-define \"KIKI_JUMPSQUAT_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_ATTACK_UP        kiki_start_up_tilt\n\tCONTROLLER_INPUT_SPECIAL_UP       kiki_start_down_wall\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT   kiki_start_up_tilt_left\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT  kiki_start_down_wall_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT  kiki_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT kiki_start_down_wall_right\n\n\tno_input\n}\n\n!include \"characters/std_aerial_input.asm\"\n!include \"characters/std_crashing.asm\"\n!include \"characters/std_thrown.asm\"\n!include \"characters/std_respawn.asm\"\n!include \"characters/std_innexistant.asm\"\n!include \"characters/std_spawn.asm\"\n!include \"characters/std_idle.asm\"\n!include \"characters/std_running.asm\"\n!include \"characters/std_jumping.asm\"\n!include \"characters/std_landing.asm\"\n!include \"characters/std_helpless.asm\"\n!include \"characters/std_shielding.asm\"\n!include \"characters/std_walljumping.asm\"\n!include \"characters/std_owned.asm\"\n\n;\n; Respawn\n;\n\nkiki_start_respawn_extra:\n.(\n\t; Set platform allowed flag\n\tlda #%10000000\n\tora kiki_a_platform_state, x\n\tsta kiki_a_platform_state, x\n\n\t; Common respawn code\n\tjmp {char_name}_start_respawn_invisible\n\n\t;rts ; useless, jump to subroutine\n.)\n\n;\n; Side Tilt\n;\n\n.(\n\t!define \"anim\" {kiki_anim_strike}\n\t!define \"state\" {KIKI_STATE_SIDE_TILT}\n\t!define \"routine\" {side_tilt}\n\t!include \"characters/tpl_grounded_attack.asm\"\n.)\n\n;\n; Side special\n;\n\n.(\n\tKIKI_WALL_WHIFF = 0\n\tKIKI_WALL_DRAWN = 1\n\tkiki_a_wall_drawn = player_a_state_field1\n\n\tkiki_anim_paint_side_dur:\n\t\t.byt kiki_anim_paint_side_dur_pal, kiki_anim_paint_side_dur_ntsc\n\n\t&kiki_start_side_spe_right:\n\t.(\n\t\tlda DIRECTION_RIGHT\n\t\tsta player_a_direction, x\n\t\tjmp kiki_start_side_spe\n\t\t; rts ; useless - kiki_start_side_spe is a routine\n\t.)\n\n\t&kiki_start_side_spe_left:\n\t.(\n\t\tlda DIRECTION_LEFT\n\t\tsta player_a_direction, x\n\t\t; jmp kiki_start_side_spe ; useless - fallthrough\n\t\t; rts ; useless - kiki_start_side_spe is a routine\n\t.)\n\n\t&kiki_start_side_spe:\n\t.(\n\t\tsprite_x_lsb = tmpfield1\n\t\tsprite_x_msb = tmpfield2\n\t\tsprite_y_lsb = tmpfield3\n\t\tsprite_y_msb = tmpfield4\n\n\t\t; Set the appropriate animation\n\t\tlda #<kiki_anim_paint_side\n\t\tsta tmpfield13\n\t\tlda #>kiki_anim_paint_side\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Set the player's state\n\t\tlda #KIKI_STATE_SIDE_SPE\n\t\tsta player_a_state, x\n\n\t\t; Initialize the clock\n\t\tlda #0\n\t\tsta player_a_state_clock,x\n\n\t\t; NOTE interesting velocity setups\n\t\t;  Original - rapidly slow down to (0, 0) (was done to copy-paste code from side tilt)\n\t\t;  Current - directly stop any velocity (should feel like original, without computations per tick)\n\t\t;  Idea 2 - stop horizontal velocity, keep vertical velocity, apply gravity on tick (should help to side spe as part of aerial gameplay)\n\n\t\t; Avoid spawning wall when forbiden\n\t\tlda kiki_a_platform_state, x\n\t\tand #%10000000\n\t\tbne process\n\t\t\tlda #KIKI_WALL_WHIFF\n\t\t\tsta kiki_a_wall_drawn, x\n\t\t\tjmp spawn_wall_end\n\t\tprocess:\n\n\t\tlda #KIKI_WALL_DRAWN\n\t\tsta kiki_a_wall_drawn, x\n\n\t\t; Reset velocity\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Spawn wall\n\t\tspawn_wall:\n\t\t.(\n\t\t\t; Reset wall state\n\t\t\tldy system_index\n\t\t\tlda kiki_platform_duration, y\n\t\t\tsta kiki_a_platform_state, x\n\n\t\t\t; Place wall\n\t\t\tldy #0\n\t\t\tcpx #0\n\t\t\tbeq place_wall\n\t\t\t\tldy #player_b_objects-player_a_objects\n\t\t\tplace_wall:\n\n\t\t\tlda #STAGE_ELEMENT_OOS_PLATFORM\n\t\t\tsta player_a_objects, y ; type\n\n\t\t\tlda player_a_direction, x\n\t\t\tcmp DIRECTION_LEFT\n\t\t\tbne platform_on_right\n\t\t\t\tlda player_a_x, x\n\t\t\t\tclc\n\t\t\t\tadc #$ef\n\t\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\t\tlda player_a_x_screen, x\n\t\t\t\tadc #$ff\n\t\t\t\tjmp end_platform_left_positioning\n\t\t\tplatform_on_right:\n\t\t\t\tlda player_a_x, x\n\t\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\t\tlda player_a_x_screen, x\n\t\t\tend_platform_left_positioning:\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\tclc\n\t\t\tadc #16\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_RIGHT_LSB, y\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\t\t\tadc #0\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_RIGHT_MSB, y\n\n\t\t\tlda player_a_y, x\n\t\t\tclc\n\t\t\tadc #16\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_LSB, y\n\t\t\tlda player_a_y_screen, x\n\t\t\tadc #0\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_MSB, y\n\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_LSB, y\n\t\t\tsec\n\t\t\tsbc #32\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB, y\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_MSB, y\n\t\t\tsbc #0\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB, y\n\n\t\t\t;lda #STAGE_ELEMENT_END\n\t\t\t;sta player_a_objects+STAGE_ELEMENT_SIZE, y ; next's type, useless, set at init time\n\n\t\t\t; Compute wall's sprites position\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB, y\n\t\t\tclc\n\t\t\tadc #15\n\t\t\tsta sprite_y_lsb\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB, y\n\t\t\tadc #0\n\t\t\tsta sprite_y_msb\n\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\tclc\n\t\t\tadc #8\n\t\t\tsta sprite_x_lsb\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\t\t\tadc #0\n\t\t\tsta sprite_x_msb\n\n\t\t\t; Y = first wall sprite offset\n\t\t\tlda kiki_first_wall_sprite_per_player, x\n\t\t\tasl\n\t\t\tasl\n\t\t\ttay\n\n\t\t\t; Place upper sprite\n\t\t\tlda sprite_x_msb\n\t\t\tcmp #0\n\t\t\tbne hide_upper_sprite\n\t\t\tlda sprite_y_msb\n\t\t\tbne hide_upper_sprite\n\n\t\t\t\tlda #KIKI_TILE_WALL_BLOCK_V_UP\n\t\t\t\tclc\n\t\t\t\tadc kiki_first_tile_index_per_player, x\n\t\t\t\tsta oam_mirror+1, y ; First sprite tile\n\t\t\t\tlda sprite_y_lsb\n\t\t\t\tsta oam_mirror, y ; First sprite Y\n\t\t\t\tlda sprite_x_lsb\n\t\t\t\tsta oam_mirror+3, y ; First sprite X\n\t\t\t\tjmp end_upper_sprite\n\n\t\t\thide_upper_sprite:\n\t\t\t\tlda #$fe\n\t\t\t\tsta oam_mirror, y ; First sprite Y\n\n\t\t\tend_upper_sprite:\n\n\t\t\t; Place lower sprite\n\t\t\tlda sprite_x_msb\n\t\t\tcmp #0\n\t\t\tbne hide_lower_sprite\n\n\t\t\tlda sprite_y_lsb\n\t\t\tclc\n\t\t\tadc #8\n\t\t\tsta sprite_y_lsb\n\t\t\tlda sprite_y_msb\n\t\t\tadc #0\n\t\t\tbne hide_lower_sprite\n\n\n\t\t\t\tlda #KIKI_TILE_WALL_BLOCK_V_DOWN\n\t\t\t\tclc\n\t\t\t\tadc kiki_first_tile_index_per_player, x\n\t\t\t\tsta oam_mirror+5, y ; Second sprite tile\n\t\t\t\tlda sprite_y_lsb\n\t\t\t\tsta oam_mirror+4, y ; Second sprite Y\n\t\t\t\tlda sprite_x_lsb\n\t\t\t\tsta oam_mirror+7, y ; Second sprite X\n\t\t\t\tjmp end_lower_sprite\n\n\t\t\thide_lower_sprite:\n\t\t\t\tlda #$fe\n\t\t\t\tsta oam_mirror+4, y ; Second sprite Y\n\n\t\t\tend_lower_sprite:\n\n\t\t\t; Mirror sprites screen position in unused object memory\n\t\t\tlda oam_mirror+4, y\n\t\t\tpha\n\t\t\tlda oam_mirror, y\n\t\t\tpha\n\n\t\t\tldy kiki_first_wall_sprite_y_per_player, x\n\t\t\tpla\n\t\t\tsta stage_data, y\n\t\t\tiny\n\t\t\tpla\n\t\t\tsta stage_data, y\n\t\t.)\n\t\tspawn_wall_end:\n\n\t\trts\n\t.)\n\n\t&kiki_tick_side_spe:\n\t.(\n\t\tjsr kiki_global_tick\n\n\t\t; Apply gravity if failed to paint\n\t\tlda kiki_a_wall_drawn, x\n\t\tbne skip_gravity\n\t\t\tjsr kiki_apply_friction_lite\n\t\tskip_gravity:\n\n\t\t; Return to inactive state after animation's duration\n\t\tinc player_a_state_clock, x\n\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp kiki_anim_paint_side_dur, y\n\t\tbne end\n\n\t\t\tjmp kiki_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n.(\n\tkiki_anim_paint_down_dur:\n\t\t.byt kiki_anim_paint_down_dur_pal, kiki_anim_paint_down_dur_ntsc\n\n\t&{char_name}_start_down_wall_left:\n\t.(\n\t\tlda #DIRECTION_LEFT2\n\t\tjmp {char_name}_start_down_wall_directional\n\t.)\n\t&{char_name}_start_down_wall_right:\n\t.(\n\t\tlda #DIRECTION_RIGHT2\n\t\t; Fallthrough to {char_name}_start_down_wall_directional\n\t.)\n\t{char_name}_start_down_wall_directional:\n\t.(\n\t\tsta player_a_direction, x\n\t\t; Fallthrough to {char_name}_start_down_wall\n\t.)\n\t&kiki_start_down_wall:\n\t.(\n\t\tsprite_x_lsb = tmpfield1\n\t\tsprite_x_msb = tmpfield2\n\t\tsprite_y_lsb = tmpfield3\n\t\tsprite_y_msb = tmpfield4\n\n\t\t; Set the appropriate animation\n\t\tlda #<kiki_anim_paint_down\n\t\tsta tmpfield13\n\t\tlda #>kiki_anim_paint_down\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Set the player's state\n\t\tlda #KIKI_STATE_DOWN_WALL\n\t\tsta player_a_state, x\n\n\t\t; Initialize the clock\n\t\tlda #0\n\t\tsta player_a_state_clock,x\n\n\t\t; Avoid spawning wall when forbiden\n\t\tlda kiki_a_platform_state, x\n\t\tand #%10000000\n\t\tbne process\n\t\t\tjmp spawn_wall_end\n\t\tprocess:\n\n\t\t; Reset velocity\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Spawn wall\n\t\tspawn_wall:\n\t\t.(\n\t\t\t; Move player upward (to create wall on ground)\n\t\t\tlda player_a_y, x\n\t\t\tsec\n\t\t\tsbc #8\n\t\t\tsta player_a_y, x\n\t\t\tlda player_a_y_screen, x\n\t\t\tsbc #0\n\t\t\tsta player_a_y_screen, x\n\t\t\tlda #$ff\n\t\t\tsta player_a_y_low, x\n\n\t\t\t; Reset wall state\n\t\t\tldy system_index\n\t\t\tlda kiki_platform_duration, y\n\t\t\tsta kiki_a_platform_state, x\n\n\t\t\t; Place wall\n\t\t\t;TODO factorize code with other specials\n\t\t\tldy #0\n\t\t\tcpx #0\n\t\t\tbeq place_wall\n\t\t\t\tldy #player_b_objects-player_a_objects\n\t\t\tplace_wall:\n\n\t\t\tlda #STAGE_ELEMENT_OOS_PLATFORM\n\t\t\tsta player_a_objects, y ; type\n\n\t\t\tlda player_a_x, x\n\t\t\tclc\n\t\t\tadc #$f3\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\tlda player_a_x_screen, x\n\t\t\tadc #$ff\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\tclc\n\t\t\tadc #24\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_RIGHT_LSB, y\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\t\t\tadc #0\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_RIGHT_MSB, y\n\n\t\t\tlda player_a_y, x\n\t\t\tclc\n\t\t\tadc #24\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_LSB, y\n\t\t\tlda player_a_y_screen, x\n\t\t\tadc #0\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_MSB, y\n\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_LSB, y\n\t\t\tsec\n\t\t\tsbc #24\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB, y\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_MSB, y\n\t\t\tsbc #0\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB, y\n\n\t\t\t;lda #STAGE_ELEMENT_END\n\t\t\t;sta player_a_objects+STAGE_ELEMENT_SIZE, y ; next's type, useless, set at init time\n\n\t\t\t; Compute wall's sprites position\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB, y\n\t\t\tclc\n\t\t\tadc #15\n\t\t\tsta sprite_y_lsb\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB, y\n\t\t\tadc #0\n\t\t\tsta sprite_y_msb\n\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\tclc\n\t\t\tadc #8\n\t\t\tsta sprite_x_lsb\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\t\t\tadc #0\n\t\t\tsta sprite_x_msb\n\n\t\t\t; Y = first wall sprite offset\n\t\t\tlda kiki_first_wall_sprite_per_player, x\n\t\t\tasl\n\t\t\tasl\n\t\t\ttay\n\n\t\t\t; Place left sprite\n\t\t\tlda sprite_x_msb\n\t\t\tcmp #0\n\t\t\tbne hide_left_sprite\n\t\t\tlda sprite_y_msb\n\t\t\tbne hide_left_sprite\n\n\t\t\t\tlda #KIKI_TILE_WALL_BLOCK_H_LEFT\n\t\t\t\tclc\n\t\t\t\tadc kiki_first_tile_index_per_player, x\n\t\t\t\tsta oam_mirror+1, y ; First sprite tile\n\t\t\t\tlda sprite_y_lsb\n\t\t\t\tsta oam_mirror, y ; First sprite Y\n\t\t\t\tlda sprite_x_lsb\n\t\t\t\tsta oam_mirror+3, y ; First sprite X\n\t\t\t\tjmp end_left_sprite\n\n\t\t\thide_left_sprite:\n\t\t\t\tlda #$fe\n\t\t\t\tsta oam_mirror, y ; First sprite Y\n\n\t\t\tend_left_sprite:\n\n\t\t\t; Place right sprite\n\t\t\tlda sprite_x_lsb\n\t\t\tclc\n\t\t\tadc #8\n\t\t\tsta sprite_x_lsb\n\t\t\tlda sprite_x_msb\n\t\t\tadc #0\n\t\t\tbne hide_right_sprite\n\n\t\t\tlda sprite_y_msb\n\t\t\tbne hide_right_sprite\n\n\t\t\t\tlda #KIKI_TILE_WALL_BLOCK_H_RIGHT\n\t\t\t\tclc\n\t\t\t\tadc kiki_first_tile_index_per_player, x\n\t\t\t\tsta oam_mirror+5, y ; Second sprite tile\n\t\t\t\tlda sprite_y_lsb\n\t\t\t\tsta oam_mirror+4, y ; Second sprite Y\n\t\t\t\tlda sprite_x_lsb\n\t\t\t\tsta oam_mirror+7, y ; Second sprite X\n\t\t\t\tjmp end_right_sprite\n\n\t\t\thide_right_sprite:\n\t\t\t\tlda #$fe\n\t\t\t\tsta oam_mirror+4, y ; Second sprite Y\n\n\t\t\tend_right_sprite:\n\n\t\t\t; Mirror sprites screen position in unused object memory\n\t\t\tlda oam_mirror+4, y\n\t\t\tpha\n\t\t\tlda oam_mirror, y\n\t\t\tpha\n\n\t\t\tldy kiki_first_wall_sprite_y_per_player, x\n\t\t\tpla\n\t\t\tsta stage_data, y\n\t\t\tiny\n\t\t\tpla\n\t\t\tsta stage_data, y\n\t\t.)\n\t\tspawn_wall_end:\n\n\t\trts\n\t.)\n\n\t&kiki_tick_down_wall:\n\t.(\n\t\tjsr kiki_global_tick\n\n\t\tjsr apply_player_gravity\n\n\t\tinc player_a_state_clock, x\n\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp kiki_anim_paint_down_dur, y\n\t\tbne end\n\t\t\tjmp kiki_start_inactive_state\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n.(\n\tKIKI_WALL_WHIFF = 0\n\tKIKI_WALL_DRAWN = 1\n\tkiki_a_wall_drawn = player_a_state_field1\n\n\tkiki_anim_paint_up_dur:\n\t\t.byt kiki_anim_paint_side_dur_pal, kiki_anim_paint_side_dur_ntsc\n\n\t&kiki_start_top_wall:\n\t.(\n\t\tsprite_x_lsb = tmpfield1\n\t\tsprite_x_msb = tmpfield2\n\t\tsprite_y_lsb = tmpfield3\n\t\tsprite_y_msb = tmpfield4\n\n\t\t; Set the appropriate animation\n\t\tlda #<kiki_anim_paint_up\n\t\tsta tmpfield13\n\t\tlda #>kiki_anim_paint_up\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Set the player's state\n\t\tlda #KIKI_STATE_TOP_WALL\n\t\tsta player_a_state, x\n\n\t\t; Initialize the clock\n\t\tlda #0\n\t\tsta player_a_state_clock,x\n\n\t\t; Avoid spawning wall when forbiden\n\t\tlda kiki_a_platform_state, x\n\t\tand #%10000000\n\t\tbne process\n\t\t\tlda #KIKI_WALL_WHIFF\n\t\t\tsta kiki_a_wall_drawn, x\n\t\t\tjmp spawn_wall_end\n\t\tprocess:\n\n\t\tlda #KIKI_WALL_DRAWN\n\t\tsta kiki_a_wall_drawn, x\n\n\t\t; Reset velocity\n\t\tlda #0\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Spawn wall\n\t\tspawn_wall:\n\t\t.(\n\t\t\t; Reset wall state\n\t\t\tldy system_index\n\t\t\tlda kiki_platform_duration, y\n\t\t\tsta kiki_a_platform_state, x\n\n\t\t\t; Place wall\n\t\t\t;TODO factorize code with other specials\n\t\t\tldy #0\n\t\t\tcpx #0\n\t\t\tbeq place_wall\n\t\t\t\tldy #player_b_objects-player_a_objects\n\t\t\tplace_wall:\n\n\t\t\tlda #STAGE_ELEMENT_OOS_SMOOTH_PLATFORM\n\t\t\tsta player_a_objects, y ; type\n\n\t\t\tlda player_a_x, x\n\t\t\tclc\n\t\t\tadc #$f3\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\tlda player_a_x_screen, x\n\t\t\tadc #$ff\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\tclc\n\t\t\tadc #24\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_RIGHT_LSB, y\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\t\t\tadc #0\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_RIGHT_MSB, y\n\n\t\t\tlda player_a_y, x\n\t\t\tsec\n\t\t\tsbc #24\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB, y\n\t\t\tlda player_a_y_screen, x\n\t\t\tsbc #0\n\t\t\tsta player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB, y\n\n\t\t\t;lda #STAGE_ELEMENT_END\n\t\t\t;sta player_a_objects+STAGE_ELEMENT_SIZE, y ; next's type, useless, set at init time\n\n\t\t\t; Compute wall's sprites position\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB, y\n\t\t\tclc\n\t\t\tadc #15\n\t\t\tsta sprite_y_lsb\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB, y\n\t\t\tadc #0\n\t\t\tsta sprite_y_msb\n\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB, y\n\t\t\tclc\n\t\t\tadc #8\n\t\t\tsta sprite_x_lsb\n\t\t\tlda player_a_objects+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB, y\n\t\t\tadc #0\n\t\t\tsta sprite_x_msb\n\n\t\t\t; Y = first wall sprite offset\n\t\t\tlda kiki_first_wall_sprite_per_player, x\n\t\t\tasl\n\t\t\tasl\n\t\t\ttay\n\n\t\t\t; Place left sprite\n\t\t\tlda sprite_x_msb\n\t\t\tcmp #0\n\t\t\tbne hide_left_sprite\n\t\t\tlda sprite_y_msb\n\t\t\tbne hide_left_sprite\n\n\t\t\t\tlda #KIKI_TILE_SMOOTH_WALL_BLOCK_LEFT\n\t\t\t\tclc\n\t\t\t\tadc kiki_first_tile_index_per_player, x\n\t\t\t\tsta oam_mirror+1, y ; First sprite tile\n\t\t\t\tlda sprite_y_lsb\n\t\t\t\tsta oam_mirror, y ; First sprite Y\n\t\t\t\tlda sprite_x_lsb\n\t\t\t\tsta oam_mirror+3, y ; First sprite X\n\t\t\t\tjmp end_left_sprite\n\n\t\t\thide_left_sprite:\n\t\t\t\tlda #$fe\n\t\t\t\tsta oam_mirror, y ; First sprite Y\n\n\t\t\tend_left_sprite:\n\n\t\t\t; Place right sprite\n\t\t\tlda sprite_x_lsb\n\t\t\tclc\n\t\t\tadc #8\n\t\t\tsta sprite_x_lsb\n\t\t\tlda sprite_x_msb\n\t\t\tadc #0\n\t\t\tbne hide_right_sprite\n\n\t\t\tlda sprite_y_msb\n\t\t\tbne hide_right_sprite\n\n\t\t\t\tlda #KIKI_TILE_SMOOTH_WALL_BLOCK_RIGHT\n\t\t\t\tclc\n\t\t\t\tadc kiki_first_tile_index_per_player, x\n\t\t\t\tsta oam_mirror+5, y ; Second sprite tile\n\t\t\t\tlda sprite_y_lsb\n\t\t\t\tsta oam_mirror+4, y ; Second sprite Y\n\t\t\t\tlda sprite_x_lsb\n\t\t\t\tsta oam_mirror+7, y ; Second sprite X\n\t\t\t\tjmp end_right_sprite\n\n\t\t\thide_right_sprite:\n\t\t\t\tlda #$fe\n\t\t\t\tsta oam_mirror+4, y ; Second sprite Y\n\n\t\t\tend_right_sprite:\n\n\t\t\t; Mirror sprites screen position in unused object memory\n\t\t\tlda oam_mirror+4, y\n\t\t\tpha\n\t\t\tlda oam_mirror, y\n\t\t\tpha\n\n\t\t\tldy kiki_first_wall_sprite_y_per_player, x\n\t\t\tpla\n\t\t\tsta stage_data, y\n\t\t\tiny\n\t\t\tpla\n\t\t\tsta stage_data, y\n\t\t.)\n\t\tspawn_wall_end:\n\n\t\trts\n\t.)\n\n\t&kiki_tick_top_wall:\n\t.(\n\t\tjsr kiki_global_tick\n\n\t\t; Apply gravity if failed to paint\n\t\tlda kiki_a_wall_drawn, x\n\t\tbne skip_gravity\n\t\t\tjsr kiki_apply_friction_lite\n\t\tskip_gravity:\n\n\t\t; Return to inactive state after animation's duration\n\t\tinc player_a_state_clock, x\n\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp kiki_anim_paint_up_dur, y\n\t\tbne end\n\n\t\t\tjmp kiki_start_inactive_state\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n.(\n\t!define \"anim\" {kiki_anim_parachute_deploy}\n\t!define \"state\" {KIKI_STATE_PARACHUTE_DEPLOY}\n\t!define \"routine\" {parachute_deploy}\n\t!define \"followup\" {kiki_start_parachute}\n\t!include \"characters/tpl_aerial_attack.asm\"\n\n\t!define \"anim\" {kiki_anim_parachute}\n\t!define \"state\" {KIKI_STATE_PARACHUTE}\n\t!define \"routine\" {parachute}\n\t!define \"followup\" {dummy_routine}\n\t!define \"init\" {\n\t\tldy system_index\n\t\tlda kiki_parachute_gravity_msb, y\n\t\tsta player_a_gravity_msb, x\n\t\tlda kiki_parachute_gravity_lsb, y\n\t\tsta player_a_gravity_lsb, x\n\t\trts\n\t}\n\t!include \"characters/tpl_aerial_attack.asm\"\n\n\t+kiki_input_parachute:\n\t.(\n\t\t; Allow to end parachute by pressing special button again\n\t\t.(\n\t\t\tlda controller_a_btns, x\n\t\t\tcmp #CONTROLLER_INPUT_SPECIAL\n\t\t\tbne ok\n\t\t\t\tjsr reset_default_gravity\n\t\t\t\tjmp kiki_start_inactive_state\n\t\t\t\t; no return, jump to subroutine\n\t\t\tok:\n\t\t.)\n\n\t\t; Allow to act freely out of the parachute\n\t\t.(\n\t\t\tjsr kiki_check_aerial_inputs\n\n\t\t\tlda player_a_state, x\n\t\t\tcmp #KIKI_STATE_PARACHUTE\n\t\t\tbeq parachute_state\n\t\t\t\tstate_changed:\n\t\t\t\t\t; Kiki changed state, reset gravity, except for counter attack  which has its own gravity tricks\n\t\t\t\t\tlda player_a_state, x\n\t\t\t\t\tcmp #KIKI_STATE_COUNTER_GUARD\n\t\t\t\t\tbeq end\n\t\t\t\t\t\tjmp reset_default_gravity\n\t\t\t\t\t\t; No return, jump to subroutine\n\t\t\t\t\t; No return from this branch, an action has been taken no need for more logic\n\t\t\t\tparachute_state:\n\t\t\t\t\t; If we fast-falled, stop the parachute\n\t\t\t\t\tldy system_index\n\t\t\t\t\tlda player_a_gravity_lsb, x\n\t\t\t\t\tcmp kiki_parachute_gravity_lsb, y\n\t\t\t\t\tbne fastfalling\n\t\t\t\t\tlda player_a_gravity_msb, x\n\t\t\t\t\tcmp kiki_parachute_gravity_msb, y\n\t\t\t\t\tbne fastfalling\n\t\t\t\t\t\tnot_fastfalling:\n\t\t\t\t\t\t\tjmp ok\n\t\t\t\t\t\tfastfalling:\n\t\t\t\t\t\t\tjmp kiki_start_inactive_state\n\t\t\t\t\t\t\t; no return, jump to subroutine\n\t\t\tok:\n\t\t.)\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n!define \"anim\" {kiki_anim_strike_up}\n!define \"state\" {KIKI_STATE_UP_TILT}\n!define \"routine\" {up_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n!define \"anim\" {kiki_anim_strike_up}\n!define \"state\" {KIKI_STATE_UP_AERIAL}\n!define \"routine\" {up_aerial}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {kiki_anim_strike_down}\n!define \"state\" {KIKI_STATE_DOWN_TILT}\n!define \"routine\" {down_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n;HACK aerial-down is not cancellable, but don't use the \"tpl_aerial_attack_uncancellable.asm\"\n;  - we don't get any friction on ground, allowing for great landing slide\n;  - TODO change it to uncancellable template, may need to rework Kiki's ground friction (or allow special case in the tamplate)\n!define \"anim\" {kiki_anim_strike_down}\n!define \"state\" {KIKI_STATE_DOWN_AERIAL}\n!define \"routine\" {down_aerial}\n!include \"characters/tpl_aerial_attack.asm\"\n\n.(\n\t!define \"anim\" {kiki_anim_strike}\n\t!define \"state\" {KIKI_STATE_SIDE_AERIAL}\n\t!define \"routine\" {side_aerial}\n\t!include \"characters/tpl_aerial_attack.asm\"\n.)\n\n;\n; Jab\n;\n\n.(\n\t!define \"anim\" {kiki_anim_jab}\n\t!define \"state\" {KIKI_STATE_JABBING}\n\t!define \"routine\" {jabbing}\n\t!include \"characters/tpl_grounded_attack.asm\"\n\n\t&kiki_input_jabbing:\n\t.(\n\t\t; Allow to cut the animation for another jab\n\t\tlda controller_a_btns, x\n\t\tcmp #CONTROLLER_INPUT_JAB\n\t\tbne end\n\t\t\tjmp kiki_start_jabbing\n\t\t\t;No return\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n!define \"anim\" {kiki_anim_aerial_neutral}\n!define \"state\" {KIKI_STATE_NEUTRAL_AERIAL}\n!define \"routine\" {neutral_aerial}\n!include \"characters/tpl_aerial_attack.asm\"\n\n.(\n\tCOUNTER_GUARD_ACTIVE_DURATION = 18\n\tCOUNTER_GUARD_TOTAL_DURATION = 43\n\n\tvelocity_table(KIKI_COUNTER_GRAVITY, kiki_counter_gravity_msb, kiki_counter_gravity_lsb)\n\tduration_table(COUNTER_GUARD_ACTIVE_DURATION, counter_guard_active_duration)\n\tduration_table(COUNTER_GUARD_TOTAL_DURATION, counter_guard_total_duration)\n\n\t&kiki_start_counter_guard_right:\n\t.(\n\t\tlda #DIRECTION_RIGHT2\n\t\tsta player_a_direction, x\n\t\tjmp kiki_start_counter_guard\n\t.)\n\t&kiki_start_counter_guard_left:\n\t.(\n\t\tlda #DIRECTION_LEFT2\n\t\tsta player_a_direction, x\n\t\t;Fallthrough to kiki_start_counter_guard\n\t.)\n\t&kiki_start_counter_guard:\n\t.(\n\t\t; Set the appropriate animation\n\t\tlda #<kiki_anim_counter_guard\n\t\tsta tmpfield13\n\t\tlda #>kiki_anim_counter_guard\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Set the player's state\n\t\tlda #KIKI_STATE_COUNTER_GUARD\n\t\tsta player_a_state, x\n\n\t\t; Initialize the clock\n\t\tlda #0\n\t\tsta player_a_state_clock,x\n\n\t\t; Cancel vertical momentum\n\t\t;lda #0 ; useless, done above\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Lower horizontal momentum\n\t\tlda player_a_velocity_h, x ; Set sign bit in carry flag, so the following bitshift is a signed division\n\t\trol\n\n\t\tror player_a_velocity_h, x\n\t\tror player_a_velocity_h_low, x\n\n\t\t; Lower gravity\n\t\tldy system_index\n\t\tlda kiki_counter_gravity_lsb, y\n\t\tsta player_a_gravity_lsb, x\n\t\tlda kiki_counter_gravity_msb, y\n\t\tsta player_a_gravity_msb, x\n\n\t\trts\n\t.)\n\n\t&kiki_tick_counter_guard:\n\t.(\n\t\tjsr kiki_global_tick\n\n\t\tjsr kiki_apply_friction_lite\n\n\t\tinc player_a_state_clock, x\n\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp counter_guard_active_duration, y\n\t\tbne check_total_duration\n\n\t\t\t; Active duration is over, display it by switching to weak animation\n\t\t\tlda #<kiki_anim_counter_weak\n\t\t\tsta tmpfield13\n\t\t\tlda #>kiki_anim_counter_weak\n\t\t\tsta tmpfield14\n\t\t\tjsr set_player_animation\n\n\t\t\t; Reset fall speed\n\t\t\tjsr reset_default_gravity\n\n\t\tcheck_total_duration:\n\t\tcmp counter_guard_total_duration, y\n\t\tbne end\n\n\t\t\t; Total duration is over, return to a neutral state\n\t\t\tjsr reset_default_gravity\n\t\t\tjmp kiki_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\n\t\tend:\n\t\trts\n\t.)\n\n\t&kiki_hurt_counter_guard:\n\t.(\n\t\tstriker_player = tmpfield10\n\t\tstroke_player = tmpfield11\n\t\tdefault_behavior_bank = tmpfield14\n\n\t\tlda stroke_player\n\t\tpha\n\t\tlda striker_player\n\t\tpha\n\n\t\t; Strike if still active, else get hurt\n\t\tldy system_index\n\t\tlda counter_guard_active_duration, y\n\t\tcmp player_a_state_clock, x\n\t\tbcc hurt\n\n\t\t\tldy striker_player\n\t\t\tlda #HITBOX_DISABLED\n\t\t\tsta player_a_hitbox_enabled, y\n\n\t\t\tjsr reset_default_gravity\n\n\t\t\tjsr kiki_start_counter_strike\n\t\t\tjmp end\n\t\thurt:\n\t\t\tTRAMPOLINE(default_hurt_player, default_behavior_bank, #CURRENT_BANK_NUMBER)\n\n\t\tend:\n\t\tpla\n\t\tsta striker_player\n\t\tpla\n\t\tsta stroke_player\n\t\trts\n\t.)\n.)\n\n.(\n\tCOUNTER_STRIKE_DURATION = 12\n\tduration_table(COUNTER_STRIKE_DURATION, counter_strike_duration)\n\n\t&kiki_start_counter_strike:\n\t.(\n\t\t; Set the appropriate animation\n\t\tlda #<kiki_anim_counter_strike\n\t\tsta tmpfield13\n\t\tlda #>kiki_anim_counter_strike\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Set the player's state\n\t\tlda #KIKI_STATE_COUNTER_STRIKE\n\t\tsta player_a_state, x\n\n\t\t; Initialize the clock\n\t\tlda #0\n\t\tsta player_a_state_clock,x\n\n\t\trts\n\t.)\n\n\t&kiki_tick_counter_strike:\n\t.(\n\t\tjsr kiki_global_tick\n\n\t\tjsr apply_player_gravity\n\n\t\tldy system_index\n\t\tinc player_a_state_clock, x\n\t\tlda player_a_state_clock, x\n\t\tcmp counter_strike_duration, y\n\t\tbne end\n\t\t\tjsr kiki_start_falling\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n!include \"characters/std_friction_routines.asm\"\n\n; Standard move names\n;{char_name}_start_down_tilt = {char_name}_start_down_tilt\n{char_name}_start_spe_down = {char_name}_start_counter_guard\n",
   "states": [
     {
       "input_routine": "kiki_input_thrown",
@@ -11362,24 +11365,24 @@
       "update_routine": "kiki_tick_top_wall"
     },
     {
-      "type": "character_state",
-      "name": "KIKI_STATE_PARACHUTE_DEPLOY",
-      "start_routine": null,
-      "update_routine": "kiki_tick_parachute_deploy",
       "input_routine": "smart_keep_input_dirty",
-      "onground_routine": "kiki_start_landing",
+      "name": "KIKI_STATE_PARACHUTE_DEPLOY",
       "offground_routine": "dummy_routine",
-      "onhurt_routine": "hurt_player"
+      "onground_routine": "kiki_start_landing",
+      "onhurt_routine": "hurt_player",
+      "start_routine": null,
+      "type": "character_state",
+      "update_routine": "kiki_tick_parachute_deploy"
     },
     {
-      "type": "character_state",
-      "name": "KIKI_STATE_PARACHUTE",
-      "start_routine": null,
-      "update_routine": "kiki_tick_parachute",
       "input_routine": "kiki_input_parachute",
-      "onground_routine": "kiki_start_landing",
+      "name": "KIKI_STATE_PARACHUTE",
       "offground_routine": "dummy_routine",
-      "onhurt_routine": "hurt_player"
+      "onground_routine": "kiki_start_landing",
+      "onhurt_routine": "hurt_player",
+      "start_routine": null,
+      "type": "character_state",
+      "update_routine": "kiki_tick_parachute"
     },
     {
       "input_routine": "smart_keep_input_dirty",
@@ -11564,10 +11567,8 @@
       "KIKI_TILE_76",
       "KIKI_TILE_77"
     ],
-    "type": "tileset",
     "tiles": [
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -11649,10 +11650,10 @@
             2,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -11734,10 +11735,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -11819,10 +11820,10 @@
             0,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -11904,10 +11905,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -11989,10 +11990,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -12074,10 +12075,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -12159,10 +12160,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -12244,10 +12245,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -12329,10 +12330,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -12414,10 +12415,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -12499,701 +12500,11 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
-          [
-            0,
-            2,
-            1,
-            1,
-            0,
-            0,
-            0,
-            1
-          ],
-          [
-            2,
-            3,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            1,
-            1,
-            3,
-            3,
-            3,
-            3,
-            3,
-            1
-          ],
-          [
-            1,
-            1,
-            2,
-            3,
-            2,
-            2,
-            3,
-            1
-          ],
-          [
-            0,
-            1,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3
-          ],
-          [
-            0,
-            1,
-            3,
-            1,
-            1,
-            3,
-            3,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            3,
-            3,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            1,
-            1,
-            1,
-            1
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            1,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            3,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            3,
-            3,
-            3,
-            1,
-            1,
-            0
-          ],
-          [
-            3,
-            3,
-            3,
-            1,
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            3,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            1,
-            3,
-            3,
-            3,
-            1,
-            3
-          ],
-          [
-            0,
-            1,
-            3,
-            2,
-            3,
-            1,
-            3,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            3,
-            1,
-            3,
-            1
-          ],
-          [
-            0,
-            1,
-            3,
-            3,
-            3,
-            3,
-            1,
-            1
-          ],
-          [
-            0,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            1,
-            2,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            1,
-            1,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            1,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            2,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            3,
-            2,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            3,
-            3,
-            1,
-            3
-          ],
-          [
-            0,
-            1,
-            3,
-            2,
-            3,
-            1,
-            3,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            3,
-            1,
-            3,
-            1
-          ],
-          [
-            0,
-            1,
-            3,
-            3,
-            3,
-            3,
-            1,
-            1
-          ],
-          [
-            0,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            1,
-            3,
-            1,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            0,
-            1,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
           [
             0,
             2,
@@ -13263,11 +12574,701 @@
             3,
             1,
             1
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
+        "representation": [
+          [
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            3,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            1,
+            1,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            3,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            1,
+            3,
+            3,
+            3,
+            1,
+            3
+          ],
+          [
+            0,
+            1,
+            3,
+            2,
+            3,
+            1,
+            3,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            3,
+            1,
+            3,
+            1
+          ],
+          [
+            0,
+            1,
+            3,
+            3,
+            3,
+            3,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            2,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            2,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            3,
+            3,
+            1,
+            3
+          ],
+          [
+            0,
+            1,
+            3,
+            2,
+            3,
+            1,
+            3,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            3,
+            1,
+            3,
+            1
+          ],
+          [
+            0,
+            1,
+            3,
+            3,
+            3,
+            3,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            1,
+            3,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            2,
+            3,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            3,
+            3,
+            3,
+            3,
+            3,
+            1
+          ],
+          [
+            1,
+            1,
+            2,
+            3,
+            2,
+            2,
+            3,
+            1
+          ],
+          [
+            0,
+            1,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            1,
+            3,
+            1,
+            1,
+            3,
+            3,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            3,
+            3,
+            1,
+            1
+          ]
+        ],
+        "type": "tile"
+      },
+      {
         "representation": [
           [
             0,
@@ -13349,10 +13350,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -13434,10 +13435,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -13519,10 +13520,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -13604,10 +13605,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -13689,10 +13690,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -13774,10 +13775,10 @@
             3,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -13859,10 +13860,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -13944,10 +13945,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -14029,10 +14030,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14114,10 +14115,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14199,10 +14200,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14284,10 +14285,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -14369,10 +14370,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14454,10 +14455,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -14539,10 +14540,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -14624,10 +14625,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14709,10 +14710,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14794,10 +14795,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14879,10 +14880,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14964,10 +14965,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15049,10 +15050,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15134,10 +15135,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15219,10 +15220,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15304,180 +15305,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            3,
-            3,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            0,
-            3,
-            2,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            2,
-            2,
-            2,
-            2,
-            3,
-            3
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            2,
-            3,
-            0,
-            0
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            3,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            3,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            3,
-            3,
-            3,
-            2,
-            3
-          ],
-          [
-            0,
-            0,
-            3,
-            3,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            3,
-            2,
-            2,
-            2,
-            3,
-            2
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            2,
-            2,
-            3,
-            3
-          ],
-          [
-            3,
-            3,
-            2,
-            2,
-            3,
-            3,
-            0,
-            0
-          ],
-          [
-            3,
-            2,
-            2,
-            2,
-            2,
-            3,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15516,6 +15347,176 @@
             2,
             2,
             2,
+            2,
+            2
+          ],
+          [
+            0,
+            3,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            3,
+            3,
+            3,
+            2,
+            3
+          ],
+          [
+            0,
+            0,
+            3,
+            3,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            3,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            3,
+            3,
+            2,
+            2,
+            2,
+            3,
+            2
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            2,
+            2,
+            3,
+            3,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            3,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            3,
+            3,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            3,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            3,
+            2,
+            2,
+            2,
+            2,
             3,
             3
           ],
@@ -15559,10 +15560,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15644,10 +15645,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15729,10 +15730,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15814,10 +15815,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15899,10 +15900,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15984,10 +15985,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16069,10 +16070,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16154,10 +16155,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16239,10 +16240,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16324,10 +16325,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16409,10 +16410,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16494,10 +16495,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16579,10 +16580,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16664,10 +16665,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16749,10 +16750,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16834,10 +16835,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16919,10 +16920,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17004,10 +17005,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -17089,10 +17090,10 @@
             2,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17174,10 +17175,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17259,10 +17260,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17344,10 +17345,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17429,10 +17430,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -17514,10 +17515,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17599,10 +17600,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17684,10 +17685,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17769,10 +17770,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17854,10 +17855,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17939,10 +17940,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -18024,10 +18025,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18109,10 +18110,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -18194,9 +18195,11 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       }
-    ]
+    ],
+    "type": "tileset"
   },
   "type": "character",
   "victory_animation": {
@@ -18260,8 +18263,5 @@
     ],
     "name": "kiki_anim_victory",
     "type": "animation"
-  },
-  "sourcecode_file": "characters/kiki/states.asm",
-  "global_tick_routine": "dummy_routine",
-  "projectile_hit_routine": "dummy_routine"
+  }
 }

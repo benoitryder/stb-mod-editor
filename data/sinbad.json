@@ -87,8 +87,8 @@
         "type": "character_ai_attack"
       }
     ],
-    "type": "character_ai",
-    "sourcecode_file": "characters/sinbad/ai.asm"
+    "sourcecode": "sinbad_ai_attack_selector:\n.(\n\t; Do not try to attack in incapacited states, it would ruin ai reactivity after such states\n\tlda player_b_state\n\tcmp #SINBAD_STATE_CRASHING\n\tbeq end\n\t\tjmp ai_attack_selector\n\t\t; No return, jump to subroutine\n\tend:\n\trts\n.)\n\nsinbad_ai_recover_selector:\n.(\n\tplatform_handler_lsb = tmpfield1\n\tplatform_handler_msb = tmpfield2\n\tendangered = tmpfield3\n\tbest_platform = tmpfield4\n\t;tmpfield5 used by platform handler\n\n\t.(\n\t\t; Skip everything if the player is grounded\n\t\tlda player_b_grounded\n\t\tbne dont_try_to_recover\n\n\t\t; Check that the player is offstage - no platform behind him\n\t\tlda #1\n\t\tsta endangered\n\t\tlda #0\n\t\tsta best_platform\n\n\t\tlda #<platform_handler\n\t\tsta platform_handler_lsb\n\t\tlda #>platform_handler\n\t\tsta platform_handler_msb\n\t\tjsr stage_iterate_all_elements\n\n\t\tlda endangered\n\t\tbne try_to_recover\n\n\t\tdont_try_to_recover:\n\t\t\tjmp end\n\n\t\ttry_to_recover:\n\t\t\t; Set action modifier to the platform's direction\n\t\t\tlda #CONTROLLER_BTN_RIGHT\n\t\t\tsta ai_current_action_modifier\n\t\t\tldy best_platform\n\t\t\tSIGNED_CMP(player_b_x, player_b_x_screen, stage_data+STAGE_PLATFORM_OFFSET_RIGHT COMMA y, #0)\n\t\t\tbmi direction_set\n\t\t\tlda #CONTROLLER_BTN_LEFT\n\t\t\tsta ai_current_action_modifier\n\t\t\tdirection_set:\n\n\t\t\t; Set the idle action if\n\t\t\t;  - the player is on hitstun\n\t\t\t;  - or the platform is lower than player\n\t\t\t;  - or the player is not on falling, thrown nor helpless state\n\t\t\tlda player_b_hitstun\n\t\t\tbne set_idle_action\n\n\t\t\tSIGNED_CMP(player_b_y, player_b_y_screen, stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0)\n\t\t\tbmi set_idle_action\n\n\t\t\tlda player_b_state\n\t\t\tcmp #SINBAD_STATE_FALLING\n\t\t\tbeq dont_set_idle_action\n\t\t\tcmp #SINBAD_STATE_THROWN\n\t\t\tbeq dont_set_idle_action\n\t\t\tcmp #SINBAD_STATE_HELPLESS\n\t\t\tbne set_idle_action\n\t\t\tdont_set_idle_action:\n\n\t\t\t; Wall jump if it is possible\n\t\t\tlda player_b_walled\n\t\t\tbeq skip_walljump\n\t\t\tlda player_b_special_jumps\n\t\t\tand #%00000001\n\t\t\tbne set_jump_action\n\t\t\tskip_walljump:\n\n\t\t\t; In helpless mode, do not try anything else\n\t\t\tlda player_b_state\n\t\t\tcmp #SINBAD_STATE_HELPLESS\n\t\t\tbeq set_idle_action\n\n\t\t\t; Air jump if it is possible\n\t\t\tlda player_b_num_aerial_jumps\n\t\t\tcmp #SINBAD_MAX_NUM_AERIAL_JUMPS\n\t\t\tbne set_jump_action\n\n\t\t\t; Special-side if the platform is far away\n\t\t\tlda player_b_x_screen\n\t\t\tbne set_special_side_action\n\n\t\t\t\tlda ai_current_action_modifier\n\t\t\t\tcmp #CONTROLLER_BTN_RIGHT\n\t\t\t\tbeq load_left_edge\n\t\t\t\tlda stage_data+STAGE_PLATFORM_OFFSET_RIGHT, y\n\t\t\t\tjmp edge_loaded\n\t\t\t\tload_left_edge:\n\t\t\t\tlda stage_data+STAGE_PLATFORM_OFFSET_LEFT, y\n\t\t\t\tedge_loaded:\n\n\t\t\t\t\tsec\n\t\t\t\t\tsbc player_b_x\n\t\t\t\t\tjsr absolute_a\n\t\t\t\t\tcmp #16\n\t\t\t\t\tbcs set_special_side_action\n\n\t\t\t; Special-up since no other action was found\n\t\t\tjmp set_special_up_action\n\n\t\t\t; Set an action\n\t\t\tset_idle_action:\n\t\t\t\tlda #<ai_action_idle\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_idle\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_jump_action:\n\t\t\t\tlda #<ai_action_jump\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_jump\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_special_side_action:\n\t\t\t\tlda #<sinbad_ai_action_special_side\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>sinbad_ai_action_special_side\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\tjmp begin_action\n\n\t\t\tset_special_up_action:\n\t\t\t\tlda #$00\n\t\t\t\tsta ai_current_action_modifier\n\t\t\t\tlda #<ai_action_special_up\n\t\t\t\tsta ai_current_action_lsb\n\t\t\t\tlda #>ai_action_special_up\n\t\t\t\tsta ai_current_action_msb\n\t\t\t\t;jmp begin_action ; useless, fallthrough\n\n\t\t; Reset current action to its begining\n\t\tbegin_action:\n\t\tlda #0\n\t\tsta ai_current_action_step\n\t\tsta ai_current_action_counter\n\t\tjsr ai_delay_action\n\n\t\tend:\n\t\trts\n\t.)\n\n\tplatform_handler:\n\t.(\n\t\tpatched_value = tmpfield5\n\n\t\t; Ignore unknown platforms\n\t\tlda stage_data, y\n\t\tcmp #STAGE_ELEMENT_PLATFORM\n\t\tbeq process\n\t\tcmp #STAGE_ELEMENT_SMOOTH_PLATFORM\n\t\tbeq process\n\t\tjmp end\n\t\tprocess:\n\n\t\t\t; Select this platfor as the best if\n\t\t\t;  - It is the first platform we encounter - we want to ensure a result\n\t\t\t;  - or we are helpless and this is an hard platform - a wall jump may be our only hope\n\t\t\t.(\n\t\t\t\tlda best_platform\n\t\t\t\tbeq select_current_platform\n\t\t\t\tlda player_b_state\n\t\t\t\tcmp #SINBAD_STATE_HELPLESS\n\t\t\t\tbne dont_select_current_platform\n\t\t\t\tlda stage_data, y\n\t\t\t\tcmp #STAGE_ELEMENT_PLATFORM\n\t\t\t\tbne dont_select_current_platform\n\n\t\t\t\t\tselect_current_platform:\n\t\t\t\t\t\ttya\n\t\t\t\t\t\tsta best_platform\n\n\t\t\t\tdont_select_current_platform:\n\t\t\t.)\n\n\t\t\t; A platform above the player cannot save him\n\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0, player_b_y, player_b_y_screen)\n\t\t\tbmi end\n\n\t\t\t; A platform on the left of the player cannot save him\n\t\t\tlda stage_data+STAGE_PLATFORM_OFFSET_RIGHT, y\n\t\t\tclc\n\t\t\tadc #1\n\t\t\tsta patched_value\n\t\t\tSIGNED_CMP(patched_value, #0, player_b_x, player_b_x_screen)\n\t\t\tbmi end\n\n\t\t\t; A platform on the right of the player cannot save him\n\t\t\tlda player_b_x\n\t\t\tclc\n\t\t\tadc #1\n\t\t\tsta patched_value\n\t\t\tSIGNED_CMP(patched_value, player_b_x_screen, stage_data+STAGE_PLATFORM_OFFSET_LEFT COMMA y, #0)\n\t\t\tbmi end\n\n\t\t\t; The current platform can save the player, no need to recover\n\t\t\tlda #0\n\t\t\tsta endangered\n\t\t\tldy #$ff\n\n\t\tend:\n\t\trts\n\t.)\n.)\n",
+    "type": "character_ai"
   },
   "animations": [
     {
@@ -4921,10 +4921,10 @@
               "y": 7
             },
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_26",
               "attr": 1,
               "foreground": false,
+              "tile": "SINBAD_TILE_26",
+              "type": "animation_sprite",
               "x": 14,
               "y": 6
             }
@@ -4983,10 +4983,10 @@
               "y": 7
             },
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_75",
               "attr": 1,
               "foreground": false,
+              "tile": "SINBAD_TILE_75",
+              "type": "animation_sprite",
               "x": 9,
               "y": 0
             }
@@ -5053,10 +5053,10 @@
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_56",
               "attr": 129,
               "foreground": false,
+              "tile": "SINBAD_TILE_56",
+              "type": "animation_sprite",
               "x": 9,
               "y": -2
             }
@@ -5072,17 +5072,17 @@
         {
           "duration": 2,
           "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": -7,
-            "top": 5,
-            "right": 16,
-            "bottom": 12,
             "base_h": -800,
             "base_v": -400,
+            "bottom": 12,
+            "damages": 1,
+            "enabled": true,
             "force_h": 0,
             "force_v": 0,
-            "damages": 1,
-            "enabled": true
+            "left": -7,
+            "right": 16,
+            "top": 5,
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -5101,10 +5101,10 @@
               "y": 5
             },
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_24",
               "attr": 129,
               "foreground": false,
+              "tile": "SINBAD_TILE_24",
+              "type": "animation_sprite",
               "x": 8,
               "y": 3
             },
@@ -5138,17 +5138,17 @@
         {
           "duration": 2,
           "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": -7,
-            "top": 0,
-            "right": 13,
-            "bottom": 15,
             "base_h": -800,
             "base_v": -400,
+            "bottom": 15,
+            "damages": 1,
+            "enabled": false,
             "force_h": 0,
             "force_v": 0,
-            "damages": 1,
-            "enabled": false
+            "left": -7,
+            "right": 13,
+            "top": 0,
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -5212,17 +5212,17 @@
         {
           "duration": 2,
           "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": 0,
-            "top": 0,
-            "right": 12,
-            "bottom": 15,
             "base_h": -800,
             "base_v": -400,
+            "bottom": 15,
+            "damages": 1,
+            "enabled": true,
             "force_h": 0,
             "force_v": 0,
-            "damages": 1,
-            "enabled": true
+            "left": 0,
+            "right": 12,
+            "top": 0,
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -5249,10 +5249,10 @@
               "y": 6
             },
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_63",
               "attr": 65,
               "foreground": false,
+              "tile": "SINBAD_TILE_63",
+              "type": "animation_sprite",
               "x": -2,
               "y": 8
             },
@@ -5286,17 +5286,17 @@
         {
           "duration": 2,
           "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": -2,
-            "top": -2,
-            "right": 12,
-            "bottom": 16,
             "base_h": -800,
             "base_v": -400,
+            "bottom": 16,
+            "damages": 1,
+            "enabled": false,
             "force_h": 0,
             "force_v": 0,
-            "damages": 1,
-            "enabled": false
+            "left": -2,
+            "right": 12,
+            "top": -2,
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -5366,17 +5366,17 @@
         {
           "duration": 6,
           "hitbox": {
-            "type": "animation_direct_hitbox",
-            "left": -7,
-            "top": 5,
-            "right": 16,
-            "bottom": 16,
             "base_h": -400,
             "base_v": -1000,
+            "bottom": 16,
+            "damages": 1,
+            "enabled": true,
             "force_h": 0,
             "force_v": -20,
-            "damages": 1,
-            "enabled": true
+            "left": -7,
+            "right": 16,
+            "top": 5,
+            "type": "animation_direct_hitbox"
           },
           "hurtbox": {
             "bottom": 16,
@@ -5387,18 +5387,18 @@
           },
           "sprites": [
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_16",
               "attr": 65,
               "foreground": false,
+              "tile": "SINBAD_TILE_16",
+              "type": "animation_sprite",
               "x": -2,
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_59",
               "attr": 1,
               "foreground": false,
+              "tile": "SINBAD_TILE_59",
+              "type": "animation_sprite",
               "x": 6,
               "y": 8
             },
@@ -5433,10 +5433,10 @@
           },
           "sprites": [
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_63",
               "attr": 1,
               "foreground": false,
+              "tile": "SINBAD_TILE_63",
+              "type": "animation_sprite",
               "x": 7,
               "y": 8
             },
@@ -5457,10 +5457,10 @@
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_16",
               "attr": 65,
               "foreground": false,
+              "tile": "SINBAD_TILE_16",
+              "type": "animation_sprite",
               "x": -1,
               "y": 8
             }
@@ -5479,18 +5479,18 @@
           },
           "sprites": [
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_16",
               "attr": 65,
               "foreground": false,
+              "tile": "SINBAD_TILE_16",
+              "type": "animation_sprite",
               "x": -3,
               "y": 8
             },
             {
-              "type": "animation_sprite",
-              "tile": "SINBAD_TILE_64",
               "attr": 1,
               "foreground": false,
+              "tile": "SINBAD_TILE_64",
+              "type": "animation_sprite",
               "x": 5,
               "y": 8
             },
@@ -9642,6 +9642,7 @@
     "name": "sinbad_anim_defeat",
     "type": "animation"
   },
+  "global_tick_routine": "dummy_routine",
   "illustration_large": {
     "name": null,
     "tilenames": [
@@ -9694,10 +9695,8 @@
       "SINBAD_ILLUSTRATION_LARGE_47",
       "SINBAD_ILLUSTRATION_LARGE_48"
     ],
-    "type": "tileset",
     "tiles": [
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -9779,10 +9778,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -9864,10 +9863,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -9949,10 +9948,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10034,10 +10033,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10119,10 +10118,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10204,10 +10203,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10289,10 +10288,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10374,10 +10373,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -10459,10 +10458,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -10544,10 +10543,10 @@
             0,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -10629,10 +10628,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10714,10 +10713,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10799,10 +10798,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10884,10 +10883,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -10969,10 +10968,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -11054,10 +11053,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -11139,10 +11138,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -11224,10 +11223,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -11309,10 +11308,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -11394,10 +11393,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -11479,10 +11478,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -11564,10 +11563,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -11649,10 +11648,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -11734,10 +11733,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -11819,10 +11818,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -11904,10 +11903,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -11989,10 +11988,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -12074,10 +12073,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -12159,10 +12158,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -12244,10 +12243,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -12329,10 +12328,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -12414,10 +12413,10 @@
             3,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -12499,10 +12498,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -12584,10 +12583,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -12669,10 +12668,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -12754,10 +12753,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -12839,10 +12838,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -12924,10 +12923,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -13009,10 +13008,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -13094,10 +13093,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -13179,10 +13178,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -13264,10 +13263,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -13349,10 +13348,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -13434,10 +13433,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -13519,10 +13518,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -13604,10 +13603,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -13689,10 +13688,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -13774,9 +13773,11 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       }
-    ]
+    ],
+    "type": "tileset"
   },
   "illustration_small": {
     "name": null,
@@ -13786,10 +13787,8 @@
       "SINBAD_ILLUSTRATION_SMALL_3",
       "SINBAD_ILLUSTRATION_SMALL_4"
     ],
-    "type": "tileset",
     "tiles": [
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -13871,10 +13870,10 @@
             0,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -13956,10 +13955,10 @@
             0,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -14041,10 +14040,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14126,19 +14125,19 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       }
-    ]
+    ],
+    "type": "tileset"
   },
   "illustration_token": {
     "name": null,
     "tilenames": [
       "SINBAD_ILLUSTRATION_TOKEN_1"
     ],
-    "type": "tileset",
     "tiles": [
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -14220,9 +14219,11 @@
             0,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       }
-    ]
+    ],
+    "type": "tileset"
   },
   "menu_select_animation": {
     "frames": [
@@ -14312,6 +14313,8 @@
   },
   "name": "sinbad",
   "netload_routine": "dummy_routine",
+  "projectile_hit_routine": "dummy_routine",
+  "sourcecode": "!define \"char_name\" {sinbad}\n!define \"char_name_upper\" {SINBAD}\n\n;\n; Gameplay constants\n;\n\nSINBAD_AERIAL_SPEED = $0100\nSINBAD_AERIAL_DIRECTIONAL_INFLUENCE_STRENGTH = $80\nSINBAD_AIR_FRICTION_STRENGTH = 7\nSINBAD_FASTFALL_SPEED = $0500\nSINBAD_GROUND_FRICTION_STRENGTH = $60\nSINBAD_JUMP_POWER = $0480\nSINBAD_JUMP_SHORT_HOP_POWER = $0102\nSINBAD_JUMP_SHORT_HOP_EXTRA_TIME_PAL = 4 ; Number of frames after jumpsquat at which shorthop is handled\nSINBAD_JUMP_SHORT_HOP_EXTRA_TIME_NTSC = 5\nSINBAD_JUMP_SHORT_HOP_AERIAL_TIME_PAL = 2 ;  Number of frames after jumpsquat at which an attack input stops converting is into a short hop-aerial\nSINBAD_JUMP_SHORT_HOP_AERIAL_TIME_NTSC = 2\nSINBAD_JUMP_SQUAT_DURATION_PAL = 4\nSINBAD_JUMP_SQUAT_DURATION_NTSC = 5\nSINBAD_LANDING_MAX_VELOCITY = $0200\nSINBAD_MAX_NUM_AERIAL_JUMPS = 1\nSINBAD_ALL_SPECIAL_JUMPS = %10000001\nSINBAD_RUNNING_INITIAL_VELOCITY = $0100\nSINBAD_RUNNING_MAX_VELOCITY = $0200\nSINBAD_RUNNING_ACCELERATION = $40\nSINBAD_TECH_SPEED = $0400\nSINBAD_WALL_JUMP_SQUAT_END = 4\nSINBAD_WALL_JUMP_VELOCITY_V = $0480\nSINBAD_WALL_JUMP_VELOCITY_H = $0100\n\n;\n; Constants data\n;\n\n!include \"characters/std_constant_tables.asm\"\n\n;\n; Implementation\n;\n\nsinbad_init:\nsinbad_global_onground:\n.(\n\t; Initialize special jump flags\n\tlda #SINBAD_ALL_SPECIAL_JUMPS\n\tsta player_a_special_jumps, x\n\trts\n.)\n\n; Input table for aerial moves, special values are\n;  fast_fall - mandatorily on INPUT_NONE to take effect on release of DOWN\n;  jump      - automatically choose between aerial jump or wall jump\n;  no_input  - expected default\n!input-table-define \"SINBAD_AERIAL_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_NONE               fast_fall\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sinbad_start_side_special\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sinbad_start_side_special\n\tCONTROLLER_INPUT_JUMP               jump\n\tCONTROLLER_INPUT_JUMP_RIGHT         jump\n\tCONTROLLER_INPUT_JUMP_LEFT          jump\n\tCONTROLLER_INPUT_ATTACK_LEFT        sinbad_start_aerial_side\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sinbad_start_aerial_side\n\tCONTROLLER_INPUT_DOWN_TILT          sinbad_start_aerial_down\n\tCONTROLLER_INPUT_ATTACK_UP          sinbad_start_aerial_up\n\tCONTROLLER_INPUT_JAB                sinbad_start_aerial_neutral\n\tCONTROLLER_INPUT_SPECIAL            sinbad_start_aerial_spe\n\tCONTROLLER_INPUT_SPECIAL_UP         sinbad_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sinbad_start_spe_down\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sinbad_start_aerial_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sinbad_start_aerial_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sinbad_start_spe_up_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sinbad_start_spe_up_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sinbad_start_aerial_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sinbad_start_aerial_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sinbad_start_spe_down_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sinbad_start_spe_down_left\n\n\tno_input\n}\n\n; Input table for idle state, special values are\n;  no_input - Default\n!input-table-define \"SINBAD_IDLE_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_LEFT               sinbad_start_running_left\n\tCONTROLLER_INPUT_RIGHT              sinbad_start_running_right\n\tCONTROLLER_INPUT_JUMP               sinbad_start_jumping\n\tCONTROLLER_INPUT_JUMP_RIGHT         sinbad_start_jumping_right\n\tCONTROLLER_INPUT_JUMP_LEFT          sinbad_start_jumping_left\n\tCONTROLLER_INPUT_JAB                sinbad_start_jabbing\n\tCONTROLLER_INPUT_ATTACK_LEFT        sinbad_start_side_tilt_windup_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sinbad_start_side_tilt_windup_right\n\tCONTROLLER_INPUT_SPECIAL            sinbad_start_special\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sinbad_start_side_special_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sinbad_start_side_special_left\n\tCONTROLLER_INPUT_DOWN_TILT          sinbad_start_down_tilt\n\tCONTROLLER_INPUT_SPECIAL_UP         sinbad_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sinbad_start_spe_down\n\tCONTROLLER_INPUT_ATTACK_UP          sinbad_start_up_tilt\n\tCONTROLLER_INPUT_TECH               sinbad_start_shielding\n\tCONTROLLER_INPUT_TECH_LEFT          sinbad_start_shielding_left\n\tCONTROLLER_INPUT_TECH_RIGHT         sinbad_start_shielding_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sinbad_start_spe_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sinbad_start_spe_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sinbad_start_up_tilt_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sinbad_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sinbad_start_spe_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sinbad_start_spe_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sinbad_start_down_tilt_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sinbad_start_down_tilt_right\n\n\tno_input\n}\n\n; Input table for running state, special values are\n;  input_running_left - Change running direction to the left (if not already running to the left)\n;  input_runnning_right - Change running direction to the right (if not already running to the right)\n!input-table-define \"SINBAD_RUNNING_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_LEFT               input_running_left\n\tCONTROLLER_INPUT_RIGHT              input_running_right\n\tCONTROLLER_INPUT_JUMP               sinbad_start_jumping\n\tCONTROLLER_INPUT_JUMP_LEFT          sinbad_start_jumping_left\n\tCONTROLLER_INPUT_JUMP_RIGHT         sinbad_start_jumping_right\n\tCONTROLLER_INPUT_ATTACK_LEFT        sinbad_start_side_tilt_windup_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sinbad_start_side_tilt_windup_right\n\tCONTROLLER_INPUT_SPECIAL            sinbad_start_special\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sinbad_start_side_special_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sinbad_start_side_special_left\n\tCONTROLLER_INPUT_SPECIAL_UP         sinbad_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sinbad_start_spe_down\n\tCONTROLLER_INPUT_TECH_LEFT          sinbad_start_shielding_left\n\tCONTROLLER_INPUT_TECH_RIGHT         sinbad_start_shielding_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sinbad_start_spe_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sinbad_start_spe_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sinbad_start_up_tilt_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sinbad_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sinbad_start_spe_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sinbad_start_spe_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sinbad_start_down_tilt_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sinbad_start_down_tilt_right\n\tCONTROLLER_INPUT_DOWN_TILT          sinbad_start_down_tilt\n\n\tsinbad_start_idle\n}\n\n; Input table for jumping state state (only used during jumpsquat), special values are\n;  no_input - default\n!input-table-define \"SINBAD_JUMPSQUAT_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_ATTACK_UP        sinbad_start_up_tilt\n\tCONTROLLER_INPUT_SPECIAL_UP       sinbad_start_spe_up\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT   sinbad_start_up_tilt_left\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT  sinbad_start_spe_up_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT  sinbad_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT sinbad_start_spe_up_right\n\n\tno_input\n}\n\n!include \"characters/std_aerial_input.asm\"\n!include \"characters/std_crashing.asm\"\n!include \"characters/std_thrown.asm\"\n!include \"characters/std_respawn.asm\"\n!include \"characters/std_innexistant.asm\"\n!include \"characters/std_spawn.asm\"\n!include \"characters/std_idle.asm\"\n!include \"characters/std_running.asm\"\n!include \"characters/std_jumping.asm\"\n!include \"characters/std_landing.asm\"\n!include \"characters/std_helpless.asm\"\n!include \"characters/std_shielding.asm\"\n!include \"characters/std_walljumping.asm\"\n!include \"characters/std_owned.asm\"\n\n;\n; Jab\n;\n\n.(\n\tjab1_duration:\n\t\t.byt sinbad_anim_jab1_dur_pal, sinbad_anim_jab1_dur_ntsc\n\tanim_duration_table(sinbad_anim_jab1_dur_pal-10, jab1_cuttable_duration)\n\n\tjab2_duration:\n\t\t.byt sinbad_anim_jab2_dur_pal, sinbad_anim_jab2_dur_ntsc\n\tanim_duration_table(sinbad_anim_jab2_dur_pal-10, jab2_cuttable_duration)\n\n\tjab3_duration:\n\t\t.byt sinbad_anim_jab3_dur_pal, sinbad_anim_jab3_dur_ntsc\n\tanim_duration_table(sinbad_anim_jab3_dur_pal-9, jab3_sfx_time)\n\n\t&sinbad_start_jabbing:\n\t.(\n\t\tlda #SINBAD_STATE_JABBING_1\n\t\tsta player_a_state, x\n\t\tldy system_index\n\t\tlda jab1_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<sinbad_anim_jab1\n\t\tsta tmpfield13\n\t\tlda #>sinbad_anim_jab1\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; SFX\n\t\tjmp audio_play_strike_lite\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&sinbad_start_jabbing2:\n\t.(\n\t\tlda #SINBAD_STATE_JABBING_2\n\t\tsta player_a_state, x\n\t\tldy system_index\n\t\tlda jab2_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<sinbad_anim_jab2\n\t\tsta tmpfield13\n\t\tlda #>sinbad_anim_jab2\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; SFX\n\t\tjmp audio_play_strike_lite\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&sinbad_start_jabbing3:\n\t.(\n\t\tlda #SINBAD_STATE_JABBING_3\n\t\tsta player_a_state, x\n\t\tldy system_index\n\t\tlda jab2_duration, y\n\t\tsta player_a_state_clock, x\n\n\t\t; Set the appropriate animation\n\t\tlda #<sinbad_anim_jab3\n\t\tsta tmpfield13\n\t\tlda #>sinbad_anim_jab3\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&sinbad_tick_jab3:\n\t.(\n\t\t; Play SFX when landing\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp jab3_sfx_time, y\n\t\tbne ok\n\n\t\t\tjsr sinbad_audio_play_jab3_land\n\n\t\tok:\n\t\t;Fallthrough\n\t.)\n\t&sinbad_tick_jabbing:\n\t.(\n\t\t; Do not move, velocity tends toward vector (0,0)\n\t\tlda #$00\n\t\tsta tmpfield4\n\t\tsta tmpfield3\n\t\tsta tmpfield2\n\t\tsta tmpfield1\n\t\tlda #$ff\n\t\tsta tmpfield5\n\t\tjsr merge_to_player_velocity\n\n\t\t; At the end of the move, return to idle state\n\t\tdec player_a_state_clock, x\n\t\tbne end\n\t\t\tjmp sinbad_start_inactive_state\n\t\t\t; No return, jump to subroutine\n\n\t\tend:\n\t\trts\n\t.)\n\n\t&sinbad_input_jabbing1:\n\t.(\n\t\tldy system_index\n\t\tlda jab1_cuttable_duration, y\n\t\tcmp player_a_state_clock, x\n\t\tbcs take_input\n\n\t\t\tnot_yet:\n\t\t\t\t; Keep keypress dirty, but acknowledge key release\n\t\t\t\t;  So releasing then pressing again jab input correctly bufferises the jab input\n\t\t\t\tlda controller_a_btns, x\n\t\t\t\tbeq end\n\t\t\t\t\tjmp dumb_keep_input_dirty ; dumb as we already checked the \"smart\" condition for our own logic\n\n\t\t\ttake_input:\n\t\t\t\t; Allow to cut the animation for another jab\n\t\t\t\tlda controller_a_btns, x\n\t\t\t\tcmp #CONTROLLER_INPUT_JAB\n\t\t\t\tbne end\n\t\t\t\t\tjmp sinbad_start_jabbing2\n\t\t\t\t\t; No return, jump to subroutine\n\n\t\tend:\n\t\trts\n\t.)\n\n\t&sinbad_input_jabbing2:\n\t.(\n\t\tldy system_index\n\t\tlda jab2_cuttable_duration, y\n\t\tcmp player_a_state_clock, x\n\t\tbcs take_input\n\n\t\t\tnot_yet:\n\t\t\t\t; Keep keypress dirty, but acknowledge key release\n\t\t\t\t;  So releasing then pressing again jab input correctly bufferises the jab input\n\t\t\t\tlda controller_a_btns, x\n\t\t\t\tbeq end\n\t\t\t\t\tjmp dumb_keep_input_dirty ; dumb as we already checked the \"smart\" condition for our own logic\n\n\t\t\ttake_input:\n\t\t\t\t; Allow to cut the animation for another jab\n\t\t\t\tlda controller_a_btns, x\n\t\t\t\tcmp #CONTROLLER_INPUT_JAB\n\t\t\t\tbne end\n\t\t\t\t\tjmp sinbad_start_jabbing3\n\t\t\t\t\t; No return, jump to subroutine\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n;\n; Side tilt\n;\n\nsinbad_unfallable_platform = player_a_state_field1\n\n!define \"anim\" {sinbad_anim_side_tilt_windup}\n!define \"state\" {SINBAD_STATE_SIDE_TILT_WINDUP}\n!define \"routine\" {side_tilt_windup}\n!define \"followup\" {sinbad_start_side_tilt_hit}\n!square-define \"init\" [\n\t; Set initial velocity\n\tldy system_index\n\tlda player_a_direction, x\n\tcmp #DIRECTION_LEFT2\n\tbne direction_right\n\t\tdirection_left:\n\t\t\tlda {char_name}_run_init_neg_velocity_lsb, y\n\t\t\tsta player_a_velocity_h_low, x\n\t\t\tlda {char_name}_run_init_neg_velocity_msb, y\n\t\t\tjmp set_high_byte\n\t\tdirection_right:\n\t\t\tlda {char_name}_run_init_velocity_lsb, y\n\t\t\tsta player_a_velocity_h_low, x\n\t\t\tlda {char_name}_run_init_velocity_msb, y\n\tset_high_byte:\n\tsta player_a_velocity_h, x\n\n\t; Get platform from which we cannot fall\n\tlda player_a_grounded, x\n\tsta sinbad_unfallable_platform, x\n\n\trts\n]\n!square-define \"tick\" [\n\tjmp {char_name}_side_tilt_speed_update\n\t;rts ; useless, jump to subroutine\n]\n!include \"characters/tpl_grounded_attack_followup.asm\"\n\n!define \"anim\" {sinbad_anim_side_tilt_hit}\n!define \"state\" {SINBAD_STATE_SIDE_TILT_HIT}\n!define \"routine\" {side_tilt_hit}\n!define \"followup\" {sinbad_side_tilt_hit_end}\n!define \"duration\" {12, 14}\n!square-define \"tick\" [\n\tjmp {char_name}_side_tilt_speed_update\n\t;rts ; useless, jump to subroutine\n]\n!include \"characters/tpl_grounded_attack_followup.asm\"\n\n!define \"anim\" {sinbad_anim_side_tilt_recovery}\n!define \"state\" {SINBAD_STATE_SIDE_TILT_RECOVERY}\n!define \"routine\" {side_tilt_recovery}\n!include \"characters/tpl_grounded_attack_followup.asm\"\n\nSINBAD_DASH_MAX_VELOCITY = (SINBAD_RUNNING_MAX_VELOCITY*4)/3\nvelocity_table({char_name_upper}_DASH_MAX_VELOCITY, {char_name}_dash_max_velocity_msb, {char_name}_dash_max_velocity_lsb)\nvelocity_table(-{char_name_upper}_DASH_MAX_VELOCITY, {char_name}_dash_max_neg_velocity_msb, {char_name}_dash_max_neg_velocity_lsb)\n\n; Displacement between ledge and actual position sinbad stops at, in pixels\n;  Minimum is 1 for staying on collision box.\n;  Set to greater value to avoid appearing glitchy, only one pixel on platform feels unatural\nSINBAD_LEDGE_REPLACE_OFFSET = 6\n\nsinbad_side_tilt_speed_update:\n.(\n\t; Do not change velocity from zero, it is certainly due to offground routine\n\tlda player_a_velocity_h_low, x\n\tbne proceed\n\tlda player_a_velocity_h, x\n\tbne proceed\n\t\trts\n\tproceed:\n\n\t; Update player's velocity depending on their direction\n\tldy system_index\n\tlda player_a_direction, x\n\tbeq run_left\n\n\t\t; Running right, velocity tends toward vector max velocity\n\t\tlda {char_name}_dash_max_velocity_msb, y\n\t\tsta tmpfield4\n\t\tlda {char_name}_dash_max_velocity_lsb, y\n\t\tjmp update_velocity ; Optimizable - inline \"update_velocity\" section in both \"run_left\" and \"run_right\" branches\n\n\trun_left:\n\t\t; Running left, velocity tends toward vector \"-1 * max volcity\"\n\t\tlda {char_name}_dash_max_neg_velocity_msb, y\n\t\tsta tmpfield4\n\t\tlda {char_name}_dash_max_neg_velocity_lsb, y\n\n\tupdate_velocity:\n\t\tsta tmpfield2\n\t\tlda #0\n\t\tsta tmpfield3\n\t\tsta tmpfield1\n\t\tlda {char_name}_run_acceleration, y\n\t\tsta tmpfield5\n\t\tjmp merge_to_player_velocity\n\t\t; No return, jump to subroutine\n\n\t;rts; useless, no branch return\n.)\n\nsinbad_offground_side_tilt:\n.(\n\tsinbad_unfallable_ledge_x_lsb = tmpfield1\n\tsinbad_unfallable_ledge_x_msb = tmpfield2\n\tsinbad_unfallable_ledge_y_lsb = tmpfield3\n\tsinbad_unfallable_ledge_y_msb = tmpfield4\n\tledge_distance_lsb = tmpfield5\n\tledge_distance_msb = tmpfield6\n\n\t; Get ledge position\n\t.(\n\t\tjsr sinbad_side_tilt_unfallable_ledge\n\t.)\n\n\t; Check if character felt from this ledge\n\t.(\n\t\t; Invalid platform\n\t\t.(\n\t\t\tlda sinbad_unfallable_ledge_x_msb\n\t\t\tcmp #$80\n\t\t\tbeq unatural_cause_of_going_offground\n\t\t.)\n\n\t\t; Character no more at platform's height\n\t\t.(\n\t\t\tlda player_a_y, x\n\t\t\tcmp sinbad_unfallable_ledge_y_lsb\n\t\t\tbne unatural_cause_of_going_offground\n\t\t\tlda player_a_y_screen, x\n\t\t\tcmp sinbad_unfallable_ledge_y_msb\n\t\t\tbne unatural_cause_of_going_offground\n\t\t.)\n\n\t\t; Character too far from ledge\n\t\t.(\n\t\t\t; ledge_distance = sinbad_unfallable_ledge_x - player_x\n\t\t\tlda sinbad_unfallable_ledge_x_lsb\n\t\t\tsec\n\t\t\tsbc player_a_x, x\n\t\t\tsta ledge_distance_lsb\n\t\t\tlda sinbad_unfallable_ledge_x_msb\n\t\t\tsbc player_a_x_screen, x\n\t\t\tsta ledge_distance_msb\n\n\t\t\t; ledge_distance = abs(ledge_distance)\n\t\t\tbpl distance_ok\n\t\t\t\teor #%11111111\n\t\t\t\tsta ledge_distance_msb\n\t\t\t\tlda ledge_distance_lsb\n\t\t\t\teor #%11111111\n\t\t\t\tsta ledge_distance_lsb\n\t\t\t\tinc ledge_distance_lsb\n\t\t\t\tbne distance_ok\n\t\t\t\t\tinc ledge_distance_msb\n\t\t\tdistance_ok:\n\n\t\t\t; unatural if ledge_distance >= 8 pixels\n\t\t\tlda ledge_distance_msb\n\t\t\tbne unatural_cause_of_going_offground\n\t\t\tlda ledge_distance_lsb\n\t\t\tcmp #8+SINBAD_LEDGE_REPLACE_OFFSET\n\t\t\tbcs unatural_cause_of_going_offground\n\t\t.)\n\n\t\tfelt_from_ledge:\n\t\t\t; Cancel momentum\n\t\t\tlda #0\n\t\t\tsta player_a_velocity_h_low, x\n\t\t\tsta player_a_velocity_h, x\n\n\t\t\t; Place character on the ledge\n\t\t\tlda #0\n\t\t\tsta player_a_x_low, x\n\t\t\tlda sinbad_unfallable_ledge_x_lsb\n\t\t\tsta player_a_x, x\n\t\t\tlda sinbad_unfallable_ledge_x_msb\n\t\t\tsta player_a_x_screen, x\n\t\t\tlda sinbad_unfallable_platform, x\n\t\t\tsta player_a_grounded, x\n\n\t\t\trts\n\n\t\tunatural_cause_of_going_offground:\n\t\t\tjmp sinbad_start_falling\n\t.)\n\n\t;rts ; useless, no branch return\n.)\n\n; Get coordinates of the ledge that can't be passed in side-tilt state\n;\n; Output\n;  tmpfield1 - X position of the ledge LSB\n;  tmpfield2 - X position of the ledge MSB\n;  tmpfield3 - Y position of the ledge LSB\n;  tmpfield4 - Y position of the ledge MSB\n;\n;  If the platform no more exists, tmpfield2 is set to $80. Other values are meaningless.\nsinbad_side_tilt_unfallable_ledge:\n.(\n\tsinbad_unfallable_ledge_x_lsb = tmpfield1\n\tsinbad_unfallable_ledge_x_msb = tmpfield2\n\tsinbad_unfallable_ledge_y_lsb = tmpfield3\n\tsinbad_unfallable_ledge_y_msb = tmpfield4\n\n\t; Select between left or right ledge to be impassable\n\t.(\n\t\tlda player_a_direction, x\n\t\tcmp #DIRECTION_LEFT2\n\t\tbne direction_right\n\t\t\tdirection_left:\n\t\t\t\tlda #<platform_handlers_left\n\t\t\t\tsta tmpfield1\n\t\t\t\tlda #>platform_handlers_left\n\t\t\t\tsta tmpfield2\n\t\t\t\tjmp ok\n\t\t\tdirection_right:\n\t\t\t\tlda #<platform_handlers_right\n\t\t\t\tsta tmpfield1\n\t\t\t\tlda #>platform_handlers_right\n\t\t\t\tsta tmpfield2\n\t\tok:\n\t.)\n\n\t; Get ledge coordinates\n\t.(\n\t\tlda sinbad_unfallable_platform, x\n\t\tbeq not_grounded\n\t\t\tpha\n\t\t\ttay\n\n\t\t\tlda #platform_handlers_size\n\t\t\tsta tmpfield3\n\t\t\tlda stage_data, y\n\t\t\tjmp switch_linear\n\t.)\n\n\ton_unknown_platform:\n\t\t; Unknown platform could happen if stage layout changed, and platform type is now STAGE_ELEMENT_END.\n\t\t; Other values should not happen.\n\t\t;  - Clear the stack from pushed platform offset, and report invalid coordinates\n\t\tpla\n\t\t; Fallthrough to not_grounded\n\tnot_grounded:\n\t\t; There is no reason too have no unfallable platform, so code does not support it, return invalid coordinates\n\t\tlda #$80\n\t\tsta sinbad_unfallable_ledge_x_msb\n\t\trts\n\n\ton_platform_facing_left:\n\t\tpla:tay\n\n\t\tlda stage_data+1, y\n\t\tclc\n\t\tadc #<SINBAD_LEDGE_REPLACE_OFFSET\n\t\tsta sinbad_unfallable_ledge_x_lsb\n\t\tlda #0\n\t\tsta sinbad_unfallable_ledge_y_msb ; beware, setting y_msb here because A is zero\n\t\tadc #>SINBAD_LEDGE_REPLACE_OFFSET\n\t\tsta sinbad_unfallable_ledge_x_msb\n\n\t\tlda stage_data+3, y\n\t\tsta sinbad_unfallable_ledge_y_lsb\n\n\t\trts\n\n\ton_oos_platform_facing_left:\n\t\tpla:tay\n\n\t\tlda stage_data+1, y\n\t\tclc\n\t\tadc #<SINBAD_LEDGE_REPLACE_OFFSET\n\t\tsta sinbad_unfallable_ledge_x_lsb\n\t\tlda stage_data+2, y\n\t\tadc #>SINBAD_LEDGE_REPLACE_OFFSET\n\t\tsta sinbad_unfallable_ledge_x_msb\n\n\t\tlda stage_data+5, y\n\t\tsta sinbad_unfallable_ledge_y_lsb\n\t\tlda stage_data+6, y\n\t\tsta sinbad_unfallable_ledge_y_msb\n\n\t\trts\n\n\ton_platform_facing_right:\n\t\tpla:tay\n\n\t\tlda stage_data+2, y\n\t\tsec\n\t\tsbc #<SINBAD_LEDGE_REPLACE_OFFSET\n\t\tsta sinbad_unfallable_ledge_x_lsb\n\t\tlda #0\n\t\tsta sinbad_unfallable_ledge_y_msb ; beware, setting y_msb here because A is zero\n\t\tsbc #>SINBAD_LEDGE_REPLACE_OFFSET\n\t\tsta sinbad_unfallable_ledge_x_msb\n\n\t\tlda stage_data+3, y\n\t\tsta sinbad_unfallable_ledge_y_lsb\n\n\t\trts\n\n\ton_oos_platform_facing_right:\n\t\tpla:tay\n\n\t\tlda stage_data+3, y\n\t\tsec\n\t\tsbc #<SINBAD_LEDGE_REPLACE_OFFSET\n\t\tsta sinbad_unfallable_ledge_x_lsb\n\t\tlda stage_data+4, y\n\t\tsbc #>SINBAD_LEDGE_REPLACE_OFFSET\n\t\tsta sinbad_unfallable_ledge_x_msb\n\n\t\tlda stage_data+5, y\n\t\tsta sinbad_unfallable_ledge_y_lsb\n\t\tlda stage_data+6, y\n\t\tsta sinbad_unfallable_ledge_y_msb\n\n\t\trts\n\n\tplatform_handlers_left:\n\t\t.byt STAGE_ELEMENT_PLATFORM,   STAGE_ELEMENT_SMOOTH_PLATFORM, STAGE_ELEMENT_OOS_PLATFORM,   STAGE_ELEMENT_OOS_SMOOTH_PLATFORM\n\t\t.byt <on_platform_facing_left, <on_platform_facing_left,      <on_oos_platform_facing_left, <on_oos_platform_facing_left\n\t\t.byt >on_platform_facing_left, >on_platform_facing_left,      >on_oos_platform_facing_left, >on_oos_platform_facing_left\n\t\t.word on_unknown_platform\n\tplatform_handlers_size = (*-platform_handlers_left-1)/3\n\n\tplatform_handlers_right:\n\t\t.byt STAGE_ELEMENT_PLATFORM,    STAGE_ELEMENT_SMOOTH_PLATFORM, STAGE_ELEMENT_OOS_PLATFORM,    STAGE_ELEMENT_OOS_SMOOTH_PLATFORM\n\t\t.byt <on_platform_facing_right, <on_platform_facing_right,     <on_oos_platform_facing_right, <on_oos_platform_facing_right\n\t\t.byt >on_platform_facing_right, >on_platform_facing_right,     >on_oos_platform_facing_right, >on_oos_platform_facing_right\n\t\t.word on_unknown_platform\n#if (*-platform_handlers_right-1)/3 <> platform_handlers_size\n#error non-matching platform handlers size\n#endif\n.)\n\nanim_duration_table(sinbad_anim_side_tilt_recovery_dur_pal-4, sinbad_side_tilt_recovery_cuttable_time)\n\nsinbad_input_side_tilt_recovery:\n.(\n\t; After cuttable time, the player can cut the recovry by jump moves (or up-tilt, up-special)\n\tlda player_a_state_clock, x\n\tldy system_index\n\tcmp sinbad_side_tilt_recovery_cuttable_time, y\n\tbcs ignore\n\t\tlda controller_a_btns, x\n\t\tand #CONTROLLER_INPUT_JUMP\n\t\tbeq ignore\n\t\t\tjmp sinbad_input_idle\n\tignore:\n\t\tjmp smart_keep_input_dirty\n\t;rts ; useless, no branch return\n.)\n\nsinbad_side_tilt_hit_end:\n.(\n\tlda player_a_grounded, x\n\tbne grounded\n\n\t\tmidair:\n\t\t\tjmp sinbad_start_falling\n\n\t\tgrounded:\n\t\t\tjmp sinbad_start_side_tilt_recovery\n\n\t;rts ; useless, no branch return\n.)\n\n;\n; Grounded neutral special\n;\n\n.(\n\tSINBAD_GROUNDED_SPECIAL_CHARGE_DURATION = 20\n\tduration_table(SINBAD_GROUNDED_SPECIAL_CHARGE_DURATION, duration_per_system)\n\n\t&sinbad_start_special:\n\t.(\n\t\t; Set the appropriate animation\n\t\tlda #<sinbad_anim_special_charge\n\t\tsta tmpfield13\n\t\tlda #>sinbad_anim_special_charge\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Set the player's state\n\t\tlda #SINBAD_STATE_SPECIAL_CHARGE\n\t\tsta player_a_state, x\n\n\t\t; Stop any momentum\n\t\tlda #$00\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Initialize the clock\n\t\tldy system_index\n\t\tlda duration_per_system, y\n\t\tsta player_a_state_clock, x\n\n\t\trts\n\t.)\n\n\t&sinbad_tick_special_charge:\n\t.(\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp sinbad_start_special_strike\n\t\t\t; No return, jump to a subroutine\n\t\tdo_tick:\n\n\t\tjmp sinbad_apply_ground_friction\n\t\t;rts ; useless, jump to subroutine\n\t.)\n.)\n\n.(\n\tduration_per_system:\n\t\t.byt 2*sinbad_anim_special_dur_pal, 2*sinbad_anim_special_dur_ntsc\n\n\tSTRIKE_HEIGHT = $10\n\n\t&sinbad_start_special_strike:\n\t.(\n\n\t\t; Set the appropriate animation\n\t\tlda #<sinbad_anim_special\n\t\tsta tmpfield13\n\t\tlda #>sinbad_anim_special\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\t; Set the player's state\n\t\tlda #SINBAD_STATE_SPECIAL_STRIKE\n\t\tsta player_a_state, x\n\n\t\t; Place the player above ground\n\t\tlda player_a_y, x\n\t\tsec\n\t\tsbc #STRIKE_HEIGHT\n\t\tsta player_a_y, x\n\n\t\t; Initialize the clock\n\t\tldy system_index\n\t\tlda duration_per_system, y\n\t\tsta player_a_state_clock, x\n\n\t\trts\n\t.)\n\n\t&sinbad_tick_special_strike:\n\t.(\n\t\tdec player_a_state_clock, x\n\t\tbne do_tick\n\t\t\tjmp sinbad_start_helpless\n\t\t\t; No return, jump to a subroutine\n\t\tdo_tick:\n\n\t\tjmp sinbad_apply_ground_friction\n\t\t;rts ; useless, jump to subroutine\n\t.)\n.)\n\n;\n; Side special\n;\n\n.(\n\tCHARGE_DURATION = 120\n\tMOVING_VELOCITY_V = $0080\n\tMOVING_VELOCITY_H = $0400\n\n\tduration_table(CHARGE_DURATION, charge_duration)\n\tvelocity_table(-MOVING_VELOCITY_V, moving_velocity_v_msb, moving_velocity_v_lsb)\n\tvelocity_table(MOVING_VELOCITY_H, moving_velocity_h_msb, moving_velocity_h_lsb)\n\tvelocity_table(-MOVING_VELOCITY_H, moving_velocity_h_neg_msb, moving_velocity_h_neg_lsb)\n\n\t&sinbad_start_side_special_left:\n\t.(\n\t\tlda DIRECTION_LEFT\n\t\tsta player_a_direction, x\n\t\tjmp sinbad_start_side_special\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&sinbad_start_side_special_right:\n\t.(\n\t\tlda DIRECTION_RIGHT\n\t\tsta player_a_direction, x\n\t\t;jmp sinbad_start_side_special ; useless, fallthrough\n\t\t; Falltrhough to sinbad_start_side_special\n\t.)\n\n\t&sinbad_start_side_special:\n\t.(\n\t\t; Set state\n\t\tlda #SINBAD_STATE_SIDE_SPECIAL\n\t\tsta player_a_state, x\n\n\t\t; Set initial velocity\n\t\tlda #$00\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Reset clock\n\t\tsta player_a_state_clock, x\n\n\t\t; Set substate to \"charging\"\n\t\tsta player_a_state_field1, x\n\n\t\t; Fallthrough to set the animation\n\t.)\n\tset_side_special_animation:\n\t.(\n\t\t; Set the appropriate animation\n\t\tlda #<sinbad_anim_side_special_charge\n\t\tsta tmpfield13\n\t\tlda #>sinbad_anim_side_special_charge\n\t\tsta tmpfield14\n\t\tjmp set_player_animation\n\n\t\t;rts ; useless, jump to subroutine\n\t.)\n\n\t&sinbad_tick_side_special:\n\t.(\n\t\t; Tick clock\n\t\tinc player_a_state_clock, x\n\n\t\t; Move if the substate is set to moving\n\t\tlda player_a_state_field1, x\n\t\tbne moving\n\n\t\t; Check if there is reason to begin to move\n\t\tldy system_index\n\t\tlda player_a_state_clock, x\n\t\tcmp charge_duration, y\n\t\tbcs start_moving\n\t\tlda controller_a_btns, x\n\t\tcmp #CONTROLLER_INPUT_SPECIAL_RIGHT\n\t\tbeq not_moving\n\t\tcmp #CONTROLLER_INPUT_SPECIAL_LEFT\n\t\tbne start_moving\n\n\t\tnot_moving:\n\t\t\tjmp end\n\n\t\tstart_moving:\n\t\t\t; Set substate to \"moving\"\n\t\t\tlda #$01\n\t\t\tsta player_a_state_field1, x\n\n\t\t\t; Store fly duration (fly_duration = 5 + charge_duration / 8)\n\t\t\t;NOTE The division of duration is pal/ntsc independent, the \"5\" constant could be made system-specific (but it would be minor)\n\t\t\tlda player_a_state_clock, x\n\t\t\tlsr\n\t\t\tlsr\n\t\t\tlsr\n\t\t\tclc\n\t\t\tadc #5\n\t\t\tsta player_a_state_field2, x\n\n\t\t\t; Set the movement animation\n\t\t\tlda #<sinbad_anim_side_special_jump\n\t\t\tsta tmpfield13\n\t\t\tlda #>sinbad_anim_side_special_jump\n\t\t\tsta tmpfield14\n\t\t\tjsr set_player_animation\n\n\t\t\t; Reset clock\n\t\t\tlda #0\n\t\t\tsta player_a_state_clock, x\n\n\t\tmoving:\n\t\t\t; Set vertical velocity (fixed)\n\t\t\tldy system_index\n\t\t\tlda moving_velocity_v_msb, y\n\t\t\tsta player_a_velocity_v, x\n\t\t\tlda moving_velocity_v_lsb, y\n\t\t\tsta player_a_velocity_v_low, x\n\n\t\t\t; Set horizontal velocity (depending on direction)\n\t\t\tlda player_a_direction, x\n\t\t\tcmp DIRECTION_LEFT\n\t\t\tbne right_velocity\n\t\t\t\tleft_velocity:\n\t\t\t\t\tlda moving_velocity_h_neg_msb, y\n\t\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\t\tlda moving_velocity_h_neg_lsb, y\n\t\t\t\t\tjmp h_velocity_ok\n\t\t\t\tright_velocity:\n\t\t\t\t\tlda moving_velocity_h_msb, y\n\t\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\t\tlda moving_velocity_h_lsb, y\n\t\t\th_velocity_ok:\n\t\t\tsta player_a_velocity_h_low, x\n\n\t\t; After move's time is out, go to helpless state\n\t\tlda player_a_state_clock, x\n\t\tcmp player_a_state_field2, x\n\t\tbne end\n\t\t\tjmp sinbad_start_helpless\n\t\t\t; No return, jump to subroutine\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n;\n; Down tilt\n;\n\n!define \"anim\" {sinbad_anim_down_tilt}\n!define \"state\" {SINBAD_STATE_DOWN_TILT}\n!define \"routine\" {down_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n;\n; Aerial side\n;\n\n!define \"anim\" {sinbad_anim_aerial_side}\n!define \"state\" {SINBAD_STATE_AERIAL_SIDE}\n!define \"routine\" {aerial_side}\n!include \"characters/tpl_aerial_attack.asm\"\n\n;\n; Aerial down\n;\n\n!define \"anim\" {sinbad_anim_aerial_down}\n!define \"state\" {SINBAD_STATE_AERIAL_DOWN}\n!define \"routine\" {aerial_down}\n!include \"characters/tpl_aerial_attack.asm\"\n\n;\n; Aerial up\n;\n\n!define \"anim\" {sinbad_anim_aerial_up}\n!define \"state\" {SINBAD_STATE_AERIAL_UP}\n!define \"routine\" {aerial_up}\n!include \"characters/tpl_aerial_attack.asm\"\n\n;\n; Aerial neutral\n;\n\n!define \"anim\" {sinbad_anim_aerial_neutral}\n!define \"state\" {SINBAD_STATE_AERIAL_NEUTRAL}\n!define \"routine\" {aerial_neutral}\n!include \"characters/tpl_aerial_attack.asm\"\n\n;\n; Aerial special\n;\n\n.(\n\tFALL_SPEED = $0100\n\tFALL_ACCELERATION = $10\n\n\tvelocity_table(FALL_SPEED, fall_speed_msb, fall_speed_lsb)\n\tvelocity_table_u8(FALL_ACCELERATION, fall_acceleration)\n\n\t&sinbad_start_aerial_spe:\n\t.(\n\t\t; Set state\n\t\tlda #SINBAD_STATE_AERIAL_SPE_NEUTRAL\n\t\tsta player_a_state, x\n\n\t\t; Set substate to \"not cancelable\"\n\t\tlda #0\n\t\tsta player_a_state_field1, x\n\n\t\t; Fallthrough to set the animation\n\t.)\n\tset_aerial_spe_animation:\n\t.(\n\t\t; Set the appropriate animation\n\t\tlda #<sinbad_anim_aerial_spe\n\t\tsta tmpfield13\n\t\tlda #>sinbad_anim_aerial_spe\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\trts\n\t.)\n\n\t&sinbad_tick_aerial_spe:\n\t.(\n\t\tjsr sinbad_aerial_directional_influence\n\n\t\t; Never move upward in this state\n\t\tlda player_a_velocity_v, x\n\t\tbpl end_max_velocity\n\t\t\tlda #$00\n\t\t\tsta player_a_velocity_v, x\n\t\t\tsta player_a_velocity_v_low, x\n\t\tend_max_velocity:\n\n\t\t; Special fall speed - particularily slow\n\t\tlda player_a_velocity_h, x\n\t\tsta tmpfield4\n\t\tlda player_a_velocity_h_low, x\n\t\tsta tmpfield2\n\t\tldy system_index\n\t\tlda fall_speed_msb, y\n\t\tsta tmpfield3\n\t\tlda fall_speed_lsb, y\n\t\tsta tmpfield1\n\t\tlda fall_acceleration, y\n\t\tsta tmpfield5\n\t\tjsr merge_to_player_velocity\n\n\t\trts\n\t.)\n\n\t&sinbad_input_aerial_spe:\n\t.(\n\t\tlda player_a_state_field1, x\n\t\tbeq check_release\n\n\t\t\tcheck_cancel:\n\t\t\t\t; Press B again to cancel into helpless\n\t\t\t\tlda controller_a_btns, x\n\t\t\t\tand #CONTROLLER_BTN_B\n\t\t\t\tbeq end\n\n\t\t\t\t\tjmp sinbad_start_helpless\n\t\t\t\t\t; No return, jump to a subroutine\n\n\t\t\tcheck_release:\n\t\t\t\t; Release B to pass in \"cancelable\" substate\n\t\t\t\tlda controller_a_btns, x\n\t\t\t\tand #CONTROLLER_BTN_B\n\t\t\t\tbne end\n\n\t\t\t\t\tinc player_a_state_field1, x\n\t\t\t\t\t; Fallthrough\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n.(\n\tSPE_UP_PREPARATION_DURATION = 3\n\tSPE_UP_POWER = $0600\n\n\tvelocity_table(-SPE_UP_POWER, spe_up_power_msb, spe_up_power_lsb)\n\n\t&{char_name}_start_spe_up_left:\n\t.(\n\t\tlda #DIRECTION_LEFT2\n\t\tjmp {char_name}_start_spe_up_directional\n\t.)\n\t&{char_name}_start_spe_up_right:\n\t.(\n\t\tlda #DIRECTION_RIGHT2\n\t\t; Fallthrough to {char_name}_start_spe_up_directional\n\t.)\n\t{char_name}_start_spe_up_directional:\n\t.(\n\t\tsta player_a_direction, x\n\t\t; Fallthrough to {char_name}_start_spe_up\n\t.)\n\t&sinbad_start_spe_up:\n\t.(\n\t\t; Set state\n\t\tlda #SINBAD_STATE_SPE_UP\n\t\tsta player_a_state, x\n\n\t\t; Reset fall speed\n\t\tjsr reset_default_gravity\n\n\t\t; Set initial velocity\n\t\tlda #$00\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Reset clock\n\t\tsta player_a_state_clock, x\n\n\t\t; Set substate to \"charging\"\n\t\tsta player_a_state_field1, x\n\n\t\t; Fallthrough to set the animation\n\t.)\n\tset_spe_up_animation:\n\t.(\n\t\t; Set the appropriate animation\n\t\tlda #<sinbad_anim_spe_up_prepare\n\t\tsta tmpfield13\n\t\tlda #>sinbad_anim_spe_up_prepare\n\t\tsta tmpfield14\n\t\tjsr set_player_animation\n\n\t\trts\n\t.)\n\n\t&sinbad_tick_spe_up:\n\t.(\n\t\t; Tick clock\n\t\tinc player_a_state_clock, x\n\n\t\t; Move if the substate is set to moving\n\t\tlda player_a_state_field1, x\n\t\tbne moving\n\n\t\t; Check if there is reason to begin to move\n\t\tlda player_a_state_clock, x\n\t\tcmp #SPE_UP_PREPARATION_DURATION\n\t\tbcs start_moving\n\n\t\tnot_moving:\n\t\t\tjmp end\n\n\t\tstart_moving:\n\t\t\t; Set substate to \"moving\"\n\t\t\tlda #$01\n\t\t\tsta player_a_state_field1, x\n\n\t\t\t; Set jumping velocity\n\t\t\tldy system_index\n\t\t\tlda spe_up_power_msb, y\n\t\t\tsta player_a_velocity_v, x\n\t\t\tlda spe_up_power_lsb, y\n\t\t\tsta player_a_velocity_v_low, x\n\n\t\t\t; Set the movement animation\n\t\t\tlda #<sinbad_anim_spe_up_jump\n\t\t\tsta tmpfield13\n\t\t\tlda #>sinbad_anim_spe_up_jump\n\t\t\tsta tmpfield14\n\t\t\tjsr set_player_animation\n\n\t\tmoving:\n\t\t\t; Return to falling when the top is reached\n\t\t\tlda player_a_velocity_v, x\n\t\t\tbeq top_reached\n\t\t\tbpl top_reached\n\n\t\t\t\t; The top is not reached, stay in special upward state but apply gravity and directional influence\n\t\t\t\tjsr sinbad_aerial_directional_influence\n\t\t\t\tjsr apply_player_gravity\n\t\t\t\tjmp end\n\n\t\t\ttop_reached:\n\t\t\t\tjsr sinbad_start_helpless\n\t\t\t\tjmp end\n\n\t\tend:\n\t\trts\n\t.)\n.)\n\n!define \"anim\" {sinbad_anim_spe_down}\n!define \"state\" {SINBAD_STATE_SPE_DOWN}\n!define \"routine\" {spe_down}\n!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n!define \"anim\" {sinbad_anim_up_tilt}\n!define \"state\" {SINBAD_STATE_UP_TILT}\n!define \"routine\" {up_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n!include \"characters/std_friction_routines.asm\"\n\n; Standard move names\n;{char_name}_start_down_tilt = {char_name}_start_down_tilt\n;{char_name}_start_spe_down = {char_name}_start_spe_down\n",
   "states": [
     {
       "input_routine": "sinbad_input_thrown",
@@ -14424,24 +14427,24 @@
       "update_routine": "sinbad_tick_side_tilt_windup"
     },
     {
-      "type": "character_state",
-      "name": "SINBAD_STATE_SIDE_TILT_HIT",
-      "start_routine": null,
-      "update_routine": "sinbad_tick_side_tilt_hit",
       "input_routine": "smart_keep_input_dirty",
-      "onground_routine": "sinbad_global_onground",
+      "name": "SINBAD_STATE_SIDE_TILT_HIT",
       "offground_routine": "sinbad_offground_side_tilt",
-      "onhurt_routine": "hurt_player"
+      "onground_routine": "sinbad_global_onground",
+      "onhurt_routine": "hurt_player",
+      "start_routine": null,
+      "type": "character_state",
+      "update_routine": "sinbad_tick_side_tilt_hit"
     },
     {
-      "type": "character_state",
-      "name": "SINBAD_STATE_SIDE_TILT_RECOVERY",
-      "start_routine": null,
-      "update_routine": "sinbad_tick_side_tilt_recovery",
       "input_routine": "sinbad_input_side_tilt_recovery",
-      "onground_routine": "sinbad_global_onground",
+      "name": "SINBAD_STATE_SIDE_TILT_RECOVERY",
       "offground_routine": "sinbad_offground_side_tilt",
-      "onhurt_routine": "hurt_player"
+      "onground_routine": "sinbad_global_onground",
+      "onhurt_routine": "hurt_player",
+      "start_routine": null,
+      "type": "character_state",
+      "update_routine": "sinbad_tick_side_tilt_recovery"
     },
     {
       "input_routine": "dummy_routine",
@@ -14752,10 +14755,8 @@
       "SINBAD_TILE_92",
       "SINBAD_TILE_93"
     ],
-    "type": "tileset",
     "tiles": [
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14837,10 +14838,10 @@
             2,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -14922,10 +14923,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -15007,10 +15008,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -15092,10 +15093,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15177,10 +15178,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15262,10 +15263,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15347,10 +15348,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15432,10 +15433,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -15517,10 +15518,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15602,10 +15603,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15687,10 +15688,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -15772,10 +15773,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15857,10 +15858,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -15942,10 +15943,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16027,10 +16028,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16112,10 +16113,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16197,10 +16198,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16282,10 +16283,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16367,10 +16368,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16452,10 +16453,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16537,10 +16538,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16622,10 +16623,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -16707,10 +16708,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16792,10 +16793,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16877,10 +16878,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -16962,10 +16963,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -17047,10 +17048,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17132,10 +17133,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17217,10 +17218,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17302,10 +17303,10 @@
             2,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17387,10 +17388,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17472,10 +17473,10 @@
             3,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17557,10 +17558,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17642,10 +17643,10 @@
             0,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -17727,10 +17728,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17812,10 +17813,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -17897,10 +17898,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -17982,10 +17983,10 @@
             0,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             3,
@@ -18067,10 +18068,10 @@
             0,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18152,10 +18153,10 @@
             2,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18237,10 +18238,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -18322,10 +18323,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -18407,10 +18408,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18492,10 +18493,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18577,10 +18578,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18662,10 +18663,10 @@
             2,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18747,10 +18748,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18832,10 +18833,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -18917,10 +18918,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -19002,10 +19003,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -19087,10 +19088,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -19100,1196 +19101,6 @@
             2,
             1,
             2,
-            2
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            2,
-            3,
-            1,
-            2
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            2,
-            1,
-            2,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            1,
-            3,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            3,
-            3,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            3,
-            1,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            1,
-            3,
-            3,
-            1,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            1,
-            1,
-            1,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            2,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            3,
-            1,
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            3,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            1,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            1,
-            0,
-            1,
-            1,
-            1,
-            1,
-            0,
-            1
-          ],
-          [
-            1,
-            1,
-            2,
-            2,
-            2,
-            2,
-            1,
-            1
-          ],
-          [
-            1,
-            1,
-            1,
-            2,
-            1,
-            1,
-            2,
-            1
-          ],
-          [
-            3,
-            1,
-            2,
-            2,
-            3,
-            2,
-            2,
-            1
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            1,
-            2,
-            2,
-            1
-          ],
-          [
-            1,
-            2,
-            2,
-            2,
-            2,
-            2,
-            1,
-            1
-          ],
-          [
-            0,
-            1,
-            1,
-            1,
-            1,
-            1,
-            2,
-            2
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            2,
-            2,
-            2,
-            2
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            3,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            3,
-            3,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            3,
-            3,
-            3,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            3,
-            3
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            3,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            1,
-            1,
-            2,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            1,
-            2,
-            2,
-            1,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            1,
-            2,
-            2,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            1,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            3,
-            3,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            3,
-            3,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            1,
-            1,
-            2,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            1,
-            2,
-            2,
-            1,
-            2,
-            2,
-            2,
-            2
-          ],
-          [
-            1,
-            2,
-            2,
-            1,
-            1,
-            1,
-            1,
-            1
-          ],
-          [
-            1,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            3,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            2,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            2,
-            2,
-            1,
-            0,
-            0,
-            3,
-            0
-          ],
-          [
-            2,
-            2,
-            2,
-            2,
-            1,
-            3,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            2,
-            3,
-            3,
-            2,
-            1,
-            3
-          ],
-          [
-            0,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            1,
-            0,
-            1,
-            1,
-            1,
-            1,
-            0,
-            1
-          ],
-          [
-            1,
-            1,
-            2,
-            2,
-            2,
-            2,
-            1,
-            1
-          ],
-          [
-            1,
-            1,
-            1,
-            2,
-            1,
-            1,
-            2,
-            1
-          ],
-          [
-            1,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2,
-            1
-          ],
-          [
-            3,
-            1,
-            1,
-            1,
-            3,
-            2,
-            2,
-            1
-          ],
-          [
-            1,
-            1,
-            1,
-            1,
-            1,
-            2,
-            1,
-            1
-          ],
-          [
-            1,
-            2,
-            2,
-            2,
-            2,
-            1,
-            2,
-            2
-          ],
-          [
-            0,
-            1,
-            1,
-            1,
-            1,
-            1,
-            2,
-            2
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            1,
-            2,
-            1,
-            2,
-            2
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            2,
-            3,
-            1,
-            2
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            2,
-            1,
-            2,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-            1,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            1,
-            3,
-            3,
-            3,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            1,
-            3,
-            3,
-            3
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            2,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            3,
-            1,
-            3,
-            3,
-            1,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            1,
-            3,
-            3,
-            3,
-            1,
-            0,
-            0
-          ],
-          [
-            0,
-            0,
-            1,
-            1,
-            1,
-            1,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            1,
-            0,
-            0,
-            3,
-            3,
-            0
-          ],
-          [
-            2,
-            2,
-            1,
-            0,
-            3,
-            3,
-            0,
-            0
-          ],
-          [
-            2,
-            2,
-            2,
-            1,
-            0,
-            0,
-            0,
-            3
-          ],
-          [
-            2,
-            2,
-            2,
-            3,
-            1,
-            3,
-            3,
-            0
-          ],
-          [
-            1,
-            3,
-            3,
-            3,
-            2,
-            3,
-            3,
-            1
-          ],
-          [
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            2,
-            1,
-            0,
-            0,
-            3,
-            0,
-            0
-          ],
-          [
-            2,
-            2,
-            2,
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            2,
-            2,
-            2,
-            3,
-            1,
-            1,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            3,
-            3,
-            2,
-            3,
-            1,
-            1
-          ],
-          [
-            0,
-            3,
-            3,
-            1,
-            3,
-            1,
-            0,
-            0
-          ]
-        ]
-      },
-      {
-        "type": "tile",
-        "representation": [
-          [
-            0,
-            0,
-            0,
-            1,
-            2,
-            2,
-            1,
             2
           ],
           [
@@ -20330,6 +19141,1196 @@
             3,
             3,
             1,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            3,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            3,
+            3,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            3,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            1,
+            2,
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            3,
+            1,
+            2,
+            2,
+            3,
+            2,
+            2,
+            1
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            2,
+            2,
+            2,
+            2
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            3
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            1,
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            1,
+            3,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            3,
+            3,
+            2,
+            1,
+            3
+          ],
+          [
+            0,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            1,
+            2,
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            1
+          ],
+          [
+            3,
+            1,
+            1,
+            1,
+            3,
+            2,
+            2,
+            1
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            1,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            2,
+            1,
+            2,
+            2
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            1,
+            2,
+            1,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            2,
+            3,
+            1,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            2,
+            1,
+            2,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            3,
+            3,
+            3,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            1,
+            3,
+            3,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            3,
+            3,
+            3,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            1,
+            0,
+            0,
+            3,
+            3,
+            0
+          ],
+          [
+            2,
+            2,
+            1,
+            0,
+            3,
+            3,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            1,
+            0,
+            0,
+            0,
+            3
+          ],
+          [
+            2,
+            2,
+            2,
+            3,
+            1,
+            3,
+            3,
+            0
+          ],
+          [
+            1,
+            3,
+            3,
+            3,
+            2,
+            3,
+            3,
+            1
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            1,
+            0,
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            3,
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            3,
+            3,
+            2,
+            3,
+            1,
+            1
+          ],
+          [
+            0,
+            3,
+            3,
+            1,
+            3,
+            1,
+            0,
+            0
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            0,
+            0,
+            1,
+            2,
+            2,
+            1,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            2,
+            3,
+            1,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            2,
+            1,
+            2,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            3,
+            3,
+            1,
             3
           ],
           [
@@ -20362,10 +20363,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -20447,10 +20448,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -20532,10 +20533,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -20617,10 +20618,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -20702,10 +20703,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -20787,10 +20788,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -20872,10 +20873,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -20957,10 +20958,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21042,10 +21043,10 @@
             0,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21127,10 +21128,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21212,10 +21213,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21297,10 +21298,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21382,10 +21383,10 @@
             3,
             3
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21467,10 +21468,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21552,10 +21553,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21637,10 +21638,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -21722,10 +21723,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21807,10 +21808,10 @@
             1,
             2
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21892,10 +21893,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -21977,10 +21978,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             1,
@@ -22062,10 +22063,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -22147,10 +22148,10 @@
             2,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -22232,10 +22233,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -22317,10 +22318,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -22402,10 +22403,10 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -22487,10 +22488,10 @@
             1,
             1
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -22572,10 +22573,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             0,
@@ -22657,10 +22658,10 @@
             0,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       },
       {
-        "type": "tile",
         "representation": [
           [
             2,
@@ -22742,9 +22743,11 @@
             1,
             0
           ]
-        ]
+        ],
+        "type": "tile"
       }
-    ]
+    ],
+    "type": "tileset"
   },
   "type": "character",
   "victory_animation": {
@@ -22816,8 +22819,5 @@
     ],
     "name": "sinbad_anim_victory",
     "type": "animation"
-  },
-  "sourcecode_file": "characters/sinbad/states.asm",
-  "global_tick_routine": "dummy_routine",
-  "projectile_hit_routine": "dummy_routine"
+  }
 }
