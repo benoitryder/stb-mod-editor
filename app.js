@@ -1237,6 +1237,8 @@ app.component('stb-animation-frame', {
             <br/>
             Knockback scaling: (<input v-model="frame.hitbox.force_h" type="number" class="force" />,<input v-model="frame.hitbox.force_v" type="number" class="force" />) per %
             <br/>
+            Hitstun modifier: <input v-model="frame.hitbox.hitstun" type="number" class="force" /> frames added
+            <br/>
             <label><input type="checkbox" v-model="frame.hitbox.enabled" /> Enabled</label><br/>
           </div>
           <div v-if="hitboxType === 'custom'">
@@ -1246,6 +1248,7 @@ app.component('stb-animation-frame', {
             <label>Immediate value 1: <input v-model="frame.hitbox.value1" type="number" /></label><br />
             <label>Immediate value 2: <input v-model="frame.hitbox.value2" type="number" /></label><br />
             <label>Immediate value 3: <input v-model="frame.hitbox.value3" type="number" /></label><br />
+            <label>Immediate value 4: <input v-model="frame.hitbox.value4" type="number" /></label><br />
             <label><input type="checkbox" v-model="frame.hitbox.enabled" /> Enabled</label><br/>
           </div>
         </div>
