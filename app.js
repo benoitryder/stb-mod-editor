@@ -1,8 +1,7 @@
 
-// Trigger download of a JSON file
-const downloadJson = function(data, filename) {
-  const json = JSON.stringify(data, null, '  ') + '\n';
-  const blob = new Blob([json], {type: "application/json"});
+// Trigger download of a given "blobable" data
+const downloadBlobData = function(data, filename, mimetype) {
+  const blob = new Blob([data], {type: mimetype});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;
@@ -10,6 +9,12 @@ const downloadJson = function(data, filename) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+// Trigger download of a JSON file
+const downloadJson = function(data, filename) {
+  const json = JSON.stringify(data, null, '  ') + '\n';
+  return downloadBlobData(json, filename, 'application/json');
 }
 
 // Pick a color picker using browsers's built-in dialog
@@ -61,6 +66,16 @@ class EventHandlers {
     }
   }
 };
+
+
+// Simple non-cryptographic hash, similar to Java's String.hashCode()
+function hashByteArray(data) {
+  let hash = 0;
+  for (const b of data) {
+    hash = ((hash << 5) - hash + b) | 0;
+  }
+  return (hash >>> 0).toString(36);
+}
 
 
 // Convert a CSS-style rgb color to an hex color
@@ -499,6 +514,235 @@ class Conf {
 }
 
 
+class RomPatcher {
+  static NES_HEADER_SIZE = 0x10;  // note: assume no trainer area
+  static BANK_SIZE = 0x4000;
+  // Value specific to a given rom; should be made generic
+  static FIRST_MOD_BANK = 0x4 + 0x11;
+  // Hashes of known ROMs
+  static KNOWN_ROMS = {
+    "utmgm9": "STB 2.5",
+  };
+
+  constructor(storage, onchange) {
+    this.storage = storage;
+  }
+
+  saveRomData(data) {
+    this.storage.setItem('stbeditor.rom.data', data.toBase64());
+    this.storage.removeItem('stbeditor.rom.characterSlot');
+  }
+
+  loadRomData() {
+    const data = this.storage.getItem('stbeditor.rom.data');
+    if (data === null) {
+      return null;
+    } else {
+      return Uint8Array.fromBase64(data);
+    }
+  }
+
+  getCharacterSlot() {
+    const data = this.storage.getItem('stbeditor.rom.characterSlot');
+    return data === null ? 0 : parseInt(data);
+  }
+
+  setCharacterSlot(index) {
+    this.storage.setItem('stbeditor.rom.characterSlot', index.toString());
+  }
+
+  // Check a ROM buffer, log error, return an error message, null if everything is fine
+  static checkRom(buffer) {
+    const magic = (new Uint8Array(buffer.slice(0, 4))).toHex();
+    if (magic != "4e45531a") {  // NES<EOF>
+      return "Invalid ROM magic code";
+    }
+
+    if (buffer.byteLength < this.NES_HEADER_SIZE + (this.FIRST_MOD_BANK + 1) * this.BANK_SIZE) {
+      return "ROM is smaller than expected";
+    }
+
+    return null;
+  }
+
+  // Patch given character slot
+  static patchCharacterData(romData, slot, tree) {
+    const data = this.getBankSubarray(romData, this.FIRST_MOD_BANK + slot);
+    this.writeCharacterData(data, tree);
+  }
+
+  // Return the Uint8Array of a bank
+  static getBankSubarray(romData, bank) {
+    const offset = this.NES_HEADER_SIZE + bank * this.BANK_SIZE;
+    return romData.subarray(offset, offset + this.BANK_SIZE);
+  }
+
+  // Return name of the ROM, return a hash or a known name
+  static getRomName(romData) {
+    const hash = hashByteArray(romData);
+    return this.KNOWN_ROMS[hash] || `hash:${hash}`;
+  }
+
+  // Write a 16-bit value, return end offset
+  static writeU16(data, offset, value) {
+    const v = value >= 0 ? value : value + 0x10000;
+    data[offset] = v;
+    data[offset + 1] = v >> 8;
+    return offset + 2;
+  }
+
+  // Write CHR data from a tile representation, return end offset
+  static writeChrData(data, offset, representation) {
+    for (let y = 0; y < 8; ++y) {
+      let b = 0;
+      for (let x = 0; x < 8; ++x) {
+        if (representation[y][x] % 2) {
+          b |= 1 << (7 - x);
+        }
+      }
+      data[offset + y] = b;
+    }
+    for (let y = 0; y < 8; ++y) {
+      let b = 0;
+      for (let x = 0; x < 8; ++x) {
+        if (representation[y][x] >= 2) {
+          b |= 1 << (7 - x);
+        }
+      }
+      data[offset + 8 + y] = b;
+    }
+    return offset + 16;
+  }
+
+  // Write a list of tiles CHR data, return end offset
+  static writeTilesChrData(data, offset, tiles) {
+    for (const tile of tiles) {
+      offset = this.writeChrData(data, offset, tile.representation);
+    }
+    return offset;
+  }
+
+  // Write a frame's sprite data, return end offset
+  static writeSprite(data, offset, sprite, tilenames) {
+    data[offset++] = sprite.y;
+    data[offset++] = tilenames.indexOf(sprite.tile);
+    data[offset++] = sprite.attr;
+    data[offset++] = sprite.x;
+    return offset;
+  }
+
+  // Write an animation frame data, return end offset
+  static writeAnimationFrame(data, offset, frame, tilenames) {
+    data[offset++] = frame.duration;
+
+    if (frame.hurtbox === null) {
+      data.fill(0, offset, offset += 4);
+    } else {
+      data[offset++] = frame.hurtbox.left;
+      data[offset++] = frame.hurtbox.right;
+      data[offset++] = frame.hurtbox.top;
+      data[offset++] = frame.hurtbox.bottom;
+    }
+
+    if (frame.hitbox === null) {
+      data.fill(0, offset, offset += 15);
+    } else if (frame.hitbox.routine) {
+      // Custom hitbox
+      data[offset++] = 1;
+      data[offset++] = frame.hitbox.left;
+      data[offset++] = frame.hitbox.right;
+      offset = this.writeU16(data, offset, frame.hitbox.directional1);
+      data[offset++] = frame.hitbox.directional2;
+      data[offset++] = frame.hitbox.value4;
+      data[offset++] = frame.hitbox.top;
+      data[offset++] = frame.hitbox.bottom;
+      offset += 2;  // Skip `routine`: value cannot be updated
+      data[offset++] = frame.hitbox.value2;
+      data[offset++] = frame.hitbox.value1;
+      data[offset++] = frame.hitbox.value3;
+      data[offset++] = frame.hitbox.enabled ? 1 : 0;
+    } else {
+      // Direct hitbox
+      data[offset++] = 1;
+      data[offset++] = frame.hitbox.left;
+      data[offset++] = frame.hitbox.right;
+      offset = this.writeU16(data, offset, frame.hitbox.base_h);
+      data[offset++] = frame.hitbox.force_h;
+      data[offset++] = frame.hitbox.hitstun;
+      data[offset++] = frame.hitbox.top;
+      data[offset++] = frame.hitbox.bottom;
+      offset = this.writeU16(data, offset, frame.hitbox.base_v);
+      data[offset++] = frame.hitbox.force_v;
+      data[offset++] = 0;
+      data[offset++] = frame.hitbox.damages;
+      data[offset++] = frame.hitbox.enabled ? 1 : 0;
+    }
+
+    const foregroundSprites = frame.sprites.filter(sprite => sprite.foreground);
+    data[offset++] = foregroundSprites.length;
+    for (const sprite of foregroundSprites) {
+      offset = this.writeSprite(data, offset, sprite, tilenames);
+    }
+
+    const normalSprites = frame.sprites.filter(sprite => !sprite.foreground);
+    data[offset++] = normalSprites.length;
+    for (const sprite of normalSprites) {
+      offset = this.writeSprite(data, offset, sprite, tilenames);
+    }
+
+    return offset;
+  }
+
+  // Write an animation data, return end offset
+  static writeAnimation(data, offset, animation, tilenames) {
+    for (const frame of animation.frames) {
+      let x = offset + 0x54010;
+      offset = this.writeAnimationFrame(data, offset, frame, tilenames);
+    }
+
+    data[offset++] = 0;
+
+    return offset;
+  }
+
+  // Write a 'character_colors' data
+  static writeCharacterColors(data, offset, colors) {
+    for (const palette of colors) {
+      for (const color of palette.colors) {
+        data[offset++] = color;
+      }
+    }
+    return offset;
+  }
+
+  // Write character tree into a bank array
+  static writeCharacterData(data, tree) {
+    let offset = 1;  // 1st byte is the bank number
+
+    // Write "chr_tiles.asm" data
+    offset = this.writeTilesChrData(data, offset, tree.tileset.tiles);
+
+    // Write "chr_illustrations.asm" data
+    offset = this.writeTilesChrData(data, offset, tree.illustration_token.tiles);
+    offset = this.writeTilesChrData(data, offset, tree.illustration_small.tiles);
+    offset = this.writeTilesChrData(data, offset, tree.illustration_large.tiles);
+
+    // Write "animations/animations.asm" data
+    offset = this.writeAnimation(data, offset, tree.victory_animation, tree.tileset.tilenames);
+    offset = this.writeAnimation(data, offset, tree.defeat_animation, tree.tileset.tilenames);
+    offset = this.writeAnimation(data, offset, tree.menu_select_animation, tree.tileset.tilenames);
+    for (const animation of tree.animations) {
+      offset = this.writeAnimation(data, offset, animation, tree.tileset.tilenames);
+    }
+
+    // Write "character_colors.asm" data
+    offset = this.writeCharacterColors(data, offset, tree.color_swaps.primary_colors);
+    offset = this.writeCharacterColors(data, offset, tree.color_swaps.alternate_colors);
+    offset = this.writeCharacterColors(data, offset, tree.color_swaps.secondary_colors);
+  }
+}
+
+
 const HISTORY_STATES_COUNT = 20;
 
 const app = Vue.createApp({
@@ -768,7 +1012,8 @@ const app = Vue.createApp({
           <li><i class="fas fa-fw fa-palette" /> <router-link to="/colors">Color swaps</router-link></li>
           <li><i class="fas fa-fw fa-code" /> <router-link to="/code">Source code</router-link></li>
           <li><i class="fas fa-fw fa-robot" /> <router-link to="/ai">Artificial intelligence</router-link></li>
-          <li style="margin-top: 1em"><i class="far fa-fw fa-question-circle" /> <router-link to="/help">Help</router-link></li>
+          <li style="margin-top: 1em"><i class="far fa-fw fa-band-aid" /> <router-link to="/rom">Patch a ROM</router-link></li>
+          <li><i class="far fa-fw fa-question-circle" /> <router-link to="/help">Help</router-link></li>
         </ul>
       </div>
       <div class="tree-files">
@@ -2358,6 +2603,87 @@ const AiTab = {
   `,
 }
 
+const RomTab = {
+  inject: ['tree'],
+
+  data() {
+    return {
+      romData: null,
+      romError: null,
+      characterSlot: 0,
+    }
+  },
+
+  created() {
+    this.patcher = new RomPatcher(localStorage);
+    this.romData = this.patcher.loadRomData();
+    this.characterSlot = this.patcher.getCharacterSlot();
+  },
+
+  computed: {
+    romName() {
+      return this.romData ? RomPatcher.getRomName(this.romData) : null;
+    }
+  },
+
+  methods: {
+    importRomFile(ev) {
+      console.log("loading ROM data from uploaded file");
+      const reader = new FileReader();
+      reader.addEventListener('load', ev => {
+        const buffer = ev.target.result;
+        this.romError = RomPatcher.checkRom(buffer);
+        if (this.romError === null) {
+          this.romData = new Uint8Array(buffer);
+          this.patcher.saveRomData(this.romData);
+        }
+      });
+      reader.readAsArrayBuffer(ev.target.files[0]);
+    },
+
+    patchAndDownloadRom() {
+      console.debug(`patch ROM character ${this.characterSlot}`);
+
+      const patchedData = this.romData.slice();  // clone
+      this.patcher.constructor.patchCharacterData(patchedData, this.characterSlot, this.tree);
+
+      downloadBlobData(patchedData, 'super_tilt_bro-patched.nes', 'application/octet-stream');
+    },
+  },
+
+  template: `
+    <div>
+      <h2>Patch a ROM</h2>
+      <div>
+        Write character data to the original ROM. Limitations listed below apply.<br/>
+        Basically graphics, hitboxes and hurtboxes can be modified. Everything else must match the ROM to patch.<br/>
+        <b>If constraints are not fulfilled, the patched ROM will be corrupted.</b><br/>
+        <ul>
+          <li>Tile count must not change.</li>
+          <li>Animation count and order must not change.</li>
+          <li>Number of sprites per animation must not change.</li>
+          <li>Routine of <i>custom</i> hitboxes must not change.</li>
+          <li><i>Source code</i> is not patched.</li>
+        </ul>
+      </div>
+      <p>
+        <button @click="$refs.importRomFile.click()" style="margin-right: 1em">Load a ROM</button>
+        <span v-if="romError" style="color: red">{{ romError }}</span>
+        <span v-else-if="romData">A ROM is loaded ({{ romName }})</span>
+        <span v-else>No ROM loaded</span>
+        <input type="file" hidden ref="importRomFile" @change="importRomFile" />
+      </p>
+      <p>
+        <label>Character to patch: <input v-model="characterSlot" type="number" style="width: 3em" /> (0 for first, 1 for second, ...)</label>
+      </p>
+      <p>
+        <button :disabled="!tree || !romData" @click="patchAndDownloadRom()">Patch and download ROM</button>
+        <span v-if="!tree"> (no character file loaded)</span>
+      </p>
+    </div>
+  `,
+}
+
 const HelpTab = {
   template: `
     <ul id="help">
@@ -2453,6 +2779,7 @@ const routes = [
   { path: '/colors/', component: ColorsTab },
   { path: '/code/', component: CodeTab },
   { path: '/ai/', component: AiTab },
+  { path: '/rom', component: RomTab },
   { path: '/help', component: HelpTab },
 ]
 
