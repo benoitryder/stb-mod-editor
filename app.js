@@ -363,8 +363,6 @@ class CharacterFileStorage {
   constructor(storage, onchange) {
     this.storage = storage;
     this.onchange = onchange;
-
-    window.onstorage
   }
 
   setCharacterFile(name, data) {
@@ -390,16 +388,6 @@ class CharacterFileStorage {
     this.storage.removeItem(`stbeditor.data.${name}`);
     this.storage.setItem('stbeditor.index', JSON.stringify(index));
     this.onchange();
-  }
-
-  clear() {
-    for (let i = 0; i < this.storage.length; ++i) {
-      const key = this.storage.key(i);
-      if (key.startsWith('stbeditor.')) {
-        this.removeItem(key);
-      }
-    }
-    this.storage.clear();
   }
 
   loadIndex() {
