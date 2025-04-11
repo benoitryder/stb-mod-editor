@@ -261,14 +261,17 @@ class Utils {
   }
 
   static drawSingleFrame(ctx, tree, frame, { zoom = 1, background, palettes, dx, dy }) {
-    for (let sprite of frame.sprites.toReversed()) {
+    let reversedSprites = Array.from(frame.sprites);
+    reversedSprites.reverse();
+
+    for (let sprite of reversedSprites) {
       if (!sprite.foreground) {
         const x = sprite.x + dx;
         const y = sprite.y + dy;
         this.drawSingleSprite(ctx, tree, sprite, { zoom, palettes, x, y  });
       }
     }
-    for (let sprite of frame.sprites.toReversed()) {
+    for (let sprite of reversedSprites) {
       if (sprite.foreground) {
         const x = sprite.x + dx;
         const y = sprite.y + dy;
