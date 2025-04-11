@@ -367,6 +367,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": -16,
+            "hitstun": 0,
             "left": 10,
             "right": 26,
             "top": 2,
@@ -449,6 +450,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -16,
+            "hitstun": 0,
             "left": 1,
             "right": 15,
             "top": -10,
@@ -531,6 +533,7 @@
             "enabled": false,
             "force_h": -16,
             "force_v": 40,
+            "hitstun": 0,
             "left": -16,
             "right": 0,
             "top": 0,
@@ -845,6 +848,7 @@
             "enabled": true,
             "force_h": 2,
             "force_v": -8,
+            "hitstun": 0,
             "left": -13,
             "right": 3,
             "top": 8,
@@ -1067,6 +1071,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": 20,
+            "hitstun": 0,
             "left": 10,
             "right": 29,
             "top": 10,
@@ -1969,6 +1974,7 @@
             "enabled": true,
             "force_h": -16,
             "force_v": 0,
+            "hitstun": 0,
             "left": -8,
             "right": 2,
             "top": 3,
@@ -2051,6 +2057,7 @@
             "enabled": false,
             "force_h": -16,
             "force_v": 0,
+            "hitstun": 0,
             "left": -11,
             "right": 5,
             "top": 5,
@@ -2133,6 +2140,7 @@
             "enabled": false,
             "force_h": -16,
             "force_v": 0,
+            "hitstun": 0,
             "left": -14,
             "right": 2,
             "top": 10,
@@ -2345,6 +2353,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": -2,
+            "hitstun": 0,
             "left": -13,
             "right": 6,
             "top": 8,
@@ -2443,6 +2452,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -2,
+            "hitstun": 0,
             "left": -13,
             "right": 6,
             "top": 8,
@@ -2897,6 +2907,7 @@
             "enabled": true,
             "force_h": -5,
             "force_v": -10,
+            "hitstun": 0,
             "left": -18,
             "right": -3,
             "top": 3,
@@ -2987,6 +2998,7 @@
             "enabled": false,
             "force_h": -8,
             "force_v": -10,
+            "hitstun": 0,
             "left": -33,
             "right": -18,
             "top": 0,
@@ -3077,6 +3089,7 @@
             "enabled": false,
             "force_h": -12,
             "force_v": -10,
+            "hitstun": 0,
             "left": -49,
             "right": -34,
             "top": -3,
@@ -3167,6 +3180,7 @@
             "enabled": false,
             "force_h": -15,
             "force_v": -10,
+            "hitstun": 0,
             "left": -64,
             "right": -49,
             "top": -6,
@@ -3579,6 +3593,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": -30,
+            "hitstun": 0,
             "left": 3,
             "right": 7,
             "top": -8,
@@ -3669,6 +3684,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -8,
+            "hitstun": 0,
             "left": -9,
             "right": 19,
             "top": -12,
@@ -3759,6 +3775,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -4,
+            "hitstun": 0,
             "left": -9,
             "right": 19,
             "top": -12,
@@ -3865,6 +3882,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -4,
+            "hitstun": 0,
             "left": -9,
             "right": 19,
             "top": -13,
@@ -4171,6 +4189,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": 0,
+            "hitstun": 0,
             "left": -5,
             "right": 1,
             "top": 3,
@@ -4245,6 +4264,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": 0,
+            "hitstun": 0,
             "left": -15,
             "right": -9,
             "top": 8,
@@ -4319,6 +4339,7 @@
             "enabled": true,
             "force_h": -2,
             "force_v": -16,
+            "hitstun": 0,
             "left": -19,
             "right": -7,
             "top": 0,
@@ -4795,6 +4816,7 @@
             "enabled": true,
             "force_h": -2,
             "force_v": -4,
+            "hitstun": 0,
             "left": -15,
             "right": 15,
             "top": 8,
@@ -4869,6 +4891,7 @@
             "enabled": false,
             "force_h": -2,
             "force_v": -4,
+            "hitstun": 0,
             "left": -15,
             "right": 15,
             "top": 8,
@@ -4951,6 +4974,7 @@
             "enabled": false,
             "force_h": -2,
             "force_v": -4,
+            "hitstun": 0,
             "left": -15,
             "right": 15,
             "top": 8,
@@ -5607,6 +5631,7 @@
             "enabled": true,
             "force_h": -2,
             "force_v": -4,
+            "hitstun": 0,
             "left": -4,
             "right": 12,
             "top": 8,
@@ -6397,6 +6422,7 @@
             "enabled": true,
             "force_h": -16,
             "force_v": 0,
+            "hitstun": 0,
             "left": -25,
             "right": -9,
             "top": -1,
@@ -6471,6 +6497,7 @@
             "enabled": false,
             "force_h": -4,
             "force_v": -4,
+            "hitstun": 0,
             "left": -25,
             "right": -9,
             "top": -1,
@@ -8638,6 +8665,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": 0,
+            "hitstun": 0,
             "left": -2,
             "right": 10,
             "top": 2,
@@ -8694,6 +8722,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": 8,
+            "hitstun": 0,
             "left": -2,
             "right": 10,
             "top": 2,
@@ -8964,6 +8993,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": -16,
+            "hitstun": 0,
             "left": 11,
             "right": 19,
             "top": -6,
@@ -9046,6 +9076,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -16,
+            "hitstun": 0,
             "left": -3,
             "right": 13,
             "top": -11,
@@ -9128,6 +9159,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -16,
+            "hitstun": 0,
             "left": -9,
             "right": -1,
             "top": -6,
@@ -9362,6 +9394,7 @@
             "enabled": true,
             "force_h": 2,
             "force_v": -8,
+            "hitstun": 0,
             "left": -13,
             "right": 3,
             "top": 8,
@@ -9584,6 +9617,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": -8,
+            "hitstun": 0,
             "left": 10,
             "right": 29,
             "top": 10,
@@ -10064,8 +10098,8 @@
       {
         "colors": [
           32,
-          0,
-          16
+          16,
+          32
         ],
         "type": "palette"
       }
@@ -10073,8 +10107,8 @@
     "primary_colors": [
       {
         "colors": [
-          7,
-          6,
+          15,
+          22,
           54
         ],
         "type": "palette"
@@ -10113,7 +10147,7 @@
       },
       {
         "colors": [
-          21,
+          5,
           37,
           54
         ],
@@ -10121,9 +10155,9 @@
       },
       {
         "colors": [
+          15,
           0,
-          16,
-          32
+          16
         ],
         "type": "palette"
       }
@@ -10132,15 +10166,15 @@
       {
         "colors": [
           7,
-          23,
-          39
+          39,
+          23
         ],
         "type": "palette"
       },
       {
         "colors": [
-          8,
-          40,
+          7,
+          39,
           55
         ],
         "type": "palette"
@@ -10148,16 +10182,16 @@
       {
         "colors": [
           7,
-          23,
-          39
+          39,
+          23
         ],
         "type": "palette"
       },
       {
         "colors": [
-          5,
-          21,
-          37
+          15,
+          32,
+          22
         ],
         "type": "palette"
       },

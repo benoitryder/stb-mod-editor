@@ -339,6 +339,7 @@
             "enabled": true,
             "force_h": -2,
             "force_v": -4,
+            "hitstun": 0,
             "left": 0,
             "right": 13,
             "top": 1,
@@ -405,6 +406,7 @@
             "enabled": false,
             "force_h": -2,
             "force_v": -4,
+            "hitstun": 0,
             "left": 0,
             "right": 14,
             "top": 1,
@@ -471,6 +473,7 @@
             "enabled": false,
             "force_h": -2,
             "force_v": -4,
+            "hitstun": 0,
             "left": 0,
             "right": 13,
             "top": 1,
@@ -673,6 +676,7 @@
             "enabled": true,
             "force_h": -8,
             "force_v": -8,
+            "hitstun": 0,
             "left": -16,
             "right": 24,
             "top": -8,
@@ -1417,6 +1421,7 @@
             "enabled": true,
             "force_h": -2,
             "force_v": -2,
+            "hitstun": 0,
             "left": -8,
             "right": 0,
             "top": 0,
@@ -1491,6 +1496,7 @@
             "enabled": false,
             "force_h": -2,
             "force_v": -2,
+            "hitstun": 0,
             "left": -8,
             "right": 0,
             "top": 5,
@@ -1565,6 +1571,7 @@
             "enabled": false,
             "force_h": -2,
             "force_v": -2,
+            "hitstun": 0,
             "left": -4,
             "right": 4,
             "top": 8,
@@ -2459,6 +2466,7 @@
             "enabled": true,
             "force_h": -1,
             "force_v": -3,
+            "hitstun": 0,
             "left": -4,
             "right": 12,
             "top": -7,
@@ -2517,6 +2525,7 @@
             "enabled": true,
             "force_h": -1,
             "force_v": -3,
+            "hitstun": 0,
             "left": -4,
             "right": 12,
             "top": -7,
@@ -2575,6 +2584,7 @@
             "enabled": true,
             "force_h": -1,
             "force_v": -3,
+            "hitstun": 0,
             "left": -4,
             "right": 12,
             "top": -7,
@@ -2633,6 +2643,7 @@
             "enabled": true,
             "force_h": -1,
             "force_v": -3,
+            "hitstun": 0,
             "left": -4,
             "right": 12,
             "top": -7,
@@ -5146,6 +5157,7 @@
             "enabled": true,
             "force_h": -16,
             "force_v": -8,
+            "hitstun": 0,
             "left": -27,
             "right": -3,
             "top": 8,
@@ -5420,6 +5432,7 @@
             "enabled": true,
             "force_h": -8,
             "force_v": 0,
+            "hitstun": 0,
             "left": -19,
             "right": 1,
             "top": 12,
@@ -5502,6 +5515,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": 40,
+            "hitstun": 0,
             "left": -7,
             "right": 5,
             "top": 17,
@@ -5576,6 +5590,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": 40,
+            "hitstun": 0,
             "left": 3,
             "right": 15,
             "top": 17,
@@ -5650,6 +5665,7 @@
             "enabled": false,
             "force_h": 8,
             "force_v": 0,
+            "hitstun": 0,
             "left": 7,
             "right": 27,
             "top": 12,
@@ -5986,6 +6002,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": -40,
+            "hitstun": 0,
             "left": 1,
             "right": 4,
             "top": -19,
@@ -6329,9 +6346,9 @@
       },
       {
         "colors": [
-          32,
-          32,
-          32
+          52,
+          36,
+          52
         ],
         "type": "palette"
       },
@@ -6380,16 +6397,16 @@
       {
         "colors": [
           15,
-          4,
+          15,
           44
         ],
         "type": "palette"
       },
       {
         "colors": [
-          0,
-          16,
-          32
+          15,
+          20,
+          15
         ],
         "type": "palette"
       },
@@ -6429,8 +6446,8 @@
       },
       {
         "colors": [
-          0,
-          16,
+          15,
+          32,
           16
         ],
         "type": "palette"
@@ -6445,9 +6462,9 @@
       },
       {
         "colors": [
+          20,
           15,
-          54,
-          50
+          36
         ],
         "type": "palette"
       },
