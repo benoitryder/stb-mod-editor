@@ -553,8 +553,8 @@ class RomPatcher {
 
   // Check a ROM buffer, log error, return an error message, null if everything is fine
   static checkRom(buffer) {
-    const magic = (new Uint8Array(buffer.slice(0, 4))).toHex();
-    if (magic != "4e45531a") {  // NES<EOF>
+    const magic = new TextDecoder().decode(buffer.slice(0, 4));
+    if (magic != "NES\x1a") {
       return "Invalid ROM magic code";
     }
 
