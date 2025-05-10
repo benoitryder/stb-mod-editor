@@ -657,10 +657,10 @@ class RomPatcher {
       data[offset++] = frame.hitbox.top;
       data[offset++] = frame.hitbox.bottom;
       offset += 2;  // Skip `routine`: value cannot be updated
-      data[offset++] = frame.hitbox.value2;
       data[offset++] = frame.hitbox.value1;
+      data[offset++] = frame.hitbox.value2;
       data[offset++] = frame.hitbox.value3;
-      data[offset++] = frame.hitbox.enabled ? 1 : 0;
+      data[offset++] = frame.hitbox.enabled ? 2 : 0;
     } else {
       // Direct hitbox
       data[offset++] = 1;
@@ -696,7 +696,6 @@ class RomPatcher {
   // Write an animation data, return end offset
   static writeAnimation(data, offset, animation, tilenames) {
     for (const frame of animation.frames) {
-      let x = offset + 0x54010;
       offset = this.writeAnimationFrame(data, offset, frame, tilenames);
     }
 
