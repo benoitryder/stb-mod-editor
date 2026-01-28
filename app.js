@@ -2771,7 +2771,7 @@ const RomTab = {
 	  console.debug(`Download mod.json`);
 	  let modFile = cloneData(this.modTemplate);
 	  for(i=0; i<this.characterSlots.length; i++) {
-	    if(this.characterSlots[i]) {
+	    if(this.characterSlots[i] && this.characterSlots[i].data) {
 		  modFile.characters[i] = this.characterSlots[i].data;
 		}
 	  }
