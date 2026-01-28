@@ -2710,7 +2710,7 @@ const RomTab = {
 	  const isOnline = this.romIsOnlineEnabled;
       const patchedData = this.romData.slice();  // clone
 	  for(i=0; i<this.characterSlots.length; i++) {
-		if(this.characterSlots[i]) {
+		if(this.characterSlots[i] && this.characterSlots[i].data) {
 		  const slot = isOnline ? i : i-4;
 		  console.debug(`patch ROM character ${this.characterSlots[i].name} ${slot}`);
 		  this.patcher.constructor.patchCharacterData(patchedData, slot, this.characterSlots[i].data);
@@ -2784,7 +2784,6 @@ const RomTab = {
     <div>
       <h2>Patch a ROM</h2>
 	  <div>
-        <!--<label>Character to patch: <input v-model="characterSlot" type="number" style="width: 3em" /> (0 for first, 1 for second, ...)</label>-->
 		<h4>Characters to Patch</h4>
 		<div> 
 			<p v-for="slot in characters" :key="slot.id"> 
