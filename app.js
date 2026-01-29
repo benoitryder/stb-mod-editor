@@ -521,7 +521,8 @@ class RomPatcher {
   static FIRST_MOD_BANK = 0x4 + 0x11;
   // Hashes of known ROMs
   static KNOWN_ROMS = {
-    "utmgm9": "STB 2.5",
+    "utmgm9": { "name": "Super Tilt Bro. v2.5 hash:utmgm9", "isOnlineEnabled": true },
+    "itn6my": { "name": "Super Tilt Bro. v2.5 hash:itn6my", "isOnlineEnabled": false }
   };
 
   constructor(storage, onchange) {
@@ -580,7 +581,14 @@ class RomPatcher {
   // Return name of the ROM, return a hash or a known name
   static getRomName(romData) {
     const hash = hashByteArray(romData);
-    return this.KNOWN_ROMS[hash] || `hash:${hash}`;
+    if(this.KNOWN_ROMS[hash]) return this.KNOWN_ROMS[hash].name;
+    return `hash:${hash}`;
+  }
+  
+  static isRomOnlineEnabled(romData) {
+    const hash = hashByteArray(romData);
+    if(this.KNOWN_ROMS[hash]) return this.KNOWN_ROMS[hash].isOnlineEnabled
+    return true; // assume online is enabled
   }
 
   // Write a 16-bit value, return end offset
@@ -762,6 +770,8 @@ const app = Vue.createApp({
     return {
       tree: Vue.computed(() => this.tree),
       conf: Vue.computed(() => this.conf),
+      characterFileIndex: Vue.computed(() => this.characterFileIndex),
+      characterUrls: Vue.computed(() => this.characterUrls),
     }
   },
 
@@ -1625,14 +1635,15 @@ app.component('stb-sprite-thumbnail', {
 });
 
 app.component('stb-animation-thumbnail', {
-  props: ['animation', 'zoom', 'rect', 'swap'],
+  props: ['animation', 'zoom', 'rect', 'swap', 'data'],
   inject: ['tree', 'conf'],
 
   methods: {
     updateAnimation() {
       const rect = this.rect || Utils.animationRect(this.animation, {});
       const swap = this.swap === undefined ? this.conf.colorSwap : this.swap;
-      const palettes = Utils.getPalettes(this.tree, swap);
+      const palettes = this.data === undefined ? Utils.getPalettes(this.tree, swap) : Utils.getPalettes(this.data, swap);
+      const tree = this.data === undefined ? this.tree : this.data;
 
       // Prepare the canvas
       const canvas = this.$refs.canvas;
@@ -1645,7 +1656,7 @@ app.component('stb-animation-thumbnail', {
       const promises = frames.map(frame => {
         ctx.fillStyle = this.conf.bgColor;
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        Utils.drawSingleFrame(ctx, this.tree, frame, {
+        Utils.drawSingleFrame(ctx, tree, frame, {
           zoom: this.zoom, palettes, dx: -rect.x, dy: -rect.y,
         });
         return createImageBitmap(canvas);
@@ -2603,26 +2614,74 @@ const AiTab = {
 }
 
 const RomTab = {
-  inject: ['tree'],
+  inject: ['tree','conf','characterFileIndex','characterUrls'],
 
   data() {
     return {
       romData: null,
       romError: null,
+      romIsOnlineEnabled: true,
       characterSlot: 0,
+      // mod data stored in stbeditor.slot.${id}
+      characters: [
+          { "id": 0, "name": "sinbad" },
+          { "id": 1, "name": "kiki" },
+          { "id": 2, "name": "pepper" },
+          { "id": 3, "name": "vgsage" },
+          { "id": 4, "name": "sunny" },
+      ],
+      characterSlots: null,
+      characterFiles: [],
+      modTemplate: null,
     }
   },
 
   created() {
     this.patcher = new RomPatcher(localStorage);
     this.romData = this.patcher.loadRomData();
+    this.romIsOnlineEnabled = this.romData ? RomPatcher.isRomOnlineEnabled(this.romData) : true;
     this.characterSlot = this.patcher.getCharacterSlot();
+    this.modTemplate = this.getModTemplate();
   },
 
   computed: {
     romName() {
       return this.romData ? RomPatcher.getRomName(this.romData) : null;
-    }
+    },
+    characterData() {
+      this.characterFiles = [];
+      let idx = 0;
+      this.characterFiles.push({ "idx": idx++, "id": "" });
+      for(charfile in this.characterFileIndex) {
+        this.characterFiles.push({ "idx": idx++, "id": this.characterFileIndex[charfile].name, "name": this.characterFileIndex[charfile].name, "data": JSON.parse(localStorage.getItem(`stbeditor.data.${this.characterFileIndex[charfile].name}`)), "isDefault": false });
+      }
+      for(charfile in this.characterUrls) {
+        const entry = { "idx": idx++, "id": "->"+charfile, "name": charfile, "data": this.characterUrls[charfile], "isDefault": true };
+        if(entry.data) {
+            this.characterFiles.push(entry);
+            fetch(entry.data)
+            .then(response => response.json())
+            .then(data => {
+              this.characterFiles[entry.idx].data = data;
+            })
+            .catch(err => console.error(err));
+        }
+        else idx--;
+      }
+      return this.characterFiles;
+    },
+    characterSlotsFilled() {
+      if(!this.characterSlots) this.loadCharacterSlots();
+      for(i=0; i<this.characterSlots.length; i++) {
+        if(this.characterSlots[i] && this.characterSlots[i].data) return true;
+      }
+      return false;
+    },
+    previewAnimationRect() {
+       return {
+          x: -14, y: -12, width: 32, height: 32,
+        };
+    },
   },
 
   methods: {
@@ -2635,24 +2694,113 @@ const RomTab = {
         if (this.romError === null) {
           this.romData = new Uint8Array(buffer);
           this.patcher.saveRomData(this.romData);
+          this.romIsOnlineEnabled = RomPatcher.isRomOnlineEnabled(this.romData);
         }
       });
       reader.readAsArrayBuffer(ev.target.files[0]);
     },
 
     patchAndDownloadRom() {
-      console.debug(`patch ROM character ${this.characterSlot}`);
-
+      console.debug(`patch ROM characters`);
+      const isOnline = this.romIsOnlineEnabled;
       const patchedData = this.romData.slice();  // clone
-      this.patcher.constructor.patchCharacterData(patchedData, this.characterSlot, this.tree);
+      for(i=0; i<this.characterSlots.length; i++) {
+        if(this.characterSlots[i] && this.characterSlots[i].data) {
+          const slot = isOnline ? i : i-4;
+          console.debug(`patch ROM character ${this.characterSlots[i].name} ${slot}`);
+          this.patcher.constructor.patchCharacterData(patchedData, slot, this.characterSlots[i].data);
+        }
+      }
 
       downloadBlobData(patchedData, 'super_tilt_bro-patched.nes', 'application/octet-stream');
+    },
+    getCharacterFiles(slot) {
+      const characterSlotName = this.characters[slot].name;
+      const charD = this.characterData;
+      let charDforSlot = [];
+      for(i=0; i<charD.length; i++) {
+        if(!charD[i].data || charD[i].data.name === characterSlotName) charDforSlot.push(charD[i]);
+      }
+      return charDforSlot;
+    },
+    getCharacterSlot(slot) {
+      const data = localStorage.getItem(`stbeditor.slot.${slot}`);
+      if(data) {
+        return JSON.parse(data);
+      }
+      return 0;
+    },
+    loadCharacterSlots() {
+      if(!this.characterSlots) this.characterSlots = new Array(5);
+      for(i=0; i<this.characterSlots.length; i++) {
+        const chars = this.getCharacterSlot(i);
+        const charD = this.characterData;
+        if(chars) {
+          const charf = charD.find(obj => obj.id === chars.id);
+          if(charf) {
+              charf.data = chars.data;
+              this.characterSlots[i] = charf;
+              if(!chars.isDefault) {
+                this.characterSlots[i].data = JSON.parse(localStorage.getItem(`stbeditor.data.${chars.name}`));
+              }
+          }
+          else this.characterSlots[i] = chars;
+        }
+      }
+    },
+    saveCharacterSlot(slot) {
+      if(this.characterSlots[slot]) {
+        localStorage.setItem(`stbeditor.slot.${slot}`, JSON.stringify(this.characterSlots[slot]));
+      }
+    },
+    getPreviewAnimation(data) {
+      return Utils.getAnimationByName(data, data[MANDATORY_ANIMATION_NAMES[0]].name)
+    },
+    getModTemplate() {
+      fetch('data/mod.json')
+        .then(response => response.json())
+        .then(data => { this.modTemplate = data; })
+        .catch(err => console.info(`cannot load static configuration: ${err}`));
+    },
+    generateAndDownloadModFile() {
+      console.debug(`Download mod.json`);
+      let modFile = cloneData(this.modTemplate);
+      for(i=0; i<this.characterSlots.length; i++) {
+        if(this.characterSlots[i] && this.characterSlots[i].data) {
+          modFile.characters[i] = this.characterSlots[i].data;
+        }
+      }
+      console.debug(modFile);
+      downloadJson(modFile, "stbMod");
     },
   },
 
   template: `
     <div>
       <h2>Patch a ROM</h2>
+      <div>
+        <h4>Characters to Patch</h4>
+        <div> 
+            <p v-for="slot in characters" :key="slot.id"> 
+            <span v-if="characterSlotsFilled">
+            <stb-animation-thumbnail v-if="characterSlots[slot.id] && characterSlots[slot.id].data" :animation="getPreviewAnimation(characterSlots[slot.id].data)"
+                :zoom="2" :rect="previewAnimationRect" :data="characterSlots[slot.id].data" />
+            <canvas v-if="!characterSlots[slot.id] || !characterSlots[slot.id].data" ref="canvas" class="stb-animation-thumbnail" style="width: 64px; height: 64px" />
+            </span>
+            <input :disabled="true" v-model="slot.id" type="number" style="width: 3em" />
+            <select v-model="this.characterSlots[slot.id]" @change="saveCharacterSlot(slot.id)" style="width: 150px;"> <option v-for="characterfile in getCharacterFiles(slot.id)" :key="characterfile.id" :value="characterfile" :style="{ color: characterfile.isDefault ? '#999' : 'white' }">{{ characterfile.name }}</option> </select>
+            &nbsp;<i class="fas fa-people-arrows"></i>&nbsp;
+            {{ slot.name }}
+            </p>
+        </div>
+      </div>
+      <div v-if="characterSlotsFilled" >
+        <h4>Apply Mod Patch</h4>
+        <button @click="generateAndDownloadModFile()">Download Mod file</button> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://super-tilt-bro.com/build.html" target="_blank"><i class="far fa-long-arrow-alt-right"></i> Build ROM</a>
+        <h5>or</h5>
+      </div>
+      <div v-if="characterSlotsFilled" >
+      <h4>Patch an Existing ROM</h4>
       <div>
         Write character data to the original ROM. Limitations listed below apply.<br/>
         Basically graphics, hitboxes and hurtboxes can be modified. Everything else must match the ROM to patch.<br/>
@@ -2668,17 +2816,16 @@ const RomTab = {
       <p>
         <button @click="$refs.importRomFile.click()" style="margin-right: 1em">Load a ROM</button>
         <span v-if="romError" style="color: red">{{ romError }}</span>
-        <span v-else-if="romData">A ROM is loaded ({{ romName }})</span>
+        <span v-else-if="romData">A ROM is loaded ({{ romName }})
+            [<input type="checkbox" v-model="this.romIsOnlineEnabled" style="width: 11px; height: 11px"/> Online Enabled?]
+        </span>
         <span v-else>No ROM loaded</span>
         <input type="file" hidden ref="importRomFile" @change="importRomFile" />
       </p>
       <p>
-        <label>Character to patch: <input v-model="characterSlot" type="number" style="width: 3em" /> (0 for first, 1 for second, ...)</label>
+        <button v-if="romData" @click="patchAndDownloadRom()">Patch and download ROM</button>
       </p>
-      <p>
-        <button :disabled="!tree || !romData" @click="patchAndDownloadRom()">Patch and download ROM</button>
-        <span v-if="!tree"> (no character file loaded)</span>
-      </p>
+      </div>
     </div>
   `,
 }
