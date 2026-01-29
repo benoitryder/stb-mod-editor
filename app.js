@@ -356,6 +356,9 @@ class Utils {
 
   static floodFillTile(pixels, x, y, color) {
     let filled_color = pixels[y][x];
+    if (filled_color === color) {
+      return;
+    }
     let stack = [[x, y]];
     while (stack.length) {
       let [x, y] = stack.pop();
