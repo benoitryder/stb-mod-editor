@@ -2631,7 +2631,7 @@ const RomTab = {
           { "id": 4, "name": "sunny" },
       ],
       characterSlots: null,
-      characterFiles: [],
+      characterFiles: null,
       modTemplate: null,
     }
   },
@@ -2649,24 +2649,22 @@ const RomTab = {
       return this.romData ? RomPatcher.getRomName(this.romData) : null;
     },
     characterData() {
-      this.characterFiles = [];
-      let idx = 0;
-      this.characterFiles.push({ "idx": idx++, "id": "" });
+      this.characterFiles = {};
+      this.characterFiles[""] = { "id": "" };
       for(charfile in this.characterFileIndex) {
-        this.characterFiles.push({ "idx": idx++, "id": this.characterFileIndex[charfile].name, "name": this.characterFileIndex[charfile].name, "data": JSON.parse(localStorage.getItem(`stbeditor.data.${this.characterFileIndex[charfile].name}`)), "isDefault": false });
+        this.characterFiles[this.characterFileIndex[charfile].name] = { "id": this.characterFileIndex[charfile].name, "name": this.characterFileIndex[charfile].name, "data": JSON.parse(localStorage.getItem(`stbeditor.data.${this.characterFileIndex[charfile].name}`)), "isDefault": false };
       }
       for(charfile in this.characterUrls) {
-        const entry = { "idx": idx++, "id": "->"+charfile, "name": charfile, "data": this.characterUrls[charfile], "isDefault": true };
+        const entry = { "id": "->"+charfile, "name": charfile, "data": this.characterUrls[charfile], "isDefault": true };
         if(entry.data) {
-            this.characterFiles.push(entry);
+            this.characterFiles[entry.id] = entry;
             fetch(entry.data)
             .then(response => response.json())
             .then(data => {
-              this.characterFiles[entry.idx].data = data;
+              this.characterFiles[entry.id].data = data;
             })
             .catch(err => console.error(err));
         }
-        else idx--;
       }
       return this.characterFiles;
     },
@@ -2716,10 +2714,11 @@ const RomTab = {
     },
     getCharacterFiles(slot) {
       const characterSlotName = this.characters[slot].name;
-      const charD = this.characterData;
+      const charData = this.characterData;
       let charDforSlot = [];
-      for(i=0; i<charD.length; i++) {
-        if(!charD[i].data || charD[i].data.name === characterSlotName) charDforSlot.push(charD[i]);
+      for(charD in charData) {
+		charD = charData[charD];
+        if(!charD.data || charD.data.name === characterSlotName) charDforSlot.push(charD);
       }
       return charDforSlot;
     },
@@ -2732,19 +2731,25 @@ const RomTab = {
     },
     loadCharacterSlots() {
       if(!this.characterSlots) this.characterSlots = new Array(5);
+      const charD = this.characterData;
       for(i=0; i<this.characterSlots.length; i++) {
         const chars = this.getCharacterSlot(i);
-        const charD = this.characterData;
         if(chars) {
-          const charf = charD.find(obj => obj.id === chars.id);
+          const charf = charD[chars.id];
           if(charf) {
-              charf.data = chars.data;
-              this.characterSlots[i] = charf;
-              if(!chars.isDefault) {
-                this.characterSlots[i].data = JSON.parse(localStorage.getItem(`stbeditor.data.${chars.name}`));
-              }
+            charf.data = chars.data;
+            this.characterSlots[i] = charf;
+            if(!chars.isDefault) {
+              this.characterSlots[i].data = JSON.parse(localStorage.getItem(`stbeditor.data.${chars.name}`));
+            }
           }
-          else this.characterSlots[i] = chars;
+          else {
+            if(chars.isDefault) this.characterSlots[i] = chars;
+            else {
+              this.characterSlots[i] = null;
+              localStorage.removeItem(`stbeditor.slot.${i}`);
+            }
+          }
         }
       }
     },
@@ -2783,12 +2788,12 @@ const RomTab = {
         <div> 
             <p v-for="slot in characters" :key="slot.id"> 
             <span v-if="characterSlotsFilled">
-            <stb-animation-thumbnail v-if="characterSlots[slot.id] && characterSlots[slot.id].data" :animation="getPreviewAnimation(characterSlots[slot.id].data)"
+            <stb-animation-thumbnail v-if="characterSlots[slot.id] && characterSlots[slot.id].data && characterFiles[characterSlots[slot.id].id]" :animation="getPreviewAnimation(characterSlots[slot.id].data)"
                 :zoom="2" :rect="previewAnimationRect" :data="characterSlots[slot.id].data" />
-            <canvas v-if="!characterSlots[slot.id] || !characterSlots[slot.id].data" ref="canvas" class="stb-animation-thumbnail" style="width: 64px; height: 64px" />
+            <canvas v-if="!characterSlots[slot.id] || !characterSlots[slot.id].data || !characterFiles[characterSlots[slot.id].id]" ref="canvas" class="stb-animation-thumbnail" style="width: 64px; height: 64px" />
             </span>
             <input :disabled="true" v-model="slot.id" type="number" style="width: 3em" />
-            <select v-model="this.characterSlots[slot.id]" @change="saveCharacterSlot(slot.id)" style="width: 150px;"> <option v-for="characterfile in getCharacterFiles(slot.id)" :key="characterfile.id" :value="characterfile" :style="{ color: characterfile.isDefault ? '#999' : 'white' }">{{ characterfile.name }}</option> </select>
+            <select v-model="characterSlots[slot.id]" @change="saveCharacterSlot(slot.id)" style="width: 150px;"> <option v-for="characterfile in getCharacterFiles(slot.id)" :key="characterfile.id" :value="characterfile" :style="{ color: characterfile.isDefault ? '#999' : '#000' }">{{ characterfile.name }}</option> </select>
             &nbsp;<i class="fas fa-people-arrows"></i>&nbsp;
             {{ slot.name }}
             </p>
