@@ -4090,7 +4090,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": 0,
-            "hitstun": 0,
+            "hitstun": 4,
             "left": -5,
             "right": 6,
             "top": -1,
@@ -4157,7 +4157,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": 0,
-            "hitstun": 0,
+            "hitstun": 4,
             "left": -8,
             "right": 5,
             "top": 5,
@@ -4209,7 +4209,7 @@
               "tile": "SUNNY_TILE_49",
               "type": "animation_sprite",
               "x": -8,
-              "y": 6
+              "y": 9
             },
             {
               "attr": 0,
@@ -4217,7 +4217,7 @@
               "tile": "SUNNY_TILE_39",
               "type": "animation_sprite",
               "x": -3,
-              "y": 6
+              "y": 7
             }
           ],
           "type": "animation_frame"
@@ -4232,7 +4232,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": 0,
-            "hitstun": 0,
+            "hitstun": 4,
             "left": -8,
             "right": 5,
             "top": 8,
@@ -4665,7 +4665,7 @@
           "type": "animation_frame"
         },
         {
-          "duration": 3,
+          "duration": 2,
           "hitbox": null,
           "hurtbox": {
             "bottom": 9,
@@ -4727,7 +4727,7 @@
           "type": "animation_frame"
         },
         {
-          "duration": 3,
+          "duration": 2,
           "hitbox": null,
           "hurtbox": {
             "bottom": 10,
@@ -4773,7 +4773,7 @@
           "type": "animation_frame"
         },
         {
-          "duration": 3,
+          "duration": 2,
           "hitbox": null,
           "hurtbox": {
             "bottom": 12,
@@ -4819,7 +4819,7 @@
           "type": "animation_frame"
         },
         {
-          "duration": 3,
+          "duration": 2,
           "hitbox": null,
           "hurtbox": {
             "bottom": 16,
@@ -4980,7 +4980,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": -5,
-            "hitstun": 4,
+            "hitstun": 6,
             "left": -14,
             "right": -2,
             "top": 10,
@@ -5491,7 +5491,7 @@
             "enabled": true,
             "force_h": 0,
             "force_v": -10,
-            "hitstun": 6,
+            "hitstun": 3,
             "left": -4,
             "right": 4,
             "top": -1,
@@ -5566,7 +5566,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -10,
-            "hitstun": 6,
+            "hitstun": 3,
             "left": 2,
             "right": 9,
             "top": -8,
@@ -5641,7 +5641,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -10,
-            "hitstun": 6,
+            "hitstun": 3,
             "left": 2,
             "right": 9,
             "top": -9,
@@ -5724,7 +5724,7 @@
             "enabled": false,
             "force_h": 0,
             "force_v": -10,
-            "hitstun": 6,
+            "hitstun": 3,
             "left": 0,
             "right": 9,
             "top": -6,
@@ -6649,7 +6649,7 @@
     {
       "frames": [
         {
-          "duration": 8,
+          "duration": 6,
           "hitbox": null,
           "hurtbox": {
             "bottom": 16,
@@ -6759,13 +6759,13 @@
         {
           "duration": 3,
           "hitbox": {
-            "base_h": -200,
+            "base_h": -750,
             "base_v": -500,
             "bottom": 5,
             "damages": 2,
             "enabled": true,
-            "force_h": -1,
-            "force_v": -3,
+            "force_h": -3,
+            "force_v": -2,
             "hitstun": 0,
             "left": 0,
             "right": 10,
@@ -7805,12 +7805,12 @@
           "duration": 4,
           "hitbox": {
             "base_h": -300,
-            "base_v": -1000,
+            "base_v": -1500,
             "bottom": 11,
             "damages": 3,
             "enabled": true,
             "force_h": -4,
-            "force_v": -30,
+            "force_v": -50,
             "hitstun": 0,
             "left": -6,
             "right": 16,
@@ -14136,8 +14136,8 @@
             1,
             1,
             0,
-            3,
-            3,
+            2,
+            2,
             0,
             1,
             1
@@ -14146,9 +14146,9 @@
             1,
             1,
             0,
-            3,
-            3,
-            3,
+            2,
+            2,
+            2,
             0,
             1
           ],
@@ -14156,7 +14156,7 @@
             1,
             1,
             0,
-            3,
+            2,
             0,
             0,
             0,
@@ -14166,127 +14166,167 @@
             1,
             1,
             0,
-            3,
+            2,
             0,
-            3,
+            2,
+            0,
+            2
+          ],
+          [
+            1,
+            1,
+            0,
+            2,
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            2
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            2,
+            2,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            0,
+            2,
+            2,
+            2,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            2,
+            0,
+            0,
+            2,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            2,
+            0,
+            2,
+            0,
+            1,
+            1
+          ],
+          [
+            2,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            0,
+            1
+          ]
+        ],
+        "type": "tile"
+      },
+      {
+        "representation": [
+          [
+            0,
+            2,
+            2,
+            2,
+            0,
+            2,
+            2,
+            0
+          ],
+          [
+            0,
+            2,
+            2,
+            0,
+            2,
+            2,
             0,
             3
           ],
           [
-            1,
-            1,
             0,
-            3,
-            3,
+            2,
+            2,
             0,
-            0,
-            0
-          ],
-          [
-            1,
-            0,
-            0,
-            0,
-            0,
+            2,
             0,
             3,
             3
-          ]
-        ],
-        "type": "tile"
-      },
-      {
-        "representation": [
-          [
-            1,
-            1,
-            1,
-            0,
-            0,
-            0,
-            1,
-            1
-          ],
-          [
-            1,
-            1,
-            0,
-            3,
-            3,
-            0,
-            1,
-            1
-          ],
-          [
-            1,
-            0,
-            3,
-            3,
-            3,
-            0,
-            1,
-            1
           ],
           [
             0,
+            2,
+            2,
+            0,
+            2,
+            0,
             3,
-            0,
-            0,
-            3,
-            0,
-            1,
-            1
+            0
           ],
           [
             0,
+            2,
+            2,
             0,
-            3,
-            0,
-            3,
-            0,
-            1,
-            1
-          ],
-          [
-            3,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-            1
-          ],
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1
-          ],
-          [
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
-            0,
-            1
-          ]
-        ],
-        "type": "tile"
-      },
-      {
-        "representation": [
-          [
-            0,
-            3,
-            3,
-            3,
             0,
             3,
             3,
@@ -14294,63 +14334,23 @@
           ],
           [
             0,
-            3,
-            3,
-            0,
-            3,
-            3,
-            0,
-            2
-          ],
-          [
-            0,
-            3,
-            3,
-            0,
-            3,
-            0,
-            2,
-            2
-          ],
-          [
-            0,
-            3,
-            3,
-            0,
-            3,
-            0,
-            2,
-            0
-          ],
-          [
-            0,
-            3,
-            3,
-            0,
-            0,
             2,
             2,
-            0
-          ],
-          [
             0,
             3,
             3,
-            0,
-            2,
-            2,
-            2,
-            2
+            3,
+            3
           ],
           [
             0,
             0,
-            3,
-            3,
+            2,
+            2,
             0,
-            2,
-            2,
-            2
+            3,
+            3,
+            3
           ],
           [
             1,
@@ -14373,44 +14373,44 @@
             0,
             0,
             0,
-            3,
-            3,
+            2,
+            2,
             0
           ],
           [
-            2,
-            2,
-            2,
-            2,
-            2,
-            0,
             3,
+            3,
+            3,
+            3,
+            3,
+            0,
+            2,
             0
           ],
           [
-            2,
-            2,
-            2,
-            2,
-            2,
-            0,
             3,
-            0
-          ],
-          [
-            0,
-            2,
-            2,
-            0,
-            0,
-            0,
             3,
+            3,
+            3,
+            3,
+            0,
+            2,
             0
           ],
           [
             0,
+            3,
+            3,
+            0,
+            0,
+            0,
             2,
-            2,
+            0
+          ],
+          [
+            0,
+            3,
+            3,
             0,
             0,
             0,
@@ -14418,21 +14418,21 @@
             1
           ],
           [
-            2,
-            2,
-            2,
-            2,
-            2,
+            3,
+            3,
+            3,
+            3,
+            3,
             0,
             1,
             1
           ],
           [
-            2,
-            2,
-            2,
-            2,
-            2,
+            3,
+            3,
+            3,
+            3,
+            3,
             0,
             1,
             1
@@ -14716,7 +14716,7 @@
   "name": "sunny",
   "netload_routine": "sunny_netload",
   "projectile_hit_routine": "sunny_pearl_shot_hit",
-  "sourcecode": "!define \"char_name\" {sunny}\n!define \"char_name_upper\" {SUNNY}\n\n;\n; Gameplay constants\n;\n\nSUNNY_AERIAL_SPEED = $0180\nSUNNY_AERIAL_DIRECTIONAL_INFLUENCE_STRENGTH = $c0\nSUNNY_AIR_FRICTION_STRENGTH = 7\nSUNNY_FASTFALL_SPEED = $0500\nSUNNY_GROUND_FRICTION_STRENGTH = $40\nSUNNY_JUMP_POWER = $0480\nSUNNY_JUMP_SHORT_HOP_POWER = $0100\nSUNNY_JUMP_SHORT_HOP_EXTRA_TIME_PAL = 4 ; Number of frames after jumpsquat at which shorthop is handled\nSUNNY_JUMP_SHORT_HOP_EXTRA_TIME_NTSC = 5\nSUNNY_JUMP_SHORT_HOP_AERIAL_TIME_PAL = 2 ;  Number of frames after jumpsquat at which an attack input stops converting is into a short hop-aerial\nSUNNY_JUMP_SHORT_HOP_AERIAL_TIME_NTSC = 2\nSUNNY_JUMP_SQUAT_DURATION_PAL = 4\nSUNNY_JUMP_SQUAT_DURATION_NTSC = 5\nSUNNY_LANDING_MAX_VELOCITY = $01c0\nSUNNY_MAX_NUM_AERIAL_JUMPS = 1\nSUNNY_ALL_SPECIAL_JUMPS = %10000001\nSUNNY_RUNNING_INITIAL_VELOCITY = $0100\nSUNNY_RUNNING_MAX_VELOCITY = $01c0\nSUNNY_RUNNING_ACCELERATION = $20\nSUNNY_TECH_SPEED = $0300\nSUNNY_WALL_JUMP_SQUAT_END = 4\nSUNNY_WALL_JUMP_VELOCITY_V = $0500\nSUNNY_WALL_JUMP_VELOCITY_H = $0100\n\n;\n; Constants data\n;\n\n!include \"characters/std_constant_tables.asm\"\n\n;\n; Pearl shot implementation\n;\n\nsunny_pearl_sprite_oam_per_player:\n\t.byt INGAME_PLAYER_A_LAST_SPRITE*4, INGAME_PLAYER_B_LAST_SPRITE*4\n\n.(\n\n\tpearl_direction_h = player_a_state_extra1\n\tpearl_counter = player_a_state_extra2\n\tpearl_up_counter = player_a_state_extra3\n\tpearl_x_subpixel = player_a_state_extra4\n\tpearl_y_subpixel = player_a_state_extra5\n\tpearl_x_pixel = player_a_state_extra6\n\tpearl_y_pixel = player_a_state_extra7\n\tpearl_x_screen = player_a_state_extra8\n\tpearl_y_screen = player_a_state_extra9\n\n\tPEARL_DURATION = 100\n\tduration_table(PEARL_DURATION, pearl_duration)\n\n\tPEARL_HORIZONTAL_VELOCITY = $0140\n\tvelocity_table(PEARL_HORIZONTAL_VELOCITY, pearl_h_velocity_right_msb, pearl_h_velocity_right_lsb)\n\tvelocity_table(-PEARL_HORIZONTAL_VELOCITY, pearl_h_velocity_left_msb, pearl_h_velocity_left_lsb)\n\n#define SUNNY_SIG(x) (((x >> 15) & $01) * $ff)\n#define SUNNY_MSB(x) >(x)\n#define SUNNY_LSB(x) <(x)\n\n#define SUNNY_NSI(x) ((( (((x)*5)/6) >> 15) & $01) * $ff)\n#define SUNNY_NMS(x) >(((x)*5)/6)\n#define SUNNY_NLS(x) <(((x)*5)/6)\n\n\t;NOTE as long has we never have value below -$0100 (above $ff00), sign table and msb table are the same\n\t;     (could save some bytes if we really need it)\n\t;NOTE generate these tables with the \"sunny_pearl_velocities.py\" script in tools for easier tweaking.\n\tpearl_v_velocity_pal_sign:\n\t\t.byt SUNNY_SIG($0180), SUNNY_SIG($0162), SUNNY_SIG($0144), SUNNY_SIG($0126), SUNNY_SIG($0109)\n\t\t.byt SUNNY_SIG($00ed), SUNNY_SIG($00d2), SUNNY_SIG($00b7), SUNNY_SIG($009e), SUNNY_SIG($0087)\n\t\t.byt SUNNY_SIG($0070), SUNNY_SIG($005c), SUNNY_SIG($0049), SUNNY_SIG($0039), SUNNY_SIG($002a)\n\t\t.byt SUNNY_SIG($001d), SUNNY_SIG($0013), SUNNY_SIG($000b), SUNNY_SIG($0005), SUNNY_SIG($0001)\n\t\t.byt SUNNY_SIG(-$0001), SUNNY_SIG(-$0005), SUNNY_SIG(-$000b), SUNNY_SIG(-$0013), SUNNY_SIG(-$001d)\n\t\t.byt SUNNY_SIG(-$002a), SUNNY_SIG(-$0039), SUNNY_SIG(-$0049), SUNNY_SIG(-$005c), SUNNY_SIG(-$0070)\n\t\t.byt SUNNY_SIG(-$0087), SUNNY_SIG(-$009e), SUNNY_SIG(-$00b7), SUNNY_SIG(-$00d2), SUNNY_SIG(-$00ed)\n\t\t.byt SUNNY_SIG(-$0109), SUNNY_SIG(-$0126), SUNNY_SIG(-$0144), SUNNY_SIG(-$0162), SUNNY_SIG(-$0180)\n\tpearl_v_velocity_pal_msb:\n\t\t.byt SUNNY_MSB($0180), SUNNY_MSB($0162), SUNNY_MSB($0144), SUNNY_MSB($0126), SUNNY_MSB($0109)\n\t\t.byt SUNNY_MSB($00ed), SUNNY_MSB($00d2), SUNNY_MSB($00b7), SUNNY_MSB($009e), SUNNY_MSB($0087)\n\t\t.byt SUNNY_MSB($0070), SUNNY_MSB($005c), SUNNY_MSB($0049), SUNNY_MSB($0039), SUNNY_MSB($002a)\n\t\t.byt SUNNY_MSB($001d), SUNNY_MSB($0013), SUNNY_MSB($000b), SUNNY_MSB($0005), SUNNY_MSB($0001)\n\t\t.byt SUNNY_MSB(-$0001), SUNNY_MSB(-$0005), SUNNY_MSB(-$000b), SUNNY_MSB(-$0013), SUNNY_MSB(-$001d)\n\t\t.byt SUNNY_MSB(-$002a), SUNNY_MSB(-$0039), SUNNY_MSB(-$0049), SUNNY_MSB(-$005c), SUNNY_MSB(-$0070)\n\t\t.byt SUNNY_MSB(-$0087), SUNNY_MSB(-$009e), SUNNY_MSB(-$00b7), SUNNY_MSB(-$00d2), SUNNY_MSB(-$00ed)\n\t\t.byt SUNNY_MSB(-$0109), SUNNY_MSB(-$0126), SUNNY_MSB(-$0144), SUNNY_MSB(-$0162), SUNNY_MSB(-$0180)\n\tpearl_v_velocity_pal_lsb:\n\t\t.byt SUNNY_LSB($0180), SUNNY_LSB($0162), SUNNY_LSB($0144), SUNNY_LSB($0126), SUNNY_LSB($0109)\n\t\t.byt SUNNY_LSB($00ed), SUNNY_LSB($00d2), SUNNY_LSB($00b7), SUNNY_LSB($009e), SUNNY_LSB($0087)\n\t\t.byt SUNNY_LSB($0070), SUNNY_LSB($005c), SUNNY_LSB($0049), SUNNY_LSB($0039), SUNNY_LSB($002a)\n\t\t.byt SUNNY_LSB($001d), SUNNY_LSB($0013), SUNNY_LSB($000b), SUNNY_LSB($0005), SUNNY_LSB($0001)\n\t\t.byt SUNNY_LSB(-$0001), SUNNY_LSB(-$0005), SUNNY_LSB(-$000b), SUNNY_LSB(-$0013), SUNNY_LSB(-$001d)\n\t\t.byt SUNNY_LSB(-$002a), SUNNY_LSB(-$0039), SUNNY_LSB(-$0049), SUNNY_LSB(-$005c), SUNNY_LSB(-$0070)\n\t\t.byt SUNNY_LSB(-$0087), SUNNY_LSB(-$009e), SUNNY_LSB(-$00b7), SUNNY_LSB(-$00d2), SUNNY_LSB(-$00ed)\n\t\t.byt SUNNY_LSB(-$0109), SUNNY_LSB(-$0126), SUNNY_LSB(-$0144), SUNNY_LSB(-$0162), SUNNY_LSB(-$0180)\n\tPEARL_V_VELOCITY_TABLE_LEN_PAL = * - pearl_v_velocity_pal_lsb\n\n\tpearl_v_velocity_ntsc_sign:\n\t\t.byt SUNNY_NSI($0180), SUNNY_NSI($0167), SUNNY_NSI($014e), SUNNY_NSI($0135), SUNNY_NSI($011d)\n\t\t.byt SUNNY_NSI($0105), SUNNY_NSI($00ed), SUNNY_NSI($00d6), SUNNY_NSI($00c0), SUNNY_NSI($00ab)\n\t\t.byt SUNNY_NSI($0096), SUNNY_NSI($0083), SUNNY_NSI($0070), SUNNY_NSI($005f), SUNNY_NSI($004f)\n\t\t.byt SUNNY_NSI($0041), SUNNY_NSI($0033), SUNNY_NSI($0028), SUNNY_NSI($001d), SUNNY_NSI($0014)\n\t\t.byt SUNNY_NSI($000d), SUNNY_NSI($0007), SUNNY_NSI($0003), SUNNY_NSI($0001), SUNNY_NSI(-$0001)\n\t\t.byt SUNNY_NSI(-$0003), SUNNY_NSI(-$0007), SUNNY_NSI(-$000d), SUNNY_NSI(-$0014), SUNNY_NSI(-$001d)\n\t\t.byt SUNNY_NSI(-$0028), SUNNY_NSI(-$0033), SUNNY_NSI(-$0041), SUNNY_NSI(-$004f), SUNNY_NSI(-$005f)\n\t\t.byt SUNNY_NSI(-$0070), SUNNY_NSI(-$0083), SUNNY_NSI(-$0096), SUNNY_NSI(-$00ab), SUNNY_NSI(-$00c0)\n\t\t.byt SUNNY_NSI(-$00d6), SUNNY_NSI(-$00ed), SUNNY_NSI(-$0105), SUNNY_NSI(-$011d), SUNNY_NSI(-$0135)\n\t\t.byt SUNNY_NSI(-$014e), SUNNY_NSI(-$0167), SUNNY_NSI(-$0180)\n\tpearl_v_velocity_ntsc_msb:\n\t\t.byt SUNNY_NMS($0180), SUNNY_NMS($0167), SUNNY_NMS($014e), SUNNY_NMS($0135), SUNNY_NMS($011d)\n\t\t.byt SUNNY_NMS($0105), SUNNY_NMS($00ed), SUNNY_NMS($00d6), SUNNY_NMS($00c0), SUNNY_NMS($00ab)\n\t\t.byt SUNNY_NMS($0096), SUNNY_NMS($0083), SUNNY_NMS($0070), SUNNY_NMS($005f), SUNNY_NMS($004f)\n\t\t.byt SUNNY_NMS($0041), SUNNY_NMS($0033), SUNNY_NMS($0028), SUNNY_NMS($001d), SUNNY_NMS($0014)\n\t\t.byt SUNNY_NMS($000d), SUNNY_NMS($0007), SUNNY_NMS($0003), SUNNY_NMS($0001), SUNNY_NMS(-$0001)\n\t\t.byt SUNNY_NMS(-$0003), SUNNY_NMS(-$0007), SUNNY_NMS(-$000d), SUNNY_NMS(-$0014), SUNNY_NMS(-$001d)\n\t\t.byt SUNNY_NMS(-$0028), SUNNY_NMS(-$0033), SUNNY_NMS(-$0041), SUNNY_NMS(-$004f), SUNNY_NMS(-$005f)\n\t\t.byt SUNNY_NMS(-$0070), SUNNY_NMS(-$0083), SUNNY_NMS(-$0096), SUNNY_NMS(-$00ab), SUNNY_NMS(-$00c0)\n\t\t.byt SUNNY_NMS(-$00d6), SUNNY_NMS(-$00ed), SUNNY_NMS(-$0105), SUNNY_NMS(-$011d), SUNNY_NMS(-$0135)\n\t\t.byt SUNNY_NMS(-$014e), SUNNY_NMS(-$0167), SUNNY_NMS(-$0180)\n\tpearl_v_velocity_ntsc_lsb:\n\t\t.byt SUNNY_NLS($0180), SUNNY_NLS($0167), SUNNY_NLS($014e), SUNNY_NLS($0135), SUNNY_NLS($011d)\n\t\t.byt SUNNY_NLS($0105), SUNNY_NLS($00ed), SUNNY_NLS($00d6), SUNNY_NLS($00c0), SUNNY_NLS($00ab)\n\t\t.byt SUNNY_NLS($0096), SUNNY_NLS($0083), SUNNY_NLS($0070), SUNNY_NLS($005f), SUNNY_NLS($004f)\n\t\t.byt SUNNY_NLS($0041), SUNNY_NLS($0033), SUNNY_NLS($0028), SUNNY_NLS($001d), SUNNY_NLS($0014)\n\t\t.byt SUNNY_NLS($000d), SUNNY_NLS($0007), SUNNY_NLS($0003), SUNNY_NLS($0001), SUNNY_NLS(-$0001)\n\t\t.byt SUNNY_NLS(-$0003), SUNNY_NLS(-$0007), SUNNY_NLS(-$000d), SUNNY_NLS(-$0014), SUNNY_NLS(-$001d)\n\t\t.byt SUNNY_NLS(-$0028), SUNNY_NLS(-$0033), SUNNY_NLS(-$0041), SUNNY_NLS(-$004f), SUNNY_NLS(-$005f)\n\t\t.byt SUNNY_NLS(-$0070), SUNNY_NLS(-$0083), SUNNY_NLS(-$0096), SUNNY_NLS(-$00ab), SUNNY_NLS(-$00c0)\n\t\t.byt SUNNY_NLS(-$00d6), SUNNY_NLS(-$00ed), SUNNY_NLS(-$0105), SUNNY_NLS(-$011d), SUNNY_NLS(-$0135)\n\t\t.byt SUNNY_NLS(-$014e), SUNNY_NLS(-$0167), SUNNY_NLS(-$0180)\n\tPEARL_V_VELOCITY_TABLE_LEN_NTSC = * - pearl_v_velocity_ntsc_lsb\n\n\tpearl_v_velocity_table_last:\n\t\t.byt PEARL_V_VELOCITY_TABLE_LEN_PAL-1, PEARL_V_VELOCITY_TABLE_LEN_NTSC-1\n\n#if PEARL_V_VELOCITY_TABLE_LEN_NTSC <> (PEARL_V_VELOCITY_TABLE_LEN_PAL)+((((PEARL_V_VELOCITY_TABLE_LEN_PAL)*10)/5)+5)/10\n#error pearl velocity tables have differing duration in PAL vs NTSC\n#endif\n\n\t; Pearl position is used for platform collision, its hitbox should actually be offsetted to have logical positioning\n\t; Pearl width/height are actually -1 of graphics because \"bottom = top + height\" so zero is one line of pixels\n\tPEARL_PROJECTILE_OFFSET_VERTICAL = 11\n\tPEARL_PROJECTILE_OFFSET_HORIZONTAL = 1\n\tPEARL_PROJECTILE_HEIGHT = 6\n\tPEARL_PROJECTILE_WIDTH = 6\n\n\t+sunny_netload:\n\t.(\n\t\tlda esp_rx_buffer+0, y\n\t\tsta player_a_projectile_1_flags, x\n\t\tbeq pearl_inactive\n\n\t\t\tpearl_active:\n\t\t\t\t; Pearl-specific state\n\t\t\t\tlda esp_rx_buffer+1, y\n\t\t\t\tsta player_a_state_extra1, x\n\t\t\t\tlda esp_rx_buffer+2, y\n\t\t\t\tsta player_a_state_extra2, x\n\t\t\t\tlda esp_rx_buffer+3, y\n\t\t\t\tsta player_a_state_extra3, x\n\t\t\t\tlda esp_rx_buffer+4, y\n\t\t\t\tsta player_a_state_extra4, x\n\t\t\t\tlda esp_rx_buffer+5, y\n\t\t\t\tsta player_a_state_extra5, x\n\t\t\t\tlda esp_rx_buffer+6, y\n\t\t\t\tsta player_a_state_extra6, x\n\t\t\t\tlda esp_rx_buffer+7, y\n\t\t\t\tsta player_a_state_extra7, x\n\t\t\t\tlda esp_rx_buffer+8, y\n\t\t\t\tsta player_a_state_extra8, x\n\t\t\t\tlda esp_rx_buffer+9, y\n\t\t\t\tsta player_a_state_extra9, x\n\n\t\t\t\t; Recompute pearl hitbox\n\t\t\t\tjsr place_pearl_hitbox\n\n\t\t\t\t; Return with updated buffer cursor\n\t\t\t\ttya\n\t\t\t\tclc\n\t\t\t\tadc #10\n\t\t\t\ttay\n\n\t\t\t\trts\n\n\t\t\tpearl_inactive:\n\t\t\t\t; Return with updated buffer cursor\n\t\t\t\tiny\n\t\t\t\trts\n\n\t\t;rts ; useless no branch return\n\t.)\n\n\t&sunny_pearl_shot_spawn:\n\t.(\n\t\t; Activate projectile\n\t\tlda #PROJECTILE_FLAGS_ACTIVE\n\t\tsta player_a_projectile_1_flags, x\n\n\t\t; Position pearl\n\t\t.(\n\t\t\tlda #0\n\t\t\tsta pearl_x_subpixel, x\n\n\t\t\tlda player_a_direction, x\n\t\t\tbne right\n\t\t\t\tleft:\n\t\t\t\t\tlda player_a_x, x\n\t\t\t\t\tclc\n\t\t\t\t\tadc #<-8\n\t\t\t\t\tsta pearl_x_pixel, x\n\t\t\t\t\tlda player_a_x_screen, x\n\t\t\t\t\tadc #>-8\n\t\t\t\t\tsta pearl_x_screen, x\n\t\t\t\t\tjmp ok\n\t\t\t\tright:\n\t\t\t\t\tlda player_a_x, x\n\t\t\t\t\tclc\n\t\t\t\t\tadc #<8\n\t\t\t\t\tsta pearl_x_pixel, x\n\t\t\t\t\tlda player_a_x_screen, x\n\t\t\t\t\tadc #>8\n\t\t\t\t\tsta pearl_x_screen, x\n\t\t\t\t\tjmp ok\n\t\t\tok:\n\t\t.)\n\n\t\tlda #0\n\t\tsta pearl_y_subpixel, x\n\t\tlda player_a_y, x\n\t\tclc\n\t\tadc #<-4\n\t\tsta pearl_y_pixel, x\n\t\tlda player_a_y_screen, x\n\t\tadc #>-4\n\t\tsta pearl_y_screen, x\n\n\t\t; Set hitbox boundaries\n\t\tjsr place_pearl_hitbox\n\n\t\t; Init pearl state\n\t\tldy system_index\n\t\tlda pearl_duration, y\n\t\tsta pearl_counter, x\n\n\t\tlda player_a_direction, x\n\t\tsta pearl_direction_h, x\n\n\t\tlda #0\n\t\tsta pearl_up_counter, x\n\n\t\trts\n\t.)\n\n\t+sunny_pearl_shot_hit:\n\t.(\n\t\tstroke_player_onhurt_table_addr = tmpfield1     ; Not movable, parameter of far_lda_tmpfield1_y\n\t\tstroke_player_onhurt_table_addr_msb = tmpfield2 ; Not movable, parameter of far_lda_tmpfield1_y\n\t\tstroke_player_onhurt_handler_addr = tmpfield3\n\t\tstroke_player_onhurt_handler_addr_msb = tmpfield4\n\t\tstroke_player_bank = tmpfield5\n\t\tstriker_player = tmpfield10      ; Not movable, parameter of onhurt handler\n\t\tstroke_player = tmpfield11       ; Not movable, parameter of onhurt handler\n\t\tdefault_onhurt_lsb = tmpfield12  ; Not movable, parameter of onhurt handler\n\t\tdefault_onhurt_msb = tmpfield13  ; Not movable, parameter of onhurt handler\n\t\tdefault_onhurt_bank = tmpfield14 ; Not movable, parameter of onhurt handler\n\n\t\t; Disable pearl\n\t\tlda #PROJECTILE_FLAGS_DEACTIVATED\n\t\tsta player_a_projectile_1_flags, x\n\n\t\t; Save player number\n\t\tstx player_number\n\n\t\t; Select action depending on hitbox type\n\t\tcpy #HURTBOX\n\t\tbeq strike_hurtbox\n\t\tcpy #HITBOX\n\t\tbne strike_otherbox\n\n\t\t\tstrike_hitbox:\n\t\t\t\t; Screen freeze\n\t\t\t\tSHAKE_INTENSITY = 0\n\t\t\t\tSHAKE_DURATION = 5\n\n\t\t\t\tlda #SHAKE_INTENSITY\n\t\t\t\tsta screen_shake_noise_h\n\t\t\t\tsta screen_shake_noise_v\n\t\t\t\tlda #SHAKE_DURATION\n\t\t\t\tsta screen_shake_counter\n\t\t\t\tlda #0\n\t\t\t\tsta screen_shake_current_x\n\t\t\t\tsta screen_shake_current_y\n\n\t\t\t\t; Play SFX\n\t\t\t\tldx #SFX_PARRY_IDX\n\t\t\t\tjsr audio_play_sfx_from_list\n\n\t\t\t\tldx player_number\n\t\t\t\trts\n\n\t\t\tstrike_otherbox:\n\t\t\t\t; Do not do anything aside disabling pearl\n\t\t\t\trts\n\n\t\t\tstrike_hurtbox:\n\t\t\t\t; Select action depending on opponent's hurt handler\n\t\t\t\tSWITCH_SELECTED_PLAYER\n\n\t\t\t\tldy config_player_a_character, x\n\t\t\t\tlda characters_onhurt_routines_table_lsb, y\n\t\t\t\tsta stroke_player_onhurt_table_addr\n\t\t\t\tlda characters_onhurt_routines_table_msb, y\n\t\t\t\tsta stroke_player_onhurt_table_addr_msb\n\t\t\t\tlda characters_bank_number, y\n\t\t\t\tsta stroke_player_bank\n\n\t\t\t\tlda player_a_state, x\n\t\t\t\tasl\n\t\t\t\ttay\n\n\t\t\t\tlda stroke_player_bank : jsr far_lda_tmpfield1_y\n\t\t\t\tsta stroke_player_onhurt_handler_addr\n\t\t\t\tiny\n\t\t\t\tlda stroke_player_bank : jsr far_lda_tmpfield1_y\n\t\t\t\tsta stroke_player_onhurt_handler_addr_msb\n\t\t\t\t;NOTE - here register X is garbage\n\n\t\t\t\tBEQ16(hurt, #<hurt_player, #>hurt_player, stroke_player_onhurt_handler_addr, stroke_player_onhurt_handler_addr_msb)\n\t\t\t\tBEQ16(intangible, #<dummy_routine, #>dummy_routine, stroke_player_onhurt_handler_addr, stroke_player_onhurt_handler_addr_msb)\n\n\t\t\t\t\tcustom_onhurt_handler:\n\t\t\t\t\t\t; Call the custom handler\n\t\t\t\t\t\tldx player_number\n\t\t\t\t\t\tstx striker_player\n\t\t\t\t\t\tSWITCH_SELECTED_PLAYER\n\t\t\t\t\t\tstx stroke_player\n\n\t\t\t\t\t\tlda #<sunny_hurt_by_pearl_default\n\t\t\t\t\t\tsta default_onhurt_lsb\n\t\t\t\t\t\tlda #>sunny_hurt_by_pearl_default\n\t\t\t\t\t\tsta default_onhurt_msb\n\t\t\t\t\t\tlda #CURRENT_BANK_NUMBER\n\t\t\t\t\t\tsta default_onhurt_bank\n\t\t\t\t\t\tTRAMPOLINE_POINTED(stroke_player_onhurt_handler_addr, stroke_player_onhurt_handler_addr_msb, stroke_player_bank, #CURRENT_BANK_NUMBER)\n\t\t\t\t\t\tlda striker_player\n\t\t\t\t\t\trts\n\n\t\t\t\t\tintangible:\n\t\t\t\t\t\t; Changed mind, do not disable pearl\n\t\t\t\t\t\tldx player_number\n\t\t\t\t\t\tlda #PROJECTILE_FLAGS_ACTIVE\n\t\t\t\t\t\tsta player_a_projectile_1_flags, x\n\t\t\t\t\t\trts\n\n\t\t\t\t\t&sunny_normal_pearl_on_normal_hurtbox:\n\t\t\t\t\thurt:\n\t\t\t\t\t\t; Apply knockback\n\t\t\t\t\t\t.(\n\t\t\t\t\t\t\tKNOCKUP_BASE_HORIZONTAL = -200\n\t\t\t\t\t\t\tKNOCKUP_BASE_VERTICAL = -800\n\t\t\t\t\t\t\tKNOCKUP_SCALING_HORIZONTAL = -1\n\t\t\t\t\t\t\tKNOCKUP_SCALING_VERTICAL = -16\n\t\t\t\t\t\t\tHITSTUN_MODIFIER = 0\n\n\t\t\t\t\t\t\tbase_h_lsb = tmpfield6\n\t\t\t\t\t\t\tbase_h_msb = tmpfield7\n\t\t\t\t\t\t\tforce_h_lsb = tmpfield14\n\t\t\t\t\t\t\tforce_h_msb = tmpfield12\n\t\t\t\t\t\t\tbase_v_lsb = tmpfield8\n\t\t\t\t\t\t\tbase_v_msb = tmpfield9\n\t\t\t\t\t\t\tforce_v_lsb = tmpfield15\n\t\t\t\t\t\t\tforce_v_msb = tmpfield13\n\t\t\t\t\t\t\thitstun_modifier = tmpfield16\n\n\t\t\t\t\t\t\tldx player_number\n\n\t\t\t\t\t\t\tlda pearl_direction_h, x\n\t\t\t\t\t\t\tbne right\n\t\t\t\t\t\t\t\tleft:\n\t\t\t\t\t\t\t\t\tlda #<KNOCKUP_BASE_HORIZONTAL : sta base_h_lsb\n\t\t\t\t\t\t\t\t\tlda #>KNOCKUP_BASE_HORIZONTAL : sta base_h_msb\n\t\t\t\t\t\t\t\t\tlda #<KNOCKUP_SCALING_HORIZONTAL : sta force_h_lsb\n\t\t\t\t\t\t\t\t\tlda #>KNOCKUP_SCALING_HORIZONTAL : sta force_h_msb\n\t\t\t\t\t\t\t\t\tjmp ok\n\t\t\t\t\t\t\t\tright:\n\t\t\t\t\t\t\t\t\tlda #<-KNOCKUP_BASE_HORIZONTAL : sta base_h_lsb\n\t\t\t\t\t\t\t\t\tlda #>-KNOCKUP_BASE_HORIZONTAL : sta base_h_msb\n\t\t\t\t\t\t\t\t\tlda #<-KNOCKUP_SCALING_HORIZONTAL : sta force_h_lsb\n\t\t\t\t\t\t\t\t\tlda #>-KNOCKUP_SCALING_HORIZONTAL : sta force_h_msb\n\t\t\t\t\t\t\tok:\n\t\t\t\t\t\t\tlda #<KNOCKUP_BASE_VERTICAL : sta base_v_lsb\n\t\t\t\t\t\t\tlda #>KNOCKUP_BASE_VERTICAL : sta base_v_msb\n\t\t\t\t\t\t\tlda #<KNOCKUP_SCALING_VERTICAL : sta force_v_lsb\n\t\t\t\t\t\t\tlda #>KNOCKUP_SCALING_VERTICAL : sta force_v_msb\n\t\t\t\t\t\t\tlda #HITSTUN_MODIFIER : sta hitstun_modifier\n\n\t\t\t\t\t\t\tSWITCH_SELECTED_PLAYER\n\t\t\t\t\t\t\tjsr apply_force_vector_direct\n\t\t\t\t\t\t.)\n\n\t\t\t\t\t\t; Apply dammage\n\t\t\t\t\t\t.(\n\t\t\t\t\t\t\tldy player_a_damages, x\n\t\t\t\t\t\t\tiny\n\t\t\t\t\t\t\tiny\n\t\t\t\t\t\t\tiny\n\t\t\t\t\t\t\tcpy #199\n\t\t\t\t\t\t\tbcc ok\n\t\t\t\t\t\t\t\tldy #199\n\t\t\t\t\t\t\tok:\n\t\t\t\t\t\t\tsty player_a_damages, x\n\t\t\t\t\t\t.)\n\n\t\t\t\t\t\t; Throw opponent\n\t\t\t\t\t\t.(\n\t\t\t\t\t\t\tldy config_player_a_character, x\n\t\t\t\t\t\t\tTRAMPOLINE(hurt_player_direct, characters_bank_number COMMA y, #CURRENT_BANK_NUMBER)\n\t\t\t\t\t\t.)\n\n\t\t\t\t\t\t; Return\n\t\t\t\t\t\tldx player_number\n\t\t\t\t\t\trts\n\n\t\t;rts ; useless, branches return directly\n\t.)\n\n\t; Called by opponent custom onhurt handler when it want's to fallback to default behavior of being thrown\n\t+sunny_hurt_by_pearl_default:\n\t.(\n\t\tstriker_player = tmpfield10\n\t\tstroke_player = tmpfield11\n\n\t\tlda striker_player\n\t\tsta player_number\n\t\tjsr sunny_normal_pearl_on_normal_hurtbox\n\t\tldx stroke_player\n\t\tstx player_number\n\t\trts\n\t.)\n\n\t+sunny_global_tick:\n\t.(\n\t\tlda player_a_projectile_1_flags, x\n\t\tbne sunny_pearl_shot_tick\n\n\t\t\t; Hide pearl sprite\n\t\t\tlda #$fe\n\t\t\tldy sunny_pearl_sprite_oam_per_player, x\n\t\t\tsta oam_mirror, y\n\t\t\trts\n\n\t\t; Fallthrough to sunny_pearl_shot_tick possible by the above BNE\n\t.)\n\n\tsunny_pearl_shot_tick:\n\t.(\n\t\telements_action_vector = tmpfield1 ; Not movable, parameter of stage_iterate_all_elements\n\t\t;tmpfield2 reseved for elements_action_vector msb\n\t\tfinal_x_pixel = tmpfield3\n\t\tfinal_x_screen = tmpfield4\n\t\tfinal_y_pixel = tmpfield5\n\t\tfinal_y_screen = tmpfield6\n\t\tcollided_platform = tmpfield7\n\t\tplatform_specific_handler_lsb = tmpfield8\n\t\tplatform_specific_handler_msb = tmpfield9\n\t\tplatform_top_pixel = tmpfield10\n\t\tplatform_top_screen = tmpfield11\n\n\t\t; Destroy if end of life\n\t\t.(\n\t\t\tdec pearl_counter, x\n\t\t\tbne ok\n\t\t\t\tlda #PROJECTILE_FLAGS_DEACTIVATED\n\t\t\t\tsta player_a_projectile_1_flags, x\n\t\t\t\trts\n\t\t\tok:\n\t\t.)\n\n\t\t;NOTE movement+collision code has a lot in common with move_player from game's logic\n\t\t;     may be doable to factorize platform collision code\n\t\t;NOTE only one collision detection is done at the end, instead of one for vertical\n\t\t;     and one for horizontal movement.\n\t\t;     That means pearl may path through corners of two adjacent platforms. Should be\n\t\t;     less impacting than for players as the pearl is destroyed if ending in a platform\n\t\t;     because of that.\n\n\t\t; Vertical movement\n\t\t.(\n\t\t\tldy system_index\n\t\t\tbne ntsc\n\t\t\t\tpal:\n\t\t\t\t\tldy pearl_up_counter, x\n\t\t\t\t\tlda pearl_v_velocity_pal_lsb, y\n\t\t\t\t\tclc\n\t\t\t\t\tadc pearl_y_subpixel, x\n\t\t\t\t\tsta pearl_y_subpixel, x\n\n\t\t\t\t\tlda pearl_v_velocity_pal_msb, y\n\t\t\t\t\tadc pearl_y_pixel, x\n\t\t\t\t\tsta final_y_pixel\n\n\t\t\t\t\tlda pearl_v_velocity_pal_sign, y\n\t\t\t\t\tadc pearl_y_screen, x\n\t\t\t\t\tsta final_y_screen\n\n\t\t\t\t\tjmp move_ok\n\n\t\t\t\tntsc:\n\t\t\t\t\tldy pearl_up_counter, x\n\t\t\t\t\tlda pearl_v_velocity_ntsc_lsb, y\n\t\t\t\t\tclc\n\t\t\t\t\tadc pearl_y_subpixel, x\n\t\t\t\t\tsta pearl_y_subpixel, x\n\n\t\t\t\t\tlda pearl_v_velocity_ntsc_msb, y\n\t\t\t\t\tadc pearl_y_pixel, x\n\t\t\t\t\tsta final_y_pixel\n\n\t\t\t\t\tlda pearl_v_velocity_ntsc_sign, y\n\t\t\t\t\tadc pearl_y_screen, x\n\t\t\t\t\tsta final_y_screen\n\t\t\tmove_ok:\n\n\t\t\tdec pearl_up_counter, x\n\t\t\tbpl ok\n\t\t\t\tinc pearl_up_counter, x\n\n\t\t\tok:\n\t\t.)\n\n\t\t; Horizontal movement\n\t\t.(\n\t\t\tldy system_index\n\n\t\t\tlda pearl_direction_h, x\n\t\t\tbne right\n\t\t\t\tleft:\n\t\t\t\t\tclc\n\t\t\t\t\tlda pearl_x_subpixel, x\n\t\t\t\t\tadc pearl_h_velocity_left_lsb, y\n\t\t\t\t\tsta pearl_x_subpixel, x\n\t\t\t\t\tlda pearl_x_pixel, x\n\t\t\t\t\tadc pearl_h_velocity_left_msb, y\n\t\t\t\t\tsta final_x_pixel\n\t\t\t\t\tlda pearl_x_screen, x\n\t\t\t\t\tadc #$ff\n\t\t\t\t\tsta final_x_screen\n\t\t\t\t\tjmp ok\n\t\t\t\tright:\n\t\t\t\t\tclc\n\t\t\t\t\tlda pearl_x_subpixel, x\n\t\t\t\t\tadc pearl_h_velocity_right_lsb, y\n\t\t\t\t\tsta pearl_x_subpixel, x\n\t\t\t\t\tlda pearl_x_pixel, x\n\t\t\t\t\tadc pearl_h_velocity_right_msb, y\n\t\t\t\t\tsta final_x_pixel\n\t\t\t\t\tlda pearl_x_screen, x\n\t\t\t\t\tadc #0\n\t\t\t\t\tsta final_x_screen\n\n\t\t\tok:\n\t\t.)\n\n\t\t; Collision detection - destroy the pearl if horizontal, rebound if vertical\n\t\t.(\n\t\t\tstx player_number\n\n\t\t\tlda #<platform_collision_handler\n\t\t\tsta elements_action_vector\n\t\t\tlda #>platform_collision_handler\n\t\t\tsta elements_action_vector+1\n\t\t\tjsr stage_iterate_all_elements\n\t\t\t;ldx player_number ;useless, X won't be read before being trashed again (and actually platform_collision_handler does not trash it)\n\n\t\t\tcpy #$ff\n\t\t\tbne ok\n\t\t\t\t; Detect collision direction, vertical if original position is above the platform\n\t\t\t\tjsr load_platform_top\n\t\t\t\tldx player_number\n\n\t\t\t\tlda pearl_y_screen, x\n\t\t\t\tcmp platform_top_screen\n\t\t\t\tbcc vertical\n\t\t\t\tbne horizontal\n\t\t\t\tlda pearl_y_pixel, x\n\t\t\t\tcmp platform_top_pixel\n\t\t\t\tbcc vertical\n\n\t\t\t\t\thorizontal:\n\t\t\t\t\t\t; Destroy projectile\n\t\t\t\t\t\tlda #PROJECTILE_FLAGS_DEACTIVATED\n\t\t\t\t\t\tsta player_a_projectile_1_flags, x\n\n\t\t\t\t\t\t; Stop there, we don't care about moving the projectile anymore\n\t\t\t\t\t\trts\n\n\t\t\t\t\tvertical:\n\t\t\t\t\t\t; Place pearl on platform top\n\t\t\t\t\t\tlda #0\n\t\t\t\t\t\tsta pearl_y_subpixel, x\n\n\t\t\t\t\t\tlda platform_top_screen\n\t\t\t\t\t\tsta final_y_screen\n\n\t\t\t\t\t\t;NOTE this decrement may be made useless by not considering the edge pixels in platform_collision_handler\n\t\t\t\t\t\tldy platform_top_pixel\n\t\t\t\t\t\tdey\n\t\t\t\t\t\tsty final_y_pixel\n\t\t\t\t\t\tcpy #$ff\n\t\t\t\t\t\tbne dec_ok\n\t\t\t\t\t\t\tdec final_y_screen\n\t\t\t\t\t\tdec_ok:\n\n\t\t\t\t\t\t; Reset vertical velocity to go upward\n\t\t\t\t\t\tldy system_index\n\t\t\t\t\t\tlda pearl_v_velocity_table_last, y\n\t\t\t\t\t\tsta pearl_up_counter, x\n\n\t\t\t\t\t\t; Go forward with moving the projectile\n\t\t\t\t\t\t;jmp ok ; useless, fallthrough\n\t\t\tok:\n\t\t\tldx player_number\n\t\t.)\n\n\t\t; Move pearl to its final position\n\t\t.(\n\t\t\tlda final_y_pixel\n\t\t\tsta pearl_y_pixel, x\n\t\t\tlda final_y_screen\n\t\t\tsta pearl_y_screen, x\n\t\t\tlda final_x_pixel\n\t\t\tsta pearl_x_pixel, x\n\t\t\tlda final_x_screen\n\t\t\tsta pearl_x_screen, x\n\t\t.)\n\n\t\t; Set hitbox boundaries\n\t\t.(\n\t\t\tjsr place_pearl_hitbox\n\t\t.)\n\n\t\t; Place sprite\n\t\t.(\n\t\t\tldy sunny_pearl_sprite_oam_per_player, x\n\n\t\t\tlda player_a_projectile_1_hitbox_top_msb, x\n\t\t\tbne hide\n\t\t\tlda player_a_projectile_1_hitbox_left_msb, x\n\t\t\tbne hide\n\t\t\t\tdisplay:\n\t\t\t\t\t; Sprite's Y pos is hitbox top -1 to compensate sprites being on the scanline after their position\n\t\t\t\t\tlda player_a_projectile_1_hitbox_top, x\n\t\t\t\t\tbeq hide\n\t\t\t\t\t\tsec\n\t\t\t\t\t\tsbc #1\n\t\t\t\t\t\tsta oam_mirror, y\n\n\t\t\t\t\t\tiny:iny:iny\n\t\t\t\t\t\tlda player_a_projectile_1_hitbox_left, x\n\t\t\t\t\t\tsta oam_mirror, y\n\t\t\t\t\t\tjmp ok\n\t\t\t\thide:\n\t\t\t\t\tlda #$fe\n\t\t\t\t\tsta oam_mirror, y\n\t\t\tok:\n\t\t.)\n\n\t\trts\n\n\t\tplatform_collision_handler:\n\t\t.(\n\t\t\t; Call appropriate handler for this kind of elements\n\t\t\t;stx player_number ; useless, expecting caller to already set it\n\t\t\ttax\n\t\t\tlda platform_specific_handlers_lsb, x\n\t\t\tsta platform_specific_handler_lsb\n\t\t\tlda platform_specific_handlers_msb, x\n\t\t\tsta platform_specific_handler_msb\n\t\t\tldx player_number\n\t\t\tjmp (platform_specific_handler_lsb)\n\t\t\t; No return, the handler will rts\n\n\t\t\t;    unused,         PLATFORM,             SMOOTH,             OOS_PLATFORM,  OOS_SMOOTH,  BUMPER\n\t\t\tplatform_specific_handlers_lsb:\n\t\t\t.byt <dummy_routine, <one_screen_platform, <one_screen_smooth, <oos_platform, <oos_smooth, <one_screen_platform\n\t\t\tplatform_specific_handlers_msb:\n\t\t\t.byt >dummy_routine, >one_screen_platform, >one_screen_smooth, >oos_platform, >oos_smooth, >one_screen_platform\n\n\t\t\tone_screen_platform:\n\t\t\t.(\n\t\t\t\t; No collision if projectile is above the platform\n\t\t\t\tSIGNED_CMP(final_y_pixel, final_y_screen, stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if projectile is under the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_BOTTOM COMMA y, #0, final_y_pixel, final_y_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if original position is on the left of the platform\n\t\t\t\tSIGNED_CMP(final_x_pixel, final_x_screen, stage_data+STAGE_PLATFORM_OFFSET_LEFT COMMA y, #0)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the right of the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_RIGHT COMMA y, #0, final_x_pixel, final_x_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t\t; Collision, stop iterating\n\t\t\t\t\tsty collided_platform\n\t\t\t\t\tldy #$ff\n\n\t\t\t\tno_collision:\n\t\t\t\trts\n\t\t\t.)\n\n\t\t\toos_platform:\n\t\t\t.(\n\t\t\t\t; No collision if projectile is above the platform\n\t\t\t\tSIGNED_CMP(final_y_pixel, final_y_screen, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB COMMA y)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if projectile is under the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_MSB COMMA y, final_y_pixel, final_y_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if original position is on the left of the platform\n\t\t\t\tSIGNED_CMP(final_x_pixel, final_x_screen, stage_data+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB COMMA y)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the right of the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_OOS_PLATFORM_OFFSET_RIGHT_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_RIGHT_MSB COMMA y, final_x_pixel, final_x_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t\t; Collision, stop iterating\n\t\t\t\t\tsty collided_platform\n\t\t\t\t\tldy #$ff\n\n\t\t\t\tno_collision:\n\t\t\t\trts\n\t\t\t.)\n\n\t\t\tone_screen_smooth:\n\t\t\t.(\n\t\t\t\t; No collision if projectile is above the platform\n\t\t\t\tSIGNED_CMP(final_y_pixel, final_y_screen, stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if projectile original position is bellow the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0, pearl_y_pixel COMMA x, pearl_y_screen COMMA x)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the left of the platform\n\t\t\t\tSIGNED_CMP(final_x_pixel, final_x_screen, stage_data+STAGE_PLATFORM_OFFSET_LEFT COMMA y, #0)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the right of the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_RIGHT COMMA y, #0, final_x_pixel, final_x_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t\t; Collision, stop iterating\n\t\t\t\t\tsty collided_platform\n\t\t\t\t\tldy #$ff\n\n\t\t\t\tno_collision:\n\t\t\t\trts\n\t\t\t.)\n\n\t\t\toos_smooth:\n\t\t\t.(\n\t\t\t\t; No collision if projectile is above the platform\n\t\t\t\tSIGNED_CMP(final_y_pixel, final_y_screen, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB COMMA y)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if projectile original position is bellow the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB COMMA y, pearl_y_pixel COMMA x, pearl_y_screen COMMA x)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the left of the platform\n\t\t\t\tSIGNED_CMP(final_x_pixel, final_x_screen, stage_data+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB COMMA y)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the right of the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_OOS_PLATFORM_OFFSET_RIGHT_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_RIGHT_MSB COMMA y, final_x_pixel, final_x_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t\t; Collision, stop iterating\n\t\t\t\t\tsty collided_platform\n\t\t\t\t\tldy #$ff\n\n\t\t\t\tno_collision:\n\t\t\t\trts\n\t\t\t.)\n\t\t.)\n\n\t\tload_platform_top:\n\t\t.(\n\t\t\t; Call appropriate handler for this kind of elements\n\t\t\tldy collided_platform\n\n\t\t\tlda stage_data, y\n\t\t\ttax\n\n\t\t\tlda platform_specific_handlers_lsb, x\n\t\t\tsta platform_specific_handler_lsb\n\t\t\tlda platform_specific_handlers_msb, x\n\t\t\tsta platform_specific_handler_msb\n\t\t\tjmp (platform_specific_handler_lsb)\n\t\t\t; No return, the handler will rts\n\n\t\t\t;    unused,         PLATFORM,             SMOOTH,               OOS_PLATFORM,  OOS_SMOOTH,    BUMPER\n\t\t\tplatform_specific_handlers_lsb:\n\t\t\t.byt <dummy_routine, <one_screen_platform, <one_screen_platform, <oos_platform, <oos_platform, <one_screen_platform\n\t\t\tplatform_specific_handlers_msb:\n\t\t\t.byt >dummy_routine, >one_screen_platform, >one_screen_platform, >oos_platform, >oos_platform, >one_screen_platform\n\n\t\t\tone_screen_platform:\n\t\t\t.(\n\t\t\t\tlda #0\n\t\t\t\tsta platform_top_screen\n\t\t\t\tlda stage_data+STAGE_PLATFORM_OFFSET_TOP, y\n\t\t\t\tsta platform_top_pixel\n\t\t\t\trts\n\t \t\t.)\n\n\t\t\toos_platform:\n\t\t\t.(\n\t\t\t\tlda stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB, y\n\t\t\t\tsta platform_top_screen\n\t\t\t\tlda stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB, y\n\t\t\t\tsta platform_top_pixel\n\t\t\t\trts\n\t \t\t.)\n\t\t.)\n\t.)\n\n\tplace_pearl_hitbox:\n\t.(\n\t\tlda pearl_y_pixel, x\n\t\tclc\n\t\tadc #PEARL_PROJECTILE_OFFSET_VERTICAL\n\t\tsta player_a_projectile_1_hitbox_top, x\n\t\tlda pearl_y_screen, x\n\t\tadc #0\n\t\tsta player_a_projectile_1_hitbox_top_msb, x\n\n\t\tlda player_a_projectile_1_hitbox_top, x\n\t\tclc\n\t\tadc #PEARL_PROJECTILE_HEIGHT\n\t\tsta player_a_projectile_1_hitbox_bottom, x\n\t\tlda player_a_projectile_1_hitbox_top_msb, x\n\t\tadc #0\n\t\tsta player_a_projectile_1_hitbox_bottom_msb, x\n\n\t\tlda pearl_x_pixel, x\n\t\tclc\n\t\tadc #PEARL_PROJECTILE_OFFSET_HORIZONTAL\n\t\tsta player_a_projectile_1_hitbox_left, x\n\t\tlda pearl_x_screen, x\n\t\tadc #0\n\t\tsta player_a_projectile_1_hitbox_left_msb, x\n\n\t\tlda player_a_projectile_1_hitbox_left, x\n\t\tclc\n\t\tadc #PEARL_PROJECTILE_WIDTH\n\t\tsta player_a_projectile_1_hitbox_right, x\n\t\tlda player_a_projectile_1_hitbox_left_msb, x\n\t\tadc #0\n\t\tsta player_a_projectile_1_hitbox_right_msb, x\n\n\t\trts\n\t.)\n\n.)\n\n;\n; Implementation\n;\n\n\nsunny_init:\n.(\n\t; Reserve a sprite for the pearl shoot\n\t.(\n\t\tanimation_state_vector = tmpfield2\n\n\t\t; Animation's last sprite num = animation's last sprite num - 1\n\t\tlda anim_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda anim_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\tldy #0\n\t\tlda sunny_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\n\t\t; Same for out of screen indicator\n\t\tlda oos_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda oos_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\t;ldy #0 ; useless, already set above\n\t\tlda sunny_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\t.)\n\n\t; Init sprite's OAM\n\t.(\n\t\tldy sunny_pearl_sprite_oam_per_player, x\n\n\t\tlda #$fe\n\t\tsta oam_mirror, y\n\t\tiny\n\n\t\tlda pearl_sprite_index_per_player, x\n\t\tsta oam_mirror, y\n\t\tiny\n\n\t\tlda pearl_sprite_palette_per_player, x\n\t\tsta oam_mirror, y\n\t\tiny\n\n\t\tlda #0\n\t\tsta oam_mirror, y\n\t.)\n\n\t; Reset variables that are ground-dependent\n\tjmp sunny_global_onground\n\n\t;rts ; useless, jump to subroutine\n\n\tanim_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\tanim_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\n\toos_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\toos_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\n\tsunny_last_anim_sprite_per_player:\n\t\t.byt INGAME_PLAYER_A_LAST_SPRITE-1, INGAME_PLAYER_B_LAST_SPRITE-1\n\n\tpearl_sprite_index_per_player:\n\t\t.byt CHARACTERS_CHARACTER_A_FIRST_TILE+SUNNY_TILE_PEARL, CHARACTERS_CHARACTER_B_FIRST_TILE+SUNNY_TILE_PEARL\n\n\tpearl_sprite_palette_per_player:\n\t\t.byt 0, 2\n.)\n\nsunny_global_onground:\n.(\n\t; Initialize special jump flags\n\tlda #SUNNY_ALL_SPECIAL_JUMPS\n\tsta player_a_special_jumps, x\n\trts\n.)\n\n; Input table for aerial moves, special values are\n;  fast_fall - mandatorily on INPUT_NONE to take effect on release of DOWN\n;  jump      - automatically choose between aerial jump or wall jump\n;  no_input  - expected default\n!input-table-define \"SUNNY_AERIAL_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_NONE               fast_fall\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sunny_start_side_special\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sunny_start_side_special\n\tCONTROLLER_INPUT_JUMP               jump\n\tCONTROLLER_INPUT_JUMP_RIGHT         jump\n\tCONTROLLER_INPUT_JUMP_LEFT          jump\n\tCONTROLLER_INPUT_ATTACK_LEFT        sunny_start_aerial_side\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sunny_start_aerial_side\n\tCONTROLLER_INPUT_DOWN_TILT          sunny_start_aerial_down\n\tCONTROLLER_INPUT_ATTACK_UP          sunny_start_aerial_up\n\tCONTROLLER_INPUT_JAB                sunny_start_aerial_neutral\n\tCONTROLLER_INPUT_SPECIAL            sunny_start_special\n\tCONTROLLER_INPUT_SPECIAL_UP         sunny_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sunny_start_spe_down\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sunny_start_aerial_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sunny_start_aerial_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sunny_start_spe_up_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sunny_start_spe_up_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sunny_start_aerial_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sunny_start_aerial_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sunny_start_spe_down_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sunny_start_spe_down_left\n\n\tno_input\n}\n\n; Input table for idle state, special values are\n;  no_input - Default\n!input-table-define \"SUNNY_IDLE_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_LEFT               sunny_start_running_left\n\tCONTROLLER_INPUT_RIGHT              sunny_start_running_right\n\tCONTROLLER_INPUT_JUMP               sunny_start_jumping\n\tCONTROLLER_INPUT_JUMP_RIGHT         sunny_start_jumping_right\n\tCONTROLLER_INPUT_JUMP_LEFT          sunny_start_jumping_left\n\tCONTROLLER_INPUT_JAB                sunny_start_jabbing\n\tCONTROLLER_INPUT_ATTACK_LEFT        sunny_start_side_tilt_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sunny_start_side_tilt_right\n\tCONTROLLER_INPUT_SPECIAL            sunny_start_special\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sunny_start_side_special_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sunny_start_side_special_left\n\tCONTROLLER_INPUT_DOWN_TILT          sunny_start_down_tilt\n\tCONTROLLER_INPUT_SPECIAL_UP         sunny_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sunny_start_spe_down\n\tCONTROLLER_INPUT_ATTACK_UP          sunny_start_up_tilt\n\tCONTROLLER_INPUT_TECH               sunny_start_shielding\n\tCONTROLLER_INPUT_TECH_LEFT          sunny_start_shielding_left\n\tCONTROLLER_INPUT_TECH_RIGHT         sunny_start_shielding_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sunny_start_spe_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sunny_start_spe_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sunny_start_up_tilt_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sunny_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sunny_start_spe_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sunny_start_spe_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sunny_start_down_tilt_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sunny_start_down_tilt_right\n\n\tno_input\n}\n\n; Input table for running state, special values are\n;  input_running_left - Change running direction to the left (if not already running to the left)\n;  input_runnning_right - Change running direction to the right (if not already running to the right)\n!input-table-define \"SUNNY_RUNNING_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_LEFT               input_running_left\n\tCONTROLLER_INPUT_RIGHT              input_running_right\n\tCONTROLLER_INPUT_JUMP               sunny_start_jumping\n\tCONTROLLER_INPUT_JUMP_LEFT          sunny_start_jumping_left\n\tCONTROLLER_INPUT_JUMP_RIGHT         sunny_start_jumping_right\n\tCONTROLLER_INPUT_ATTACK_LEFT        sunny_start_side_tilt_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sunny_start_side_tilt_right\n\tCONTROLLER_INPUT_SPECIAL            sunny_start_special\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sunny_start_side_special_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sunny_start_side_special_left\n\tCONTROLLER_INPUT_SPECIAL_UP         sunny_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sunny_start_spe_down\n\tCONTROLLER_INPUT_TECH_LEFT          sunny_start_shielding_left\n\tCONTROLLER_INPUT_TECH_RIGHT         sunny_start_shielding_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sunny_start_spe_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sunny_start_spe_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sunny_start_up_tilt_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sunny_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sunny_start_spe_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sunny_start_spe_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sunny_start_down_tilt_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sunny_start_down_tilt_right\n\tCONTROLLER_INPUT_DOWN_TILT          sunny_start_down_tilt\n\n\tsunny_start_idle\n}\n\n; Input table for jumping state state (only used during jumpsquat), special values are\n;  no_input - default\n!input-table-define \"SUNNY_JUMPSQUAT_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_ATTACK_UP        sunny_start_up_tilt\n\tCONTROLLER_INPUT_SPECIAL_UP       sunny_start_spe_up\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT   sunny_start_up_tilt_left\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT  sunny_start_spe_up_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT  sunny_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT sunny_start_spe_up_right\n\n\tno_input\n}\n\n!include \"characters/std_aerial_input.asm\"\n!include \"characters/std_crashing.asm\"\n!include \"characters/std_thrown.asm\"\n!include \"characters/std_respawn.asm\"\n!include \"characters/std_innexistant.asm\"\n!include \"characters/std_spawn.asm\"\n!include \"characters/std_idle.asm\"\n!include \"characters/std_running.asm\"\n!include \"characters/std_jumping.asm\"\n!include \"characters/std_landing.asm\"\n!include \"characters/std_helpless.asm\"\n!include \"characters/std_shielding.asm\"\n!include \"characters/std_walljumping.asm\"\n!include \"characters/std_owned.asm\"\n\n;\n; Jab\n;\n\n!define \"anim\" {sunny_anim_jab1}\n!define \"state\" {SUNNY_STATE_JABBING_1}\n!define \"routine\" {jabbing}\n!define \"cutable_duration\" {8}\n!define \"cut_input\" {\n\t; Allow to cut the animation for another jab\n\tlda controller_a_btns, x\n\tcmp #CONTROLLER_INPUT_JAB\n\tbeq cut\n\t\trts\n\tcut:\n\t\tjmp sunny_start_jabbing2\n\t\t; No return, jump to subroutine\n}\n!include \"characters/tpl_grounded_attack_cutable.asm\"\n\n!define \"anim\" {sunny_anim_jab2}\n!define \"state\" {SUNNY_STATE_JABBING_2}\n!define \"routine\" {jabbing2}\n!define \"cutable_duration\" {8}\n!define \"cut_input\" {\n\t; Allow to cut the animation for another jab\n\tlda controller_a_btns, x\n\tcmp #CONTROLLER_INPUT_JAB\n\tbeq cut\n\t\trts\n\tcut:\n\t\tjmp sunny_start_jabbing3\n\t\t; No return, jump to subroutine\n}\n!include \"characters/tpl_grounded_attack_cutable.asm\"\n\n!define \"anim\" {sunny_anim_jab3}\n!define \"state\" {SUNNY_STATE_JABBING_3}\n!define \"routine\" {jabbing3}\n!include \"characters/tpl_grounded_attack.asm\"\n\n;\n; Side tilt\n;\n\n!define \"anim\" {sunny_anim_side_tilt}\n!define \"state\" {SUNNY_STATE_SIDE_TILT}\n!define \"routine\" {side_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n;\n; Neutral special\n;\n\n.(\n\t!define \"anim\" {sunny_anim_special}\n\t!define \"state\" {SUNNY_STATE_SPECIAL}\n\t!define \"routine\" {special}\n\t!define \"followup\" {sunny_select_special_endlag}\n\t!define \"tick\" {\n\t\tlda player_a_grounded, x\n\t\tbne ok\n\t\t\t; Not grounded, allow the player to move while shooting\n\t\t\tjsr sunny_aerial_directional_influence\n\t\t\tjmp apply_player_gravity\n\t\t\t;No return, jump to subroutine\n\t\tok:\n\t\trts\n\t}\n\t!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n\t!define \"anim\" {sunny_anim_special_endlag}\n\t!define \"state\" {SUNNY_STATE_SPECIAL_ENDLAG}\n\t!define \"routine\" {special_endlag}\n\t!include \"characters/tpl_grounded_attack.asm\"\n\n\t!define \"anim\" {sunny_anim_special_endlag}\n\t!define \"state\" {SUNNY_STATE_AERIAL_SPE_ENDLAG}\n\t!define \"routine\" {aerial_spe_endlag}\n\t!include \"characters/tpl_aerial_attack.asm\"\n\n\tsunny_select_special_endlag:\n\t.(\n\t\t; Allow to change Sunny's direction on ground\n\t\t.(\n\t\t\tlda player_a_grounded, x\n\t\t\tbeq ok\n\t\t\t\tlda controller_a_btns, x\n\t\t\t\tand #CONTROLLER_INPUT_LEFT | CONTROLLER_INPUT_RIGHT\n\t\t\t\tbeq ok\n\t\t\t\t\tand #CONTROLLER_INPUT_LEFT\n\t\t\t\t\tbeq right\n\t\t\t\t\t\tleft:\n\t\t\t\t\t\t\tlda #DIRECTION_LEFT2\n\t\t\t\t\t\t\tjmp apply\n\t\t\t\t\t\tright:\n\t\t\t\t\t\t\tlda #DIRECTION_RIGHT2\n\t\t\t\t\t\t\t;jmp apply ; useless, fallthrough\n\t\t\t\t\tapply:\n\t\t\t\t\t\tsta player_a_direction, x\n\t\t\t\tok:\n\t\t.)\n\n\t\t; Shot pearl\n\t\t.(\n\t\t\tlda player_a_projectile_1_flags, x\n\t\t\tbne ok\n\t\t\t\tjsr sunny_pearl_shot_spawn\n\t\t\tok:\n\t\t.)\n\n\t\t; Start endlag\n\t\t.(\n\t\t\tlda player_a_grounded, x\n\t\t\tbne grounded\n\t\t\t\taerial:\n\t\t\t\t\tjmp sunny_start_aerial_spe_endlag\n\t\t\t\t\t;rts ; useless, jump to subroutine\n\t\t\t\tgrounded:\n\t\t\t\t\tjmp sunny_start_special_endlag\n\t\t\t\t\t;rts ; useless, jump to subroutine\n\t\t\t;rts ; useless, no branch return\n\t\t.)\n\t.)\n.)\n\n;\n; Side special\n;\n\n.(\n\tINITIAL_VELOCITY = $0300\n\tvelocity_table(INITIAL_VELOCITY, initial_velocity_right_msb, initial_velocity_right_lsb)\n\tvelocity_table(-INITIAL_VELOCITY, initial_velocity_left_msb, initial_velocity_left_lsb)\n\n\tFRICTION = $08\n\tacceleration_table(FRICTION, friction_table)\n\n\t!define \"anim\" {sunny_anim_side_special_charge}\n\t!define \"state\" {SUNNY_STATE_SIDE_SPECIAL_CHARGE}\n\t!define \"routine\" {side_special_charge}\n\t!define \"followup\" {sunny_start_side_special_hit}\n\t!define \"init\" {\n\t\t; No velocity\n\t\tlda #0\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_h, x\n\t\trts\n\t}\n\t!define \"tick\" {\n\t\t; No gravity, and specific air-friction for this move\n\t\tlda #0\n\t\tsta tmpfield1\n\t\tsta tmpfield2\n\t\tsta tmpfield3\n\t\tsta tmpfield4\n\t\tldy system_index\n\t\tlda friction_table, y\n\t\tsta tmpfield5\n\t\tjmp merge_to_player_velocity\n\t}\n\t!include \"characters/tpl_grounded_attack_followup.asm\"\n\n\t!define \"anim\" {sunny_anim_side_special_hit}\n\t!define \"state\" {SUNNY_STATE_SIDE_SPECIAL_HIT}\n\t!define \"routine\" {side_special_hit}\n\t!define \"followup\" {sunny_start_side_special_end}\n\t!define \"init\" {\n\t\t; Fixed horizontal velocity\n\t\tldy system_index\n\t\tlda player_a_direction, x\n\t\tbne right\n\t\t\tleft:\n\t\t\t\tlda initial_velocity_left_msb, y\n\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\tlda initial_velocity_left_lsb\n\t\t\t\tsta player_a_velocity_h_low, x\n\t\t\t\trts\n\t\t\tright:\n\t\t\t\tlda initial_velocity_right_msb, y\n\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\tlda initial_velocity_right_lsb\n\t\t\t\tsta player_a_velocity_h_low, x\n\t\t\t\trts\n\t\t;rts ; useless, no branch return\n\t}\n\t!define \"tick\" {\n\t\t; No gravity, and specific air-friction for this move\n\t\tlda #0\n\t\tsta tmpfield1\n\t\tsta tmpfield2\n\t\tsta tmpfield3\n\t\tsta tmpfield4\n\t\tldy system_index\n\t\tlda friction_table, y\n\t\tsta tmpfield5\n\t\tjmp merge_to_player_velocity\n\t}\n\t!include \"characters/tpl_grounded_attack_followup.asm\"\n\n\t!define \"anim\" {sunny_anim_side_special_end}\n\t!define \"state\" {SUNNY_STATE_SIDE_SPECIAL_END}\n\t!define \"routine\" {side_special_end}\n\t!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n\t+sunny_start_side_special = sunny_start_side_special_charge\n\t+sunny_start_side_special_left = sunny_start_side_special_charge_left\n\t+sunny_start_side_special_right = sunny_start_side_special_charge_right\n.)\n\n;\n; Down tilt\n;\n\n!define \"anim\" {sunny_anim_down_tilt}\n!define \"state\" {SUNNY_STATE_DOWN_TILT}\n!define \"routine\" {down_tilt}\n!define \"cutable_duration\" {9}\n!define \"cut_input\" {\n\t; Allow to cut by selected moves\n\t;  Mainly to avoid chaining down-tilt into itself\n\tlda controller_a_btns, x\n\tand #(CONTROLLER_BTN_LEFT | CONTROLLER_BTN_RIGHT) ^ %11111111 ; Allow side-attacks by not considering left/right in following comparisons\n\n\tcmp #CONTROLLER_INPUT_JAB\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_ATTACK_UP\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_SPECIAL\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_SPECIAL_UP\n\tbeq cut\n\t\trts\n\tcut:\n\t\tjmp sunny_input_idle\n}\n!include \"characters/tpl_grounded_attack_cutable.asm\"\n\n;\n; Aerial side\n;\n\n!define \"anim\" {sunny_anim_aerial_side}\n!define \"state\" {SUNNY_STATE_AERIAL_SIDE}\n!define \"routine\" {aerial_side}\n!include \"characters/tpl_aerial_attack.asm\"\n\n;\n; Aerial down\n;\n; NOTE we are using two \"spin\" states while one state with\n;      extended duration to 2*animation-duration would do the same.\n;      A bit wasteful, but would need to allow custom duration in\n;      tpl_aerial_attack to fix.\n;\n\n!define \"anim\" {sunny_anim_aerial_down}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN}\n!define \"routine\" {aerial_down}\n!define \"followup\" {sunny_start_aerial_down_spin}\n!define \"init\" {\n\tlda #0\n\tsta player_a_velocity_v_low, x\n\tsta player_a_velocity_v, x\n\trts\n}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {sunny_anim_aerial_down_spin}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN_SPIN}\n!define \"routine\" {aerial_down_spin}\n!define \"followup\" {sunny_start_aerial_down_spin2}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {sunny_anim_aerial_down_spin}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN_SPIN2}\n!define \"routine\" {aerial_down_spin2}\n!define \"followup\" {sunny_aerial_down_select_end}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {sunny_anim_aerial_down_end}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN_END}\n!define \"routine\" {aerial_down_end}\n!define \"followup\" {sunny_start_helpless}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {sunny_anim_aerial_down_stomp}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN_STOMP}\n!define \"routine\" {aerial_down_stomp}\n!include \"characters/tpl_grounded_attack.asm\"\n\n.(\n\tVELOCITY_BOOST = -$0300\n\tvelocity_table(VELOCITY_BOOST, velocity_boost_msb, velocity_boost_lsb)\n\n\t+sunny_input_aerial_down_spin:\n\t.(\n\t\tlda controller_a_btns, x\n\t\tand #(CONTROLLER_BTN_DOWN | CONTROLLER_BTN_LEFT | CONTROLLER_BTN_RIGHT)^$ff\n\t\tcmp #CONTROLLER_INPUT_JAB\n\t\tbne end\n\t\t\tldy system_index\n\t\t\tlda velocity_boost_lsb, y\n\t\t\tsta player_a_velocity_v_low, x\n\t\t\tlda velocity_boost_msb, y\n\t\t\tsta player_a_velocity_v, x\n\t\tend:\n\t\trts\n\t.)\n\n\t&sunny_aerial_down_select_end:\n\t.(\n\t\tlda player_a_grounded, x\n\t\tbne grounded_end\n\t\t\taerial_end:\n\t\t\t\tjmp sunny_start_aerial_down_end\n\t\t\tgrounded_end:\n\t\t\t\tjmp sunny_start_aerial_down_stomp\n\t\t;rts ; useless, jump to subroutine\n\t.)\n.)\n\n;\n; Aerial up\n;\n\n!define \"anim\" {sunny_anim_aerial_up}\n!define \"state\" {SUNNY_STATE_AERIAL_UP}\n!define \"routine\" {aerial_up}\n!define \"cutable_duration\" {12}\n!include \"characters/tpl_aerial_attack_cutable.asm\"\n\n;\n; Aerial neutral\n;\n\n!define \"anim\" {sunny_anim_aerial_neutral}\n!define \"state\" {SUNNY_STATE_AERIAL_NEUTRAL}\n!define \"routine\" {aerial_neutral}\n!include \"characters/tpl_aerial_attack.asm\"\n\n;\n; Special up\n;\n\n.(\n\t;TODO moves here use tpl_aerial_attack, but may be better using tpl_aerial_attack_uncancellable\n\t;     Need to adapt uncancellable API to match features in tpl_aerial_attack if so.\n\n\tSPE_UP_POWER = $0500\n\tvelocity_table(-SPE_UP_POWER, spe_up_power_msb, spe_up_power_lsb)\n\n\t!define \"anim\" {sunny_anim_spe_up_prepare}\n\t!define \"state\" {SUNNY_STATE_SPE_UP_PREPARE}\n\t!define \"routine\" {spe_up}\n\t!define \"followup\" {sunny_start_spe_up_jump}\n\t!define \"init\" {\n\t\t; Set initial velocity\n\t\tlda #$00\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Reset fall speed\n\t\tjmp reset_default_gravity\n\t\t;rts ; useless, jump to subroutine\n\t}\n\t!include \"characters/tpl_aerial_attack.asm\"\n\n\t!define \"anim\" {sunny_anim_spe_up_jump}\n\t!define \"state\" {SUNNY_STATE_SPE_UP_JUMP}\n\t!define \"routine\" {spe_up_jump}\n\t!define \"followup\" {sunny_start_helpless}\n\t!define \"init\" {\n\t\t; Set jumping velocity\n\t\tldy system_index\n\t\tlda spe_up_power_msb, y\n\t\tsta player_a_velocity_v, x\n\t\tlda spe_up_power_lsb, y\n\t\tsta player_a_velocity_v_low, x\n\n\t\trts\n\t}\n\t!include \"characters/tpl_aerial_attack.asm\"\n.)\n\n;\n; Special down\n;\n\n!define \"anim\" {sunny_anim_spe_down_charge}\n!define \"state\" {SUNNY_STATE_SPE_DOWN_CHARGE}\n!define \"routine\" {spe_down}\n!define \"followup\" {sunny_start_spe_down_hit}\n!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n!define \"anim\" {sunny_anim_spe_down_hit}\n!define \"state\" {SUNNY_STATE_SPE_DOWN_HIT}\n!define \"routine\" {spe_down_hit}\n!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n;\n; Up tilt\n;\n\n!define \"anim\" {sunny_anim_up_tilt}\n!define \"state\" {SUNNY_STATE_UP_TILT}\n!define \"routine\" {up_tilt}\n!define \"cutable_duration\" {20}\n!define \"cut_input\" {\n\tlda controller_a_btns, x\n\tcmp #CONTROLLER_INPUT_JUMP\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_JUMP_LEFT\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_JUMP_RIGHT\n\tbeq cut\n\t\trts\n\tcut:\n\t\tjmp sunny_start_jumping\n}\n!include \"characters/tpl_grounded_attack_cutable.asm\"\n\n!include \"characters/std_friction_routines.asm\"\n",
+  "sourcecode": "!define \"char_name\" {sunny}\n!define \"char_name_upper\" {SUNNY}\n\n;\n; Gameplay constants\n;\n\nSUNNY_AERIAL_SPEED = $0180\nSUNNY_AERIAL_DIRECTIONAL_INFLUENCE_STRENGTH = $c0\nSUNNY_AIR_FRICTION_STRENGTH = 7\nSUNNY_FASTFALL_SPEED = $0500\nSUNNY_GROUND_FRICTION_STRENGTH = $40\nSUNNY_JUMP_POWER = $0480\nSUNNY_JUMP_SHORT_HOP_POWER = $0100\nSUNNY_JUMP_SHORT_HOP_EXTRA_TIME_PAL = 4 ; Number of frames after jumpsquat at which shorthop is handled\nSUNNY_JUMP_SHORT_HOP_EXTRA_TIME_NTSC = 5\nSUNNY_JUMP_SHORT_HOP_AERIAL_TIME_PAL = 2 ;  Number of frames after jumpsquat at which an attack input stops converting is into a short hop-aerial\nSUNNY_JUMP_SHORT_HOP_AERIAL_TIME_NTSC = 2\nSUNNY_JUMP_SQUAT_DURATION_PAL = 4\nSUNNY_JUMP_SQUAT_DURATION_NTSC = 5\nSUNNY_LANDING_MAX_VELOCITY = $01c0\nSUNNY_MAX_NUM_AERIAL_JUMPS = 1\nSUNNY_ALL_SPECIAL_JUMPS = %10000001\nSUNNY_RUNNING_INITIAL_VELOCITY = $0100\nSUNNY_RUNNING_MAX_VELOCITY = $01c0\nSUNNY_RUNNING_ACCELERATION = $20\nSUNNY_TECH_SPEED = $0300\nSUNNY_WALL_JUMP_SQUAT_END = 4\nSUNNY_WALL_JUMP_VELOCITY_V = $0500\nSUNNY_WALL_JUMP_VELOCITY_H = $0100\n\n;\n; Constants data\n;\n\n!include \"characters/std_constant_tables.asm\"\n\n;\n; Pearl shot implementation\n;\n\nsunny_pearl_sprite_oam_per_player:\n\t.byt INGAME_PLAYER_A_LAST_SPRITE*4, INGAME_PLAYER_B_LAST_SPRITE*4\n\n.(\n\n\tpearl_direction_h = player_a_state_extra1\n\tpearl_counter = player_a_state_extra2\n\tpearl_up_counter = player_a_state_extra3\n\tpearl_x_subpixel = player_a_state_extra4\n\tpearl_y_subpixel = player_a_state_extra5\n\tpearl_x_pixel = player_a_state_extra6\n\tpearl_y_pixel = player_a_state_extra7\n\tpearl_x_screen = player_a_state_extra8\n\tpearl_y_screen = player_a_state_extra9\n\n\tPEARL_DURATION = 100\n\tduration_table(PEARL_DURATION, pearl_duration)\n\n\tPEARL_HORIZONTAL_VELOCITY = $0140\n\tvelocity_table(PEARL_HORIZONTAL_VELOCITY, pearl_h_velocity_right_msb, pearl_h_velocity_right_lsb)\n\tvelocity_table(-PEARL_HORIZONTAL_VELOCITY, pearl_h_velocity_left_msb, pearl_h_velocity_left_lsb)\n\n#define SUNNY_SIG(x) (((x >> 15) & $01) * $ff)\n#define SUNNY_MSB(x) >(x)\n#define SUNNY_LSB(x) <(x)\n\n#define SUNNY_NSI(x) ((( (((x)*5)/6) >> 15) & $01) * $ff)\n#define SUNNY_NMS(x) >(((x)*5)/6)\n#define SUNNY_NLS(x) <(((x)*5)/6)\n\n\t;NOTE as long has we never have value below -$0100 (above $ff00), sign table and msb table are the same\n\t;     (could save some bytes if we really need it)\n\t;NOTE generate these tables with the \"sunny_pearl_velocities.py\" script in tools for easier tweaking.\n\tpearl_v_velocity_pal_sign:\n\t\t.byt SUNNY_SIG($0180), SUNNY_SIG($0162), SUNNY_SIG($0144), SUNNY_SIG($0126), SUNNY_SIG($0109)\n\t\t.byt SUNNY_SIG($00ed), SUNNY_SIG($00d2), SUNNY_SIG($00b7), SUNNY_SIG($009e), SUNNY_SIG($0087)\n\t\t.byt SUNNY_SIG($0070), SUNNY_SIG($005c), SUNNY_SIG($0049), SUNNY_SIG($0039), SUNNY_SIG($002a)\n\t\t.byt SUNNY_SIG($001d), SUNNY_SIG($0013), SUNNY_SIG($000b), SUNNY_SIG($0005), SUNNY_SIG($0001)\n\t\t.byt SUNNY_SIG(-$0001), SUNNY_SIG(-$0005), SUNNY_SIG(-$000b), SUNNY_SIG(-$0013), SUNNY_SIG(-$001d)\n\t\t.byt SUNNY_SIG(-$002a), SUNNY_SIG(-$0039), SUNNY_SIG(-$0049), SUNNY_SIG(-$005c), SUNNY_SIG(-$0070)\n\t\t.byt SUNNY_SIG(-$0087), SUNNY_SIG(-$009e), SUNNY_SIG(-$00b7), SUNNY_SIG(-$00d2), SUNNY_SIG(-$00ed)\n\t\t.byt SUNNY_SIG(-$0109), SUNNY_SIG(-$0126), SUNNY_SIG(-$0144), SUNNY_SIG(-$0162), SUNNY_SIG(-$0180)\n\tpearl_v_velocity_pal_msb:\n\t\t.byt SUNNY_MSB($0180), SUNNY_MSB($0162), SUNNY_MSB($0144), SUNNY_MSB($0126), SUNNY_MSB($0109)\n\t\t.byt SUNNY_MSB($00ed), SUNNY_MSB($00d2), SUNNY_MSB($00b7), SUNNY_MSB($009e), SUNNY_MSB($0087)\n\t\t.byt SUNNY_MSB($0070), SUNNY_MSB($005c), SUNNY_MSB($0049), SUNNY_MSB($0039), SUNNY_MSB($002a)\n\t\t.byt SUNNY_MSB($001d), SUNNY_MSB($0013), SUNNY_MSB($000b), SUNNY_MSB($0005), SUNNY_MSB($0001)\n\t\t.byt SUNNY_MSB(-$0001), SUNNY_MSB(-$0005), SUNNY_MSB(-$000b), SUNNY_MSB(-$0013), SUNNY_MSB(-$001d)\n\t\t.byt SUNNY_MSB(-$002a), SUNNY_MSB(-$0039), SUNNY_MSB(-$0049), SUNNY_MSB(-$005c), SUNNY_MSB(-$0070)\n\t\t.byt SUNNY_MSB(-$0087), SUNNY_MSB(-$009e), SUNNY_MSB(-$00b7), SUNNY_MSB(-$00d2), SUNNY_MSB(-$00ed)\n\t\t.byt SUNNY_MSB(-$0109), SUNNY_MSB(-$0126), SUNNY_MSB(-$0144), SUNNY_MSB(-$0162), SUNNY_MSB(-$0180)\n\tpearl_v_velocity_pal_lsb:\n\t\t.byt SUNNY_LSB($0180), SUNNY_LSB($0162), SUNNY_LSB($0144), SUNNY_LSB($0126), SUNNY_LSB($0109)\n\t\t.byt SUNNY_LSB($00ed), SUNNY_LSB($00d2), SUNNY_LSB($00b7), SUNNY_LSB($009e), SUNNY_LSB($0087)\n\t\t.byt SUNNY_LSB($0070), SUNNY_LSB($005c), SUNNY_LSB($0049), SUNNY_LSB($0039), SUNNY_LSB($002a)\n\t\t.byt SUNNY_LSB($001d), SUNNY_LSB($0013), SUNNY_LSB($000b), SUNNY_LSB($0005), SUNNY_LSB($0001)\n\t\t.byt SUNNY_LSB(-$0001), SUNNY_LSB(-$0005), SUNNY_LSB(-$000b), SUNNY_LSB(-$0013), SUNNY_LSB(-$001d)\n\t\t.byt SUNNY_LSB(-$002a), SUNNY_LSB(-$0039), SUNNY_LSB(-$0049), SUNNY_LSB(-$005c), SUNNY_LSB(-$0070)\n\t\t.byt SUNNY_LSB(-$0087), SUNNY_LSB(-$009e), SUNNY_LSB(-$00b7), SUNNY_LSB(-$00d2), SUNNY_LSB(-$00ed)\n\t\t.byt SUNNY_LSB(-$0109), SUNNY_LSB(-$0126), SUNNY_LSB(-$0144), SUNNY_LSB(-$0162), SUNNY_LSB(-$0180)\n\tPEARL_V_VELOCITY_TABLE_LEN_PAL = * - pearl_v_velocity_pal_lsb\n\n\tpearl_v_velocity_ntsc_sign:\n\t\t.byt SUNNY_NSI($0180), SUNNY_NSI($0167), SUNNY_NSI($014e), SUNNY_NSI($0135), SUNNY_NSI($011d)\n\t\t.byt SUNNY_NSI($0105), SUNNY_NSI($00ed), SUNNY_NSI($00d6), SUNNY_NSI($00c0), SUNNY_NSI($00ab)\n\t\t.byt SUNNY_NSI($0096), SUNNY_NSI($0083), SUNNY_NSI($0070), SUNNY_NSI($005f), SUNNY_NSI($004f)\n\t\t.byt SUNNY_NSI($0041), SUNNY_NSI($0033), SUNNY_NSI($0028), SUNNY_NSI($001d), SUNNY_NSI($0014)\n\t\t.byt SUNNY_NSI($000d), SUNNY_NSI($0007), SUNNY_NSI($0003), SUNNY_NSI($0001), SUNNY_NSI(-$0001)\n\t\t.byt SUNNY_NSI(-$0003), SUNNY_NSI(-$0007), SUNNY_NSI(-$000d), SUNNY_NSI(-$0014), SUNNY_NSI(-$001d)\n\t\t.byt SUNNY_NSI(-$0028), SUNNY_NSI(-$0033), SUNNY_NSI(-$0041), SUNNY_NSI(-$004f), SUNNY_NSI(-$005f)\n\t\t.byt SUNNY_NSI(-$0070), SUNNY_NSI(-$0083), SUNNY_NSI(-$0096), SUNNY_NSI(-$00ab), SUNNY_NSI(-$00c0)\n\t\t.byt SUNNY_NSI(-$00d6), SUNNY_NSI(-$00ed), SUNNY_NSI(-$0105), SUNNY_NSI(-$011d), SUNNY_NSI(-$0135)\n\t\t.byt SUNNY_NSI(-$014e), SUNNY_NSI(-$0167), SUNNY_NSI(-$0180)\n\tpearl_v_velocity_ntsc_msb:\n\t\t.byt SUNNY_NMS($0180), SUNNY_NMS($0167), SUNNY_NMS($014e), SUNNY_NMS($0135), SUNNY_NMS($011d)\n\t\t.byt SUNNY_NMS($0105), SUNNY_NMS($00ed), SUNNY_NMS($00d6), SUNNY_NMS($00c0), SUNNY_NMS($00ab)\n\t\t.byt SUNNY_NMS($0096), SUNNY_NMS($0083), SUNNY_NMS($0070), SUNNY_NMS($005f), SUNNY_NMS($004f)\n\t\t.byt SUNNY_NMS($0041), SUNNY_NMS($0033), SUNNY_NMS($0028), SUNNY_NMS($001d), SUNNY_NMS($0014)\n\t\t.byt SUNNY_NMS($000d), SUNNY_NMS($0007), SUNNY_NMS($0003), SUNNY_NMS($0001), SUNNY_NMS(-$0001)\n\t\t.byt SUNNY_NMS(-$0003), SUNNY_NMS(-$0007), SUNNY_NMS(-$000d), SUNNY_NMS(-$0014), SUNNY_NMS(-$001d)\n\t\t.byt SUNNY_NMS(-$0028), SUNNY_NMS(-$0033), SUNNY_NMS(-$0041), SUNNY_NMS(-$004f), SUNNY_NMS(-$005f)\n\t\t.byt SUNNY_NMS(-$0070), SUNNY_NMS(-$0083), SUNNY_NMS(-$0096), SUNNY_NMS(-$00ab), SUNNY_NMS(-$00c0)\n\t\t.byt SUNNY_NMS(-$00d6), SUNNY_NMS(-$00ed), SUNNY_NMS(-$0105), SUNNY_NMS(-$011d), SUNNY_NMS(-$0135)\n\t\t.byt SUNNY_NMS(-$014e), SUNNY_NMS(-$0167), SUNNY_NMS(-$0180)\n\tpearl_v_velocity_ntsc_lsb:\n\t\t.byt SUNNY_NLS($0180), SUNNY_NLS($0167), SUNNY_NLS($014e), SUNNY_NLS($0135), SUNNY_NLS($011d)\n\t\t.byt SUNNY_NLS($0105), SUNNY_NLS($00ed), SUNNY_NLS($00d6), SUNNY_NLS($00c0), SUNNY_NLS($00ab)\n\t\t.byt SUNNY_NLS($0096), SUNNY_NLS($0083), SUNNY_NLS($0070), SUNNY_NLS($005f), SUNNY_NLS($004f)\n\t\t.byt SUNNY_NLS($0041), SUNNY_NLS($0033), SUNNY_NLS($0028), SUNNY_NLS($001d), SUNNY_NLS($0014)\n\t\t.byt SUNNY_NLS($000d), SUNNY_NLS($0007), SUNNY_NLS($0003), SUNNY_NLS($0001), SUNNY_NLS(-$0001)\n\t\t.byt SUNNY_NLS(-$0003), SUNNY_NLS(-$0007), SUNNY_NLS(-$000d), SUNNY_NLS(-$0014), SUNNY_NLS(-$001d)\n\t\t.byt SUNNY_NLS(-$0028), SUNNY_NLS(-$0033), SUNNY_NLS(-$0041), SUNNY_NLS(-$004f), SUNNY_NLS(-$005f)\n\t\t.byt SUNNY_NLS(-$0070), SUNNY_NLS(-$0083), SUNNY_NLS(-$0096), SUNNY_NLS(-$00ab), SUNNY_NLS(-$00c0)\n\t\t.byt SUNNY_NLS(-$00d6), SUNNY_NLS(-$00ed), SUNNY_NLS(-$0105), SUNNY_NLS(-$011d), SUNNY_NLS(-$0135)\n\t\t.byt SUNNY_NLS(-$014e), SUNNY_NLS(-$0167), SUNNY_NLS(-$0180)\n\tPEARL_V_VELOCITY_TABLE_LEN_NTSC = * - pearl_v_velocity_ntsc_lsb\n\n\tpearl_v_velocity_table_last:\n\t\t.byt PEARL_V_VELOCITY_TABLE_LEN_PAL-1, PEARL_V_VELOCITY_TABLE_LEN_NTSC-1\n\n#if PEARL_V_VELOCITY_TABLE_LEN_NTSC <> (PEARL_V_VELOCITY_TABLE_LEN_PAL)+((((PEARL_V_VELOCITY_TABLE_LEN_PAL)*10)/5)+5)/10\n#error pearl velocity tables have differing duration in PAL vs NTSC\n#endif\n\n\t; Pearl position is used for platform collision, its hitbox should actually be offsetted to have logical positioning\n\t; Pearl width/height are actually -1 of graphics because \"bottom = top + height\" so zero is one line of pixels\n\tPEARL_PROJECTILE_OFFSET_VERTICAL = 11\n\tPEARL_PROJECTILE_OFFSET_HORIZONTAL = 1\n\tPEARL_PROJECTILE_HEIGHT = 6\n\tPEARL_PROJECTILE_WIDTH = 6\n\n\t+sunny_netload:\n\t.(\n\t\tlda esp_rx_buffer+0, y\n\t\tsta player_a_projectile_1_flags, x\n\t\tbeq pearl_inactive\n\n\t\t\tpearl_active:\n\t\t\t\t; Pearl-specific state\n\t\t\t\tlda esp_rx_buffer+1, y\n\t\t\t\tsta player_a_state_extra1, x\n\t\t\t\tlda esp_rx_buffer+2, y\n\t\t\t\tsta player_a_state_extra2, x\n\t\t\t\tlda esp_rx_buffer+3, y\n\t\t\t\tsta player_a_state_extra3, x\n\t\t\t\tlda esp_rx_buffer+4, y\n\t\t\t\tsta player_a_state_extra4, x\n\t\t\t\tlda esp_rx_buffer+5, y\n\t\t\t\tsta player_a_state_extra5, x\n\t\t\t\tlda esp_rx_buffer+6, y\n\t\t\t\tsta player_a_state_extra6, x\n\t\t\t\tlda esp_rx_buffer+7, y\n\t\t\t\tsta player_a_state_extra7, x\n\t\t\t\tlda esp_rx_buffer+8, y\n\t\t\t\tsta player_a_state_extra8, x\n\t\t\t\tlda esp_rx_buffer+9, y\n\t\t\t\tsta player_a_state_extra9, x\n\n\t\t\t\t; Recompute pearl hitbox\n\t\t\t\tjsr place_pearl_hitbox\n\n\t\t\t\t; Return with updated buffer cursor\n\t\t\t\ttya\n\t\t\t\tclc\n\t\t\t\tadc #10\n\t\t\t\ttay\n\n\t\t\t\trts\n\n\t\t\tpearl_inactive:\n\t\t\t\t; Return with updated buffer cursor\n\t\t\t\tiny\n\t\t\t\trts\n\n\t\t;rts ; useless no branch return\n\t.)\n\n\t&sunny_pearl_shot_spawn:\n\t.(\n\t\t; Activate projectile\n\t\tlda #PROJECTILE_FLAGS_ACTIVE\n\t\tsta player_a_projectile_1_flags, x\n\n\t\t; Position pearl\n\t\t.(\n\t\t\tlda #0\n\t\t\tsta pearl_x_subpixel, x\n\n\t\t\tlda player_a_direction, x\n\t\t\tbne right\n\t\t\t\tleft:\n\t\t\t\t\tlda player_a_x, x\n\t\t\t\t\tclc\n\t\t\t\t\tadc #<-8\n\t\t\t\t\tsta pearl_x_pixel, x\n\t\t\t\t\tlda player_a_x_screen, x\n\t\t\t\t\tadc #>-8\n\t\t\t\t\tsta pearl_x_screen, x\n\t\t\t\t\tjmp ok\n\t\t\t\tright:\n\t\t\t\t\tlda player_a_x, x\n\t\t\t\t\tclc\n\t\t\t\t\tadc #<8\n\t\t\t\t\tsta pearl_x_pixel, x\n\t\t\t\t\tlda player_a_x_screen, x\n\t\t\t\t\tadc #>8\n\t\t\t\t\tsta pearl_x_screen, x\n\t\t\t\t\tjmp ok\n\t\t\tok:\n\t\t.)\n\n\t\tlda #0\n\t\tsta pearl_y_subpixel, x\n\t\tlda player_a_y, x\n\t\tclc\n\t\tadc #<-4\n\t\tsta pearl_y_pixel, x\n\t\tlda player_a_y_screen, x\n\t\tadc #>-4\n\t\tsta pearl_y_screen, x\n\n\t\t; Set hitbox boundaries\n\t\tjsr place_pearl_hitbox\n\n\t\t; Init pearl state\n\t\tldy system_index\n\t\tlda pearl_duration, y\n\t\tsta pearl_counter, x\n\n\t\tlda player_a_direction, x\n\t\tsta pearl_direction_h, x\n\n\t\tlda #0\n\t\tsta pearl_up_counter, x\n\n\t\trts\n\t.)\n\n\t+sunny_pearl_shot_hit:\n\t.(\n\t\tstroke_player_onhurt_table_addr = tmpfield1     ; Not movable, parameter of far_lda_tmpfield1_y\n\t\tstroke_player_onhurt_table_addr_msb = tmpfield2 ; Not movable, parameter of far_lda_tmpfield1_y\n\t\tstroke_player_onhurt_handler_addr = tmpfield3\n\t\tstroke_player_onhurt_handler_addr_msb = tmpfield4\n\t\tstroke_player_bank = tmpfield5\n\t\tstriker_player = tmpfield10      ; Not movable, parameter of onhurt handler\n\t\tstroke_player = tmpfield11       ; Not movable, parameter of onhurt handler\n\t\tdefault_onhurt_lsb = tmpfield12  ; Not movable, parameter of onhurt handler\n\t\tdefault_onhurt_msb = tmpfield13  ; Not movable, parameter of onhurt handler\n\t\tdefault_onhurt_bank = tmpfield14 ; Not movable, parameter of onhurt handler\n\n\t\t; Disable pearl\n\t\tlda #PROJECTILE_FLAGS_DEACTIVATED\n\t\tsta player_a_projectile_1_flags, x\n\n\t\t; Save player number\n\t\tstx player_number\n\n\t\t; Select action depending on hitbox type\n\t\tcpy #HURTBOX\n\t\tbeq strike_hurtbox\n\t\tcpy #HITBOX\n\t\tbne strike_otherbox\n\n\t\t\tstrike_hitbox:\n\t\t\t\t; Screen freeze\n\t\t\t\tSHAKE_INTENSITY = 0\n\t\t\t\tSHAKE_DURATION = 5\n\n\t\t\t\tlda #SHAKE_INTENSITY\n\t\t\t\tsta screen_shake_noise_h\n\t\t\t\tsta screen_shake_noise_v\n\t\t\t\tlda #SHAKE_DURATION\n\t\t\t\tsta screen_shake_counter\n\t\t\t\tlda #0\n\t\t\t\tsta screen_shake_current_x\n\t\t\t\tsta screen_shake_current_y\n\n\t\t\t\t; Play SFX\n\t\t\t\tldx #SFX_PARRY_IDX\n\t\t\t\tjsr audio_play_sfx_from_list\n\n\t\t\t\tldx player_number\n\t\t\t\trts\n\n\t\t\tstrike_otherbox:\n\t\t\t\t; Do not do anything aside disabling pearl\n\t\t\t\trts\n\n\t\t\tstrike_hurtbox:\n\t\t\t\t; Select action depending on opponent's hurt handler\n\t\t\t\tSWITCH_SELECTED_PLAYER\n\n\t\t\t\tldy config_player_a_character, x\n\t\t\t\tlda characters_onhurt_routines_table_lsb, y\n\t\t\t\tsta stroke_player_onhurt_table_addr\n\t\t\t\tlda characters_onhurt_routines_table_msb, y\n\t\t\t\tsta stroke_player_onhurt_table_addr_msb\n\t\t\t\tlda characters_bank_number, y\n\t\t\t\tsta stroke_player_bank\n\n\t\t\t\tlda player_a_state, x\n\t\t\t\tasl\n\t\t\t\ttay\n\n\t\t\t\tlda stroke_player_bank : jsr far_lda_tmpfield1_y\n\t\t\t\tsta stroke_player_onhurt_handler_addr\n\t\t\t\tiny\n\t\t\t\tlda stroke_player_bank : jsr far_lda_tmpfield1_y\n\t\t\t\tsta stroke_player_onhurt_handler_addr_msb\n\t\t\t\t;NOTE - here register X is garbage\n\n\t\t\t\tBEQ16(hurt, #<hurt_player, #>hurt_player, stroke_player_onhurt_handler_addr, stroke_player_onhurt_handler_addr_msb)\n\t\t\t\tBEQ16(intangible, #<dummy_routine, #>dummy_routine, stroke_player_onhurt_handler_addr, stroke_player_onhurt_handler_addr_msb)\n\n\t\t\t\t\tcustom_onhurt_handler:\n\t\t\t\t\t\t; Call the custom handler\n\t\t\t\t\t\tldx player_number\n\t\t\t\t\t\tstx striker_player\n\t\t\t\t\t\tSWITCH_SELECTED_PLAYER\n\t\t\t\t\t\tstx stroke_player\n\n\t\t\t\t\t\tlda #<sunny_hurt_by_pearl_default\n\t\t\t\t\t\tsta default_onhurt_lsb\n\t\t\t\t\t\tlda #>sunny_hurt_by_pearl_default\n\t\t\t\t\t\tsta default_onhurt_msb\n\t\t\t\t\t\tlda #CURRENT_BANK_NUMBER\n\t\t\t\t\t\tsta default_onhurt_bank\n\t\t\t\t\t\tTRAMPOLINE_POINTED(stroke_player_onhurt_handler_addr, stroke_player_onhurt_handler_addr_msb, stroke_player_bank, #CURRENT_BANK_NUMBER)\n\t\t\t\t\t\tlda striker_player\n\t\t\t\t\t\trts\n\n\t\t\t\t\tintangible:\n\t\t\t\t\t\t; Changed mind, do not disable pearl\n\t\t\t\t\t\tldx player_number\n\t\t\t\t\t\tlda #PROJECTILE_FLAGS_ACTIVE\n\t\t\t\t\t\tsta player_a_projectile_1_flags, x\n\t\t\t\t\t\trts\n\n\t\t\t\t\t&sunny_normal_pearl_on_normal_hurtbox:\n\t\t\t\t\thurt:\n\t\t\t\t\t\t; Apply knockback\n\t\t\t\t\t\t.(\n\t\t\t\t\t\t\tKNOCKUP_BASE_HORIZONTAL = -200\n\t\t\t\t\t\t\tKNOCKUP_BASE_VERTICAL = -800\n\t\t\t\t\t\t\tKNOCKUP_SCALING_HORIZONTAL = -1\n\t\t\t\t\t\t\tKNOCKUP_SCALING_VERTICAL = -16\n\t\t\t\t\t\t\tHITSTUN_MODIFIER = 0\n\n\t\t\t\t\t\t\tbase_h_lsb = tmpfield6\n\t\t\t\t\t\t\tbase_h_msb = tmpfield7\n\t\t\t\t\t\t\tforce_h_lsb = tmpfield14\n\t\t\t\t\t\t\tforce_h_msb = tmpfield12\n\t\t\t\t\t\t\tbase_v_lsb = tmpfield8\n\t\t\t\t\t\t\tbase_v_msb = tmpfield9\n\t\t\t\t\t\t\tforce_v_lsb = tmpfield15\n\t\t\t\t\t\t\tforce_v_msb = tmpfield13\n\t\t\t\t\t\t\thitstun_modifier = tmpfield16\n\n\t\t\t\t\t\t\tldx player_number\n\n\t\t\t\t\t\t\tlda pearl_direction_h, x\n\t\t\t\t\t\t\tbne right\n\t\t\t\t\t\t\t\tleft:\n\t\t\t\t\t\t\t\t\tlda #<KNOCKUP_BASE_HORIZONTAL : sta base_h_lsb\n\t\t\t\t\t\t\t\t\tlda #>KNOCKUP_BASE_HORIZONTAL : sta base_h_msb\n\t\t\t\t\t\t\t\t\tlda #<KNOCKUP_SCALING_HORIZONTAL : sta force_h_lsb\n\t\t\t\t\t\t\t\t\tlda #>KNOCKUP_SCALING_HORIZONTAL : sta force_h_msb\n\t\t\t\t\t\t\t\t\tjmp ok\n\t\t\t\t\t\t\t\tright:\n\t\t\t\t\t\t\t\t\tlda #<-KNOCKUP_BASE_HORIZONTAL : sta base_h_lsb\n\t\t\t\t\t\t\t\t\tlda #>-KNOCKUP_BASE_HORIZONTAL : sta base_h_msb\n\t\t\t\t\t\t\t\t\tlda #<-KNOCKUP_SCALING_HORIZONTAL : sta force_h_lsb\n\t\t\t\t\t\t\t\t\tlda #>-KNOCKUP_SCALING_HORIZONTAL : sta force_h_msb\n\t\t\t\t\t\t\tok:\n\t\t\t\t\t\t\tlda #<KNOCKUP_BASE_VERTICAL : sta base_v_lsb\n\t\t\t\t\t\t\tlda #>KNOCKUP_BASE_VERTICAL : sta base_v_msb\n\t\t\t\t\t\t\tlda #<KNOCKUP_SCALING_VERTICAL : sta force_v_lsb\n\t\t\t\t\t\t\tlda #>KNOCKUP_SCALING_VERTICAL : sta force_v_msb\n\t\t\t\t\t\t\tlda #HITSTUN_MODIFIER : sta hitstun_modifier\n\n\t\t\t\t\t\t\tSWITCH_SELECTED_PLAYER\n\t\t\t\t\t\t\tjsr apply_force_vector_direct\n\t\t\t\t\t\t.)\n\n\t\t\t\t\t\t; Apply dammage\n\t\t\t\t\t\t.(\n\t\t\t\t\t\t\tldy player_a_damages, x\n\t\t\t\t\t\t\tiny\n\t\t\t\t\t\t\tiny\n\t\t\t\t\t\t\tiny\n\t\t\t\t\t\t\tcpy #199\n\t\t\t\t\t\t\tbcc ok\n\t\t\t\t\t\t\t\tldy #199\n\t\t\t\t\t\t\tok:\n\t\t\t\t\t\t\tsty player_a_damages, x\n\t\t\t\t\t\t.)\n\n\t\t\t\t\t\t; Throw opponent\n\t\t\t\t\t\t.(\n\t\t\t\t\t\t\tldy config_player_a_character, x\n\t\t\t\t\t\t\tTRAMPOLINE(hurt_player_direct, characters_bank_number COMMA y, #CURRENT_BANK_NUMBER)\n\t\t\t\t\t\t.)\n\n\t\t\t\t\t\t; Return\n\t\t\t\t\t\tldx player_number\n\t\t\t\t\t\trts\n\n\t\t;rts ; useless, branches return directly\n\t.)\n\n\t; Called by opponent custom onhurt handler when it want's to fallback to default behavior of being thrown\n\t+sunny_hurt_by_pearl_default:\n\t.(\n\t\tstriker_player = tmpfield10\n\t\tstroke_player = tmpfield11\n\n\t\tlda striker_player\n\t\tsta player_number\n\t\tjsr sunny_normal_pearl_on_normal_hurtbox\n\t\tldx stroke_player\n\t\tstx player_number\n\t\trts\n\t.)\n\n\t+sunny_global_tick:\n\t.(\n\t\tlda player_a_projectile_1_flags, x\n\t\tbne sunny_pearl_shot_tick\n\n\t\t\t; Hide pearl sprite\n\t\t\tlda #$fe\n\t\t\tldy sunny_pearl_sprite_oam_per_player, x\n\t\t\tsta oam_mirror, y\n\t\t\trts\n\n\t\t; Fallthrough to sunny_pearl_shot_tick possible by the above BNE\n\t.)\n\n\tsunny_pearl_shot_tick:\n\t.(\n\t\telements_action_vector = tmpfield1 ; Not movable, parameter of stage_iterate_all_elements\n\t\t;tmpfield2 reseved for elements_action_vector msb\n\t\tfinal_x_pixel = tmpfield3\n\t\tfinal_x_screen = tmpfield4\n\t\tfinal_y_pixel = tmpfield5\n\t\tfinal_y_screen = tmpfield6\n\t\tcollided_platform = tmpfield7\n\t\tplatform_specific_handler_lsb = tmpfield8\n\t\tplatform_specific_handler_msb = tmpfield9\n\t\tplatform_top_pixel = tmpfield10\n\t\tplatform_top_screen = tmpfield11\n\n\t\t; Destroy if end of life\n\t\t.(\n\t\t\tdec pearl_counter, x\n\t\t\tbne ok\n\t\t\t\tlda #PROJECTILE_FLAGS_DEACTIVATED\n\t\t\t\tsta player_a_projectile_1_flags, x\n\t\t\t\trts\n\t\t\tok:\n\t\t.)\n\n\t\t;NOTE movement+collision code has a lot in common with move_player from game's logic\n\t\t;     may be doable to factorize platform collision code\n\t\t;NOTE only one collision detection is done at the end, instead of one for vertical\n\t\t;     and one for horizontal movement.\n\t\t;     That means pearl may path through corners of two adjacent platforms. Should be\n\t\t;     less impacting than for players as the pearl is destroyed if ending in a platform\n\t\t;     because of that.\n\n\t\t; Vertical movement\n\t\t.(\n\t\t\tldy system_index\n\t\t\tbne ntsc\n\t\t\t\tpal:\n\t\t\t\t\tldy pearl_up_counter, x\n\t\t\t\t\tlda pearl_v_velocity_pal_lsb, y\n\t\t\t\t\tclc\n\t\t\t\t\tadc pearl_y_subpixel, x\n\t\t\t\t\tsta pearl_y_subpixel, x\n\n\t\t\t\t\tlda pearl_v_velocity_pal_msb, y\n\t\t\t\t\tadc pearl_y_pixel, x\n\t\t\t\t\tsta final_y_pixel\n\n\t\t\t\t\tlda pearl_v_velocity_pal_sign, y\n\t\t\t\t\tadc pearl_y_screen, x\n\t\t\t\t\tsta final_y_screen\n\n\t\t\t\t\tjmp move_ok\n\n\t\t\t\tntsc:\n\t\t\t\t\tldy pearl_up_counter, x\n\t\t\t\t\tlda pearl_v_velocity_ntsc_lsb, y\n\t\t\t\t\tclc\n\t\t\t\t\tadc pearl_y_subpixel, x\n\t\t\t\t\tsta pearl_y_subpixel, x\n\n\t\t\t\t\tlda pearl_v_velocity_ntsc_msb, y\n\t\t\t\t\tadc pearl_y_pixel, x\n\t\t\t\t\tsta final_y_pixel\n\n\t\t\t\t\tlda pearl_v_velocity_ntsc_sign, y\n\t\t\t\t\tadc pearl_y_screen, x\n\t\t\t\t\tsta final_y_screen\n\t\t\tmove_ok:\n\n\t\t\tdec pearl_up_counter, x\n\t\t\tbpl ok\n\t\t\t\tinc pearl_up_counter, x\n\n\t\t\tok:\n\t\t.)\n\n\t\t; Horizontal movement\n\t\t.(\n\t\t\tldy system_index\n\n\t\t\tlda pearl_direction_h, x\n\t\t\tbne right\n\t\t\t\tleft:\n\t\t\t\t\tclc\n\t\t\t\t\tlda pearl_x_subpixel, x\n\t\t\t\t\tadc pearl_h_velocity_left_lsb, y\n\t\t\t\t\tsta pearl_x_subpixel, x\n\t\t\t\t\tlda pearl_x_pixel, x\n\t\t\t\t\tadc pearl_h_velocity_left_msb, y\n\t\t\t\t\tsta final_x_pixel\n\t\t\t\t\tlda pearl_x_screen, x\n\t\t\t\t\tadc #$ff\n\t\t\t\t\tsta final_x_screen\n\t\t\t\t\tjmp ok\n\t\t\t\tright:\n\t\t\t\t\tclc\n\t\t\t\t\tlda pearl_x_subpixel, x\n\t\t\t\t\tadc pearl_h_velocity_right_lsb, y\n\t\t\t\t\tsta pearl_x_subpixel, x\n\t\t\t\t\tlda pearl_x_pixel, x\n\t\t\t\t\tadc pearl_h_velocity_right_msb, y\n\t\t\t\t\tsta final_x_pixel\n\t\t\t\t\tlda pearl_x_screen, x\n\t\t\t\t\tadc #0\n\t\t\t\t\tsta final_x_screen\n\n\t\t\tok:\n\t\t.)\n\n\t\t; Collision detection - destroy the pearl if horizontal, rebound if vertical\n\t\t.(\n\t\t\tstx player_number\n\n\t\t\tlda #<platform_collision_handler\n\t\t\tsta elements_action_vector\n\t\t\tlda #>platform_collision_handler\n\t\t\tsta elements_action_vector+1\n\t\t\tjsr stage_iterate_all_elements\n\t\t\t;ldx player_number ;useless, X won't be read before being trashed again (and actually platform_collision_handler does not trash it)\n\n\t\t\tcpy #$ff\n\t\t\tbne ok\n\t\t\t\t; Detect collision direction, vertical if original position is above the platform\n\t\t\t\tjsr load_platform_top\n\t\t\t\tldx player_number\n\n\t\t\t\tlda pearl_y_screen, x\n\t\t\t\tcmp platform_top_screen\n\t\t\t\tbcc vertical\n\t\t\t\tbne horizontal\n\t\t\t\tlda pearl_y_pixel, x\n\t\t\t\tcmp platform_top_pixel\n\t\t\t\tbcc vertical\n\n\t\t\t\t\thorizontal:\n\t\t\t\t\t\t; Destroy projectile\n\t\t\t\t\t\tlda #PROJECTILE_FLAGS_DEACTIVATED\n\t\t\t\t\t\tsta player_a_projectile_1_flags, x\n\n\t\t\t\t\t\t; Stop there, we don't care about moving the projectile anymore\n\t\t\t\t\t\trts\n\n\t\t\t\t\tvertical:\n\t\t\t\t\t\t; Place pearl on platform top\n\t\t\t\t\t\tlda #0\n\t\t\t\t\t\tsta pearl_y_subpixel, x\n\n\t\t\t\t\t\tlda platform_top_screen\n\t\t\t\t\t\tsta final_y_screen\n\n\t\t\t\t\t\t;NOTE this decrement may be made useless by not considering the edge pixels in platform_collision_handler\n\t\t\t\t\t\tldy platform_top_pixel\n\t\t\t\t\t\tdey\n\t\t\t\t\t\tsty final_y_pixel\n\t\t\t\t\t\tcpy #$ff\n\t\t\t\t\t\tbne dec_ok\n\t\t\t\t\t\t\tdec final_y_screen\n\t\t\t\t\t\tdec_ok:\n\n\t\t\t\t\t\t; Reset vertical velocity to go upward\n\t\t\t\t\t\tldy system_index\n\t\t\t\t\t\tlda pearl_v_velocity_table_last, y\n\t\t\t\t\t\tsta pearl_up_counter, x\n\n\t\t\t\t\t\t; Go forward with moving the projectile\n\t\t\t\t\t\t;jmp ok ; useless, fallthrough\n\t\t\tok:\n\t\t\tldx player_number\n\t\t.)\n\n\t\t; Move pearl to its final position\n\t\t.(\n\t\t\tlda final_y_pixel\n\t\t\tsta pearl_y_pixel, x\n\t\t\tlda final_y_screen\n\t\t\tsta pearl_y_screen, x\n\t\t\tlda final_x_pixel\n\t\t\tsta pearl_x_pixel, x\n\t\t\tlda final_x_screen\n\t\t\tsta pearl_x_screen, x\n\t\t.)\n\n\t\t; Set hitbox boundaries\n\t\t.(\n\t\t\tjsr place_pearl_hitbox\n\t\t.)\n\n\t\t; Place sprite\n\t\t.(\n\t\t\tldy sunny_pearl_sprite_oam_per_player, x\n\n\t\t\tlda player_a_projectile_1_hitbox_top_msb, x\n\t\t\tbne hide\n\t\t\tlda player_a_projectile_1_hitbox_left_msb, x\n\t\t\tbne hide\n\t\t\t\tdisplay:\n\t\t\t\t\t; Sprite's Y pos is hitbox top -1 to compensate sprites being on the scanline after their position\n\t\t\t\t\tlda player_a_projectile_1_hitbox_top, x\n\t\t\t\t\tbeq hide\n\t\t\t\t\t\tsec\n\t\t\t\t\t\tsbc #1\n\t\t\t\t\t\tsta oam_mirror, y\n\n\t\t\t\t\t\tiny:iny:iny\n\t\t\t\t\t\tlda player_a_projectile_1_hitbox_left, x\n\t\t\t\t\t\tsta oam_mirror, y\n\t\t\t\t\t\tjmp ok\n\t\t\t\thide:\n\t\t\t\t\tlda #$fe\n\t\t\t\t\tsta oam_mirror, y\n\t\t\tok:\n\t\t.)\n\n\t\trts\n\n\t\tplatform_collision_handler:\n\t\t.(\n\t\t\t; Call appropriate handler for this kind of elements\n\t\t\t;stx player_number ; useless, expecting caller to already set it\n\t\t\ttax\n\t\t\tlda platform_specific_handlers_lsb, x\n\t\t\tsta platform_specific_handler_lsb\n\t\t\tlda platform_specific_handlers_msb, x\n\t\t\tsta platform_specific_handler_msb\n\t\t\tldx player_number\n\t\t\tjmp (platform_specific_handler_lsb)\n\t\t\t; No return, the handler will rts\n\n\t\t\t;    unused,         PLATFORM,             SMOOTH,             OOS_PLATFORM,  OOS_SMOOTH,  BUMPER\n\t\t\tplatform_specific_handlers_lsb:\n\t\t\t.byt <dummy_routine, <one_screen_platform, <one_screen_smooth, <oos_platform, <oos_smooth, <one_screen_platform\n\t\t\tplatform_specific_handlers_msb:\n\t\t\t.byt >dummy_routine, >one_screen_platform, >one_screen_smooth, >oos_platform, >oos_smooth, >one_screen_platform\n\n\t\t\tone_screen_platform:\n\t\t\t.(\n\t\t\t\t; No collision if projectile is above the platform\n\t\t\t\tSIGNED_CMP(final_y_pixel, final_y_screen, stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if projectile is under the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_BOTTOM COMMA y, #0, final_y_pixel, final_y_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if original position is on the left of the platform\n\t\t\t\tSIGNED_CMP(final_x_pixel, final_x_screen, stage_data+STAGE_PLATFORM_OFFSET_LEFT COMMA y, #0)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the right of the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_RIGHT COMMA y, #0, final_x_pixel, final_x_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t\t; Collision, stop iterating\n\t\t\t\t\tsty collided_platform\n\t\t\t\t\tldy #$ff\n\n\t\t\t\tno_collision:\n\t\t\t\trts\n\t\t\t.)\n\n\t\t\toos_platform:\n\t\t\t.(\n\t\t\t\t; No collision if projectile is above the platform\n\t\t\t\tSIGNED_CMP(final_y_pixel, final_y_screen, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB COMMA y)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if projectile is under the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_BOTTOM_MSB COMMA y, final_y_pixel, final_y_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if original position is on the left of the platform\n\t\t\t\tSIGNED_CMP(final_x_pixel, final_x_screen, stage_data+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB COMMA y)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the right of the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_OOS_PLATFORM_OFFSET_RIGHT_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_RIGHT_MSB COMMA y, final_x_pixel, final_x_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t\t; Collision, stop iterating\n\t\t\t\t\tsty collided_platform\n\t\t\t\t\tldy #$ff\n\n\t\t\t\tno_collision:\n\t\t\t\trts\n\t\t\t.)\n\n\t\t\tone_screen_smooth:\n\t\t\t.(\n\t\t\t\t; No collision if projectile is above the platform\n\t\t\t\tSIGNED_CMP(final_y_pixel, final_y_screen, stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if projectile original position is bellow the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_TOP COMMA y, #0, pearl_y_pixel COMMA x, pearl_y_screen COMMA x)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the left of the platform\n\t\t\t\tSIGNED_CMP(final_x_pixel, final_x_screen, stage_data+STAGE_PLATFORM_OFFSET_LEFT COMMA y, #0)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the right of the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_PLATFORM_OFFSET_RIGHT COMMA y, #0, final_x_pixel, final_x_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t\t; Collision, stop iterating\n\t\t\t\t\tsty collided_platform\n\t\t\t\t\tldy #$ff\n\n\t\t\t\tno_collision:\n\t\t\t\trts\n\t\t\t.)\n\n\t\t\toos_smooth:\n\t\t\t.(\n\t\t\t\t; No collision if projectile is above the platform\n\t\t\t\tSIGNED_CMP(final_y_pixel, final_y_screen, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB COMMA y)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if projectile original position is bellow the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB COMMA y, pearl_y_pixel COMMA x, pearl_y_screen COMMA x)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the left of the platform\n\t\t\t\tSIGNED_CMP(final_x_pixel, final_x_screen, stage_data+STAGE_OOS_PLATFORM_OFFSET_LEFT_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_LEFT_MSB COMMA y)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t; No collision if final position is on the right of the platform\n\t\t\t\tSIGNED_CMP(stage_data+STAGE_OOS_PLATFORM_OFFSET_RIGHT_LSB COMMA y, stage_data+STAGE_OOS_PLATFORM_OFFSET_RIGHT_MSB COMMA y, final_x_pixel, final_x_screen)\n\t\t\t\tbmi no_collision\n\n\t\t\t\t\t; Collision, stop iterating\n\t\t\t\t\tsty collided_platform\n\t\t\t\t\tldy #$ff\n\n\t\t\t\tno_collision:\n\t\t\t\trts\n\t\t\t.)\n\t\t.)\n\n\t\tload_platform_top:\n\t\t.(\n\t\t\t; Call appropriate handler for this kind of elements\n\t\t\tldy collided_platform\n\n\t\t\tlda stage_data, y\n\t\t\ttax\n\n\t\t\tlda platform_specific_handlers_lsb, x\n\t\t\tsta platform_specific_handler_lsb\n\t\t\tlda platform_specific_handlers_msb, x\n\t\t\tsta platform_specific_handler_msb\n\t\t\tjmp (platform_specific_handler_lsb)\n\t\t\t; No return, the handler will rts\n\n\t\t\t;    unused,         PLATFORM,             SMOOTH,               OOS_PLATFORM,  OOS_SMOOTH,    BUMPER\n\t\t\tplatform_specific_handlers_lsb:\n\t\t\t.byt <dummy_routine, <one_screen_platform, <one_screen_platform, <oos_platform, <oos_platform, <one_screen_platform\n\t\t\tplatform_specific_handlers_msb:\n\t\t\t.byt >dummy_routine, >one_screen_platform, >one_screen_platform, >oos_platform, >oos_platform, >one_screen_platform\n\n\t\t\tone_screen_platform:\n\t\t\t.(\n\t\t\t\tlda #0\n\t\t\t\tsta platform_top_screen\n\t\t\t\tlda stage_data+STAGE_PLATFORM_OFFSET_TOP, y\n\t\t\t\tsta platform_top_pixel\n\t\t\t\trts\n\t \t\t.)\n\n\t\t\toos_platform:\n\t\t\t.(\n\t\t\t\tlda stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_MSB, y\n\t\t\t\tsta platform_top_screen\n\t\t\t\tlda stage_data+STAGE_OOS_PLATFORM_OFFSET_TOP_LSB, y\n\t\t\t\tsta platform_top_pixel\n\t\t\t\trts\n\t \t\t.)\n\t\t.)\n\t.)\n\n\tplace_pearl_hitbox:\n\t.(\n\t\tlda pearl_y_pixel, x\n\t\tclc\n\t\tadc #PEARL_PROJECTILE_OFFSET_VERTICAL\n\t\tsta player_a_projectile_1_hitbox_top, x\n\t\tlda pearl_y_screen, x\n\t\tadc #0\n\t\tsta player_a_projectile_1_hitbox_top_msb, x\n\n\t\tlda player_a_projectile_1_hitbox_top, x\n\t\tclc\n\t\tadc #PEARL_PROJECTILE_HEIGHT\n\t\tsta player_a_projectile_1_hitbox_bottom, x\n\t\tlda player_a_projectile_1_hitbox_top_msb, x\n\t\tadc #0\n\t\tsta player_a_projectile_1_hitbox_bottom_msb, x\n\n\t\tlda pearl_x_pixel, x\n\t\tclc\n\t\tadc #PEARL_PROJECTILE_OFFSET_HORIZONTAL\n\t\tsta player_a_projectile_1_hitbox_left, x\n\t\tlda pearl_x_screen, x\n\t\tadc #0\n\t\tsta player_a_projectile_1_hitbox_left_msb, x\n\n\t\tlda player_a_projectile_1_hitbox_left, x\n\t\tclc\n\t\tadc #PEARL_PROJECTILE_WIDTH\n\t\tsta player_a_projectile_1_hitbox_right, x\n\t\tlda player_a_projectile_1_hitbox_left_msb, x\n\t\tadc #0\n\t\tsta player_a_projectile_1_hitbox_right_msb, x\n\n\t\trts\n\t.)\n\n.)\n\n;\n; Implementation\n;\n\n\nsunny_init:\n.(\n\t; Reserve a sprite for the pearl shoot\n\t.(\n\t\tanimation_state_vector = tmpfield2\n\n\t\t; Animation's last sprite num = animation's last sprite num - 1\n\t\tlda anim_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda anim_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\tldy #0\n\t\tlda sunny_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\n\t\t; Same for out of screen indicator\n\t\tlda oos_last_sprite_num_per_player_lsb, x\n\t\tsta animation_state_vector\n\t\tlda oos_last_sprite_num_per_player_msb, x\n\t\tsta animation_state_vector+1\n\n\t\t;ldy #0 ; useless, already set above\n\t\tlda sunny_last_anim_sprite_per_player, x\n\t\tsta (animation_state_vector), y\n\t.)\n\n\t; Init sprite's OAM\n\t.(\n\t\tldy sunny_pearl_sprite_oam_per_player, x\n\n\t\tlda #$fe\n\t\tsta oam_mirror, y\n\t\tiny\n\n\t\tlda pearl_sprite_index_per_player, x\n\t\tsta oam_mirror, y\n\t\tiny\n\n\t\tlda pearl_sprite_palette_per_player, x\n\t\tsta oam_mirror, y\n\t\tiny\n\n\t\tlda #0\n\t\tsta oam_mirror, y\n\t.)\n\n\t; Reset variables that are ground-dependent\n\tjmp sunny_global_onground\n\n\t;rts ; useless, jump to subroutine\n\n\tanim_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\tanim_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_animation+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\n\toos_last_sprite_num_per_player_msb:\n\t\t.byt >player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt >player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\toos_last_sprite_num_per_player_lsb:\n\t\t.byt <player_a_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\t\t.byt <player_b_out_of_screen_indicator+ANIMATION_STATE_OFFSET_LAST_SPRITE_NUM\n\n\tsunny_last_anim_sprite_per_player:\n\t\t.byt INGAME_PLAYER_A_LAST_SPRITE-1, INGAME_PLAYER_B_LAST_SPRITE-1\n\n\tpearl_sprite_index_per_player:\n\t\t.byt CHARACTERS_CHARACTER_A_FIRST_TILE+SUNNY_TILE_PEARL, CHARACTERS_CHARACTER_B_FIRST_TILE+SUNNY_TILE_PEARL\n\n\tpearl_sprite_palette_per_player:\n\t\t.byt 0, 2\n.)\n\nsunny_global_onground:\n.(\n\t; Initialize special jump flags\n\tlda #SUNNY_ALL_SPECIAL_JUMPS\n\tsta player_a_special_jumps, x\n\trts\n.)\n\n; Input table for aerial moves, special values are\n;  fast_fall - mandatorily on INPUT_NONE to take effect on release of DOWN\n;  jump      - automatically choose between aerial jump or wall jump\n;  no_input  - expected default\n!input-table-define \"SUNNY_AERIAL_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_NONE               fast_fall\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sunny_start_side_special\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sunny_start_side_special\n\tCONTROLLER_INPUT_JUMP               jump\n\tCONTROLLER_INPUT_JUMP_RIGHT         jump\n\tCONTROLLER_INPUT_JUMP_LEFT          jump\n\tCONTROLLER_INPUT_ATTACK_LEFT        sunny_start_aerial_side\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sunny_start_aerial_side\n\tCONTROLLER_INPUT_DOWN_TILT          sunny_start_aerial_down\n\tCONTROLLER_INPUT_ATTACK_UP          sunny_start_aerial_up\n\tCONTROLLER_INPUT_JAB                sunny_start_aerial_neutral\n\tCONTROLLER_INPUT_SPECIAL            sunny_start_special\n\tCONTROLLER_INPUT_SPECIAL_UP         sunny_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sunny_start_spe_down\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sunny_start_aerial_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sunny_start_aerial_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sunny_start_spe_up_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sunny_start_spe_up_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sunny_start_aerial_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sunny_start_aerial_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sunny_start_spe_down_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sunny_start_spe_down_left\n\n\tno_input\n}\n\n; Input table for idle state, special values are\n;  no_input - Default\n!input-table-define \"SUNNY_IDLE_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_LEFT               sunny_start_running_left\n\tCONTROLLER_INPUT_RIGHT              sunny_start_running_right\n\tCONTROLLER_INPUT_JUMP               sunny_start_jumping\n\tCONTROLLER_INPUT_JUMP_RIGHT         sunny_start_jumping_right\n\tCONTROLLER_INPUT_JUMP_LEFT          sunny_start_jumping_left\n\tCONTROLLER_INPUT_JAB                sunny_start_jabbing\n\tCONTROLLER_INPUT_ATTACK_LEFT        sunny_start_side_tilt_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sunny_start_side_tilt_right\n\tCONTROLLER_INPUT_SPECIAL            sunny_start_special\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sunny_start_side_special_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sunny_start_side_special_left\n\tCONTROLLER_INPUT_DOWN_TILT          sunny_start_down_tilt\n\tCONTROLLER_INPUT_SPECIAL_UP         sunny_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sunny_start_spe_down\n\tCONTROLLER_INPUT_ATTACK_UP          sunny_start_up_tilt\n\tCONTROLLER_INPUT_TECH               sunny_start_shielding\n\tCONTROLLER_INPUT_TECH_LEFT          sunny_start_shielding_left\n\tCONTROLLER_INPUT_TECH_RIGHT         sunny_start_shielding_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sunny_start_spe_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sunny_start_spe_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sunny_start_up_tilt_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sunny_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sunny_start_spe_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sunny_start_spe_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sunny_start_down_tilt_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sunny_start_down_tilt_right\n\n\tno_input\n}\n\n; Input table for running state, special values are\n;  input_running_left - Change running direction to the left (if not already running to the left)\n;  input_runnning_right - Change running direction to the right (if not already running to the right)\n!input-table-define \"SUNNY_RUNNING_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_LEFT               input_running_left\n\tCONTROLLER_INPUT_RIGHT              input_running_right\n\tCONTROLLER_INPUT_JUMP               sunny_start_jumping\n\tCONTROLLER_INPUT_JUMP_LEFT          sunny_start_jumping_left\n\tCONTROLLER_INPUT_JUMP_RIGHT         sunny_start_jumping_right\n\tCONTROLLER_INPUT_ATTACK_LEFT        sunny_start_side_tilt_left\n\tCONTROLLER_INPUT_ATTACK_RIGHT       sunny_start_side_tilt_right\n\tCONTROLLER_INPUT_SPECIAL            sunny_start_special\n\tCONTROLLER_INPUT_SPECIAL_RIGHT      sunny_start_side_special_right\n\tCONTROLLER_INPUT_SPECIAL_LEFT       sunny_start_side_special_left\n\tCONTROLLER_INPUT_SPECIAL_UP         sunny_start_spe_up\n\tCONTROLLER_INPUT_SPECIAL_DOWN       sunny_start_spe_down\n\tCONTROLLER_INPUT_TECH_LEFT          sunny_start_shielding_left\n\tCONTROLLER_INPUT_TECH_RIGHT         sunny_start_shielding_right\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT    sunny_start_spe_up_left\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT   sunny_start_spe_up_right\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT     sunny_start_up_tilt_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT    sunny_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_DOWN_LEFT  sunny_start_spe_down_left\n\tCONTROLLER_INPUT_SPECIAL_DOWN_RIGHT sunny_start_spe_down_right\n\tCONTROLLER_INPUT_ATTACK_DOWN_LEFT   sunny_start_down_tilt_left\n\tCONTROLLER_INPUT_ATTACK_DOWN_RIGHT  sunny_start_down_tilt_right\n\tCONTROLLER_INPUT_DOWN_TILT          sunny_start_down_tilt\n\n\tsunny_start_idle\n}\n\n; Input table for jumping state state (only used during jumpsquat), special values are\n;  no_input - default\n!input-table-define \"SUNNY_JUMPSQUAT_INPUTS_TABLE\" {\n\tCONTROLLER_INPUT_ATTACK_UP        sunny_start_up_tilt\n\tCONTROLLER_INPUT_SPECIAL_UP       sunny_start_spe_up\n\tCONTROLLER_INPUT_ATTACK_UP_LEFT   sunny_start_up_tilt_left\n\tCONTROLLER_INPUT_SPECIAL_UP_LEFT  sunny_start_spe_up_left\n\tCONTROLLER_INPUT_ATTACK_UP_RIGHT  sunny_start_up_tilt_right\n\tCONTROLLER_INPUT_SPECIAL_UP_RIGHT sunny_start_spe_up_right\n\n\tno_input\n}\n\n!include \"characters/std_aerial_input.asm\"\n!include \"characters/std_crashing.asm\"\n!include \"characters/std_thrown.asm\"\n!include \"characters/std_respawn.asm\"\n!include \"characters/std_innexistant.asm\"\n!include \"characters/std_spawn.asm\"\n!include \"characters/std_idle.asm\"\n!include \"characters/std_running.asm\"\n!include \"characters/std_jumping.asm\"\n!include \"characters/std_landing.asm\"\n!include \"characters/std_helpless.asm\"\n!include \"characters/std_shielding.asm\"\n!include \"characters/std_walljumping.asm\"\n!include \"characters/std_owned.asm\"\n\n;\n; Jab\n;\n\n!define \"anim\" {sunny_anim_jab1}\n!define \"state\" {SUNNY_STATE_JABBING_1}\n!define \"routine\" {jabbing}\n!define \"cutable_duration\" {6}\n!define \"cut_input\" {\n\t; Allow to cut the animation for another jab\n\tlda controller_a_btns, x\n\tcmp #CONTROLLER_INPUT_JAB\n\tbeq cut\n\t\trts\n\tcut:\n\t\tjmp sunny_start_jabbing2\n\t\t; No return, jump to subroutine\n}\n!include \"characters/tpl_grounded_attack_cutable.asm\"\n\n!define \"anim\" {sunny_anim_jab2}\n!define \"state\" {SUNNY_STATE_JABBING_2}\n!define \"routine\" {jabbing2}\n!define \"cutable_duration\" {4}\n!define \"cut_input\" {\n\t; Allow to cut the animation for another jab\n\tlda controller_a_btns, x\n\tcmp #CONTROLLER_INPUT_JAB\n\tbeq cut\n\t\trts\n\tcut:\n\t\tjmp sunny_start_jabbing3\n\t\t; No return, jump to subroutine\n}\n!include \"characters/tpl_grounded_attack_cutable.asm\"\n\n!define \"anim\" {sunny_anim_jab3}\n!define \"state\" {SUNNY_STATE_JABBING_3}\n!define \"routine\" {jabbing3}\n!include \"characters/tpl_grounded_attack.asm\"\n\n;\n; Side tilt\n;\n\n!define \"anim\" {sunny_anim_side_tilt}\n!define \"state\" {SUNNY_STATE_SIDE_TILT}\n!define \"routine\" {side_tilt}\n!include \"characters/tpl_grounded_attack.asm\"\n\n;\n; Neutral special\n;\n\n.(\n\t!define \"anim\" {sunny_anim_special}\n\t!define \"state\" {SUNNY_STATE_SPECIAL}\n\t!define \"routine\" {special}\n\t!define \"followup\" {sunny_select_special_endlag}\n\t!define \"tick\" {\n\t\tlda player_a_grounded, x\n\t\tbne ok\n\t\t\t; Not grounded, allow the player to move while shooting\n\t\t\tjsr sunny_aerial_directional_influence\n\t\t\tjmp apply_player_gravity\n\t\t\t;No return, jump to subroutine\n\t\tok:\n\t\trts\n\t}\n\t!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n\t!define \"anim\" {sunny_anim_special_endlag}\n\t!define \"state\" {SUNNY_STATE_SPECIAL_ENDLAG}\n\t!define \"routine\" {special_endlag}\n\t!include \"characters/tpl_grounded_attack.asm\"\n\n\t!define \"anim\" {sunny_anim_special_endlag}\n\t!define \"state\" {SUNNY_STATE_AERIAL_SPE_ENDLAG}\n\t!define \"routine\" {aerial_spe_endlag}\n\t!include \"characters/tpl_aerial_attack.asm\"\n\n\tsunny_select_special_endlag:\n\t.(\n\t\t; Allow to change Sunny's direction on ground\n\t\t.(\n\t\t\tlda player_a_grounded, x\n\t\t\tbeq ok\n\t\t\t\tlda controller_a_btns, x\n\t\t\t\tand #CONTROLLER_INPUT_LEFT | CONTROLLER_INPUT_RIGHT\n\t\t\t\tbeq ok\n\t\t\t\t\tand #CONTROLLER_INPUT_LEFT\n\t\t\t\t\tbeq right\n\t\t\t\t\t\tleft:\n\t\t\t\t\t\t\tlda #DIRECTION_LEFT2\n\t\t\t\t\t\t\tjmp apply\n\t\t\t\t\t\tright:\n\t\t\t\t\t\t\tlda #DIRECTION_RIGHT2\n\t\t\t\t\t\t\t;jmp apply ; useless, fallthrough\n\t\t\t\t\tapply:\n\t\t\t\t\t\tsta player_a_direction, x\n\t\t\t\tok:\n\t\t.)\n\n\t\t; Shot pearl\n\t\t.(\n\t\t\tlda player_a_projectile_1_flags, x\n\t\t\tbne ok\n\t\t\t\tjsr sunny_pearl_shot_spawn\n\t\t\tok:\n\t\t.)\n\n\t\t; Start endlag\n\t\t.(\n\t\t\tlda player_a_grounded, x\n\t\t\tbne grounded\n\t\t\t\taerial:\n\t\t\t\t\tjmp sunny_start_aerial_spe_endlag\n\t\t\t\t\t;rts ; useless, jump to subroutine\n\t\t\t\tgrounded:\n\t\t\t\t\tjmp sunny_start_special_endlag\n\t\t\t\t\t;rts ; useless, jump to subroutine\n\t\t\t;rts ; useless, no branch return\n\t\t.)\n\t.)\n.)\n\n;\n; Side special\n;\n\n.(\n\tINITIAL_VELOCITY = $0300\n\tvelocity_table(INITIAL_VELOCITY, initial_velocity_right_msb, initial_velocity_right_lsb)\n\tvelocity_table(-INITIAL_VELOCITY, initial_velocity_left_msb, initial_velocity_left_lsb)\n\n\tFRICTION = $08\n\tacceleration_table(FRICTION, friction_table)\n\n\t!define \"anim\" {sunny_anim_side_special_charge}\n\t!define \"state\" {SUNNY_STATE_SIDE_SPECIAL_CHARGE}\n\t!define \"routine\" {side_special_charge}\n\t!define \"followup\" {sunny_start_side_special_hit}\n\t!define \"init\" {\n\t\t; No velocity\n\t\tlda #0\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_h, x\n\t\trts\n\t}\n\t!define \"tick\" {\n\t\t; No gravity, and specific air-friction for this move\n\t\tlda #0\n\t\tsta tmpfield1\n\t\tsta tmpfield2\n\t\tsta tmpfield3\n\t\tsta tmpfield4\n\t\tldy system_index\n\t\tlda friction_table, y\n\t\tsta tmpfield5\n\t\tjmp merge_to_player_velocity\n\t}\n\t!include \"characters/tpl_grounded_attack_followup.asm\"\n\n\t!define \"anim\" {sunny_anim_side_special_hit}\n\t!define \"state\" {SUNNY_STATE_SIDE_SPECIAL_HIT}\n\t!define \"routine\" {side_special_hit}\n\t!define \"followup\" {sunny_start_side_special_end}\n\t!define \"init\" {\n\t\t; Fixed horizontal velocity\n\t\tldy system_index\n\t\tlda player_a_direction, x\n\t\tbne right\n\t\t\tleft:\n\t\t\t\tlda initial_velocity_left_msb, y\n\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\tlda initial_velocity_left_lsb\n\t\t\t\tsta player_a_velocity_h_low, x\n\t\t\t\trts\n\t\t\tright:\n\t\t\t\tlda initial_velocity_right_msb, y\n\t\t\t\tsta player_a_velocity_h, x\n\t\t\t\tlda initial_velocity_right_lsb\n\t\t\t\tsta player_a_velocity_h_low, x\n\t\t\t\trts\n\t\t;rts ; useless, no branch return\n\t}\n\t!define \"tick\" {\n\t\t; No gravity, and specific air-friction for this move\n\t\tlda #0\n\t\tsta tmpfield1\n\t\tsta tmpfield2\n\t\tsta tmpfield3\n\t\tsta tmpfield4\n\t\tldy system_index\n\t\tlda friction_table, y\n\t\tsta tmpfield5\n\t\tjmp merge_to_player_velocity\n\t}\n\t!include \"characters/tpl_grounded_attack_followup.asm\"\n\n\t!define \"anim\" {sunny_anim_side_special_end}\n\t!define \"state\" {SUNNY_STATE_SIDE_SPECIAL_END}\n\t!define \"routine\" {side_special_end}\n\t!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n\t+sunny_start_side_special = sunny_start_side_special_charge\n\t+sunny_start_side_special_left = sunny_start_side_special_charge_left\n\t+sunny_start_side_special_right = sunny_start_side_special_charge_right\n.)\n\n;\n; Down tilt\n;\n\n!define \"anim\" {sunny_anim_down_tilt}\n!define \"state\" {SUNNY_STATE_DOWN_TILT}\n!define \"routine\" {down_tilt}\n!define \"cutable_duration\" {9}\n!define \"cut_input\" {\n\t; Allow to cut by selected moves\n\t;  Mainly to avoid chaining down-tilt into itself\n\tlda controller_a_btns, x\n\tand #(CONTROLLER_BTN_LEFT | CONTROLLER_BTN_RIGHT) ^ %11111111 ; Allow side-attacks by not considering left/right in following comparisons\n\n\tcmp #CONTROLLER_INPUT_JAB\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_ATTACK_UP\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_SPECIAL\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_SPECIAL_UP\n\tbeq cut\n\t\trts\n\tcut:\n\t\tjmp sunny_input_idle\n}\n!include \"characters/tpl_grounded_attack_cutable.asm\"\n\n;\n; Aerial side\n;\n\n!define \"anim\" {sunny_anim_aerial_side}\n!define \"state\" {SUNNY_STATE_AERIAL_SIDE}\n!define \"routine\" {aerial_side}\n!include \"characters/tpl_aerial_attack.asm\"\n\n;\n; Aerial down\n;\n; NOTE we are using two \"spin\" states while one state with\n;      extended duration to 2*animation-duration would do the same.\n;      A bit wasteful, but would need to allow custom duration in\n;      tpl_aerial_attack to fix.\n;\n\n!define \"anim\" {sunny_anim_aerial_down}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN}\n!define \"routine\" {aerial_down}\n!define \"followup\" {sunny_start_aerial_down_spin}\n!define \"init\" {\n\tlda #0\n\tsta player_a_velocity_v_low, x\n\tsta player_a_velocity_v, x\n\trts\n}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {sunny_anim_aerial_down_spin}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN_SPIN}\n!define \"routine\" {aerial_down_spin}\n!define \"followup\" {sunny_start_aerial_down_spin2}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {sunny_anim_aerial_down_spin}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN_SPIN2}\n!define \"routine\" {aerial_down_spin2}\n!define \"followup\" {sunny_aerial_down_select_end}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {sunny_anim_aerial_down_end}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN_END}\n!define \"routine\" {aerial_down_end}\n!define \"followup\" {sunny_start_helpless}\n!include \"characters/tpl_aerial_attack.asm\"\n\n!define \"anim\" {sunny_anim_aerial_down_stomp}\n!define \"state\" {SUNNY_STATE_AERIAL_DOWN_STOMP}\n!define \"routine\" {aerial_down_stomp}\n!include \"characters/tpl_grounded_attack.asm\"\n\n.(\n\tVELOCITY_BOOST = -$0300\n\tvelocity_table(VELOCITY_BOOST, velocity_boost_msb, velocity_boost_lsb)\n\n\t+sunny_input_aerial_down_spin:\n\t.(\n\t\tlda controller_a_btns, x\n\t\tand #(CONTROLLER_BTN_DOWN | CONTROLLER_BTN_LEFT | CONTROLLER_BTN_RIGHT)^$ff\n\t\tcmp #CONTROLLER_INPUT_JAB\n\t\tbne end\n\t\t\tldy system_index\n\t\t\tlda velocity_boost_lsb, y\n\t\t\tsta player_a_velocity_v_low, x\n\t\t\tlda velocity_boost_msb, y\n\t\t\tsta player_a_velocity_v, x\n\t\tend:\n\t\trts\n\t.)\n\n\t&sunny_aerial_down_select_end:\n\t.(\n\t\tlda player_a_grounded, x\n\t\tbne grounded_end\n\t\t\taerial_end:\n\t\t\t\tjmp sunny_start_aerial_down_end\n\t\t\tgrounded_end:\n\t\t\t\tjmp sunny_start_aerial_down_stomp\n\t\t;rts ; useless, jump to subroutine\n\t.)\n.)\n\n;\n; Aerial up\n;\n\n!define \"anim\" {sunny_anim_aerial_up}\n!define \"state\" {SUNNY_STATE_AERIAL_UP}\n!define \"routine\" {aerial_up}\n!define \"cutable_duration\" {12}\n!include \"characters/tpl_aerial_attack_cutable.asm\"\n\n;\n; Aerial neutral\n;\n\n!define \"anim\" {sunny_anim_aerial_neutral}\n!define \"state\" {SUNNY_STATE_AERIAL_NEUTRAL}\n!define \"routine\" {aerial_neutral}\n!include \"characters/tpl_aerial_attack.asm\"\n\n;\n; Special up\n;\n\n.(\n\t;TODO moves here use tpl_aerial_attack, but may be better using tpl_aerial_attack_uncancellable\n\t;     Need to adapt uncancellable API to match features in tpl_aerial_attack if so.\n\n\tSPE_UP_POWER = $0500\n\tvelocity_table(-SPE_UP_POWER, spe_up_power_msb, spe_up_power_lsb)\n\n\t!define \"anim\" {sunny_anim_spe_up_prepare}\n\t!define \"state\" {SUNNY_STATE_SPE_UP_PREPARE}\n\t!define \"routine\" {spe_up}\n\t!define \"followup\" {sunny_start_spe_up_jump}\n\t!define \"init\" {\n\t\t; Set initial velocity\n\t\tlda #$00\n\t\tsta player_a_velocity_h_low, x\n\t\tsta player_a_velocity_h, x\n\t\tsta player_a_velocity_v_low, x\n\t\tsta player_a_velocity_v, x\n\n\t\t; Reset fall speed\n\t\tjmp reset_default_gravity\n\t\t;rts ; useless, jump to subroutine\n\t}\n\t!include \"characters/tpl_aerial_attack.asm\"\n\n\t!define \"anim\" {sunny_anim_spe_up_jump}\n\t!define \"state\" {SUNNY_STATE_SPE_UP_JUMP}\n\t!define \"routine\" {spe_up_jump}\n\t!define \"followup\" {sunny_start_helpless}\n\t!define \"init\" {\n\t\t; Set jumping velocity\n\t\tldy system_index\n\t\tlda spe_up_power_msb, y\n\t\tsta player_a_velocity_v, x\n\t\tlda spe_up_power_lsb, y\n\t\tsta player_a_velocity_v_low, x\n\n\t\trts\n\t}\n\t!include \"characters/tpl_aerial_attack.asm\"\n.)\n\n;\n; Special down\n;\n\n!define \"anim\" {sunny_anim_spe_down_charge}\n!define \"state\" {SUNNY_STATE_SPE_DOWN_CHARGE}\n!define \"routine\" {spe_down}\n!define \"followup\" {sunny_start_spe_down_hit}\n!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n!define \"anim\" {sunny_anim_spe_down_hit}\n!define \"state\" {SUNNY_STATE_SPE_DOWN_HIT}\n!define \"routine\" {spe_down_hit}\n!include \"characters/tpl_aerial_attack_uncancellable.asm\"\n\n;\n; Up tilt\n;\n\n!define \"anim\" {sunny_anim_up_tilt}\n!define \"state\" {SUNNY_STATE_UP_TILT}\n!define \"routine\" {up_tilt}\n!define \"cutable_duration\" {17}\n!define \"cut_input\" {\n\tlda controller_a_btns, x\n\tcmp #CONTROLLER_INPUT_JUMP\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_JUMP_LEFT\n\tbeq cut\n\tcmp #CONTROLLER_INPUT_JUMP_RIGHT\n\tbeq cut\n\t\trts\n\tcut:\n\t\tjmp sunny_start_jumping\n}\n!include \"characters/tpl_grounded_attack_cutable.asm\"\n\n!include \"characters/std_friction_routines.asm\"\n",
   "states": [
     {
       "input_routine": "sunny_input_thrown",

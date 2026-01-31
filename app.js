@@ -529,6 +529,8 @@ class RomPatcher {
   static KNOWN_ROMS = {
     'utmgm9': { name: 'Super Tilt Bro. v2.5 (online build)', modBank: 0x4 + 0x11 },
     'itn6my': { name: 'Super Tilt Bro. v2.5 (offline build)', modBank: 0x11 },
+    '1fqcsvf': { name: 'Super Tilt Bro. v2.6 (online build)', modBank: 0x4 + 0x12 },
+    '1vm7kcs': { name: 'Super Tilt Bro. v2.6 (offline build)', modBank: 0x12 },
   };
 
   constructor(storage, onchange) {
@@ -597,9 +599,9 @@ class RomPatcher {
 
   // Guess a default `modBank` value
   static guessModBank(romData) {
-    // For STB 2.5, online has 64 banks and offline has 32
+    // For STB 2.6, online has 64 banks and offline has 32
     const bankCount = Math.floor((romData.byteLength - this.NES_HEADER_SIZE) / this.BANK_SIZE);
-    return bankCount >= 50 ? 0x4 + 0x11 : 0x11;
+    return bankCount >= 50 ? 0x4 + 0x12 : 0x12;
   }
 
   // Write a 16-bit value, return end offset
