@@ -520,11 +520,15 @@ class Conf {
 class RomPatcher {
   static NES_HEADER_SIZE = 0x10;  // note: assume no trainer area
   static BANK_SIZE = 0x4000;
-  // Value specific to a given rom; should be made generic
-  static FIRST_MOD_BANK = 0x4 + 0x11;
-  // Hashes of known ROMs
+  // Information of known ROMS, indexed by their hash
+  // - `name` is a human-readable name, can be anything
+  // - `modBank` is the first bank that stores mod data, `null` if unknown
+  // `modBank` must rely on bank mapping, implemented in `game/banks.asm`
+  // - `FIRST_GAME_BANK` is an offset applied to ROM with online enabled
+  // - First mod bank location is announced by a `;; mod banks` comment
   static KNOWN_ROMS = {
-    "utmgm9": "STB 2.5",
+    'utmgm9': { name: 'Super Tilt Bro. v2.5 (online build)', modBank: 0x4 + 0x11 },
+    'itn6my': { name: 'Super Tilt Bro. v2.5 (offline build)', modBank: 0x11 },
   };
 
   constructor(storage, onchange) {
@@ -532,6 +536,7 @@ class RomPatcher {
   }
 
   saveRomData(data) {
+    // Note: custom `modBank` is not saved
     this.storage.setItem('stbeditor.rom.data', data.toBase64());
     this.storage.removeItem('stbeditor.rom.characterSlot');
   }
@@ -561,16 +566,20 @@ class RomPatcher {
       return "Invalid ROM magic code";
     }
 
-    if (buffer.byteLength < this.NES_HEADER_SIZE + (this.FIRST_MOD_BANK + 1) * this.BANK_SIZE) {
+    if ((buffer.byteLength - this.NES_HEADER_SIZE) % this.BANK_SIZE !== 0) {
+      return "ROM size it not aligned on a bank boundary";
+    }
+    // Assume at least 0x11 banks (assume game size will not be reduced drastically)
+    if (buffer.byteLength < this.NES_HEADER_SIZE + 0x11 * this.BANK_SIZE) {
       return "ROM is smaller than expected";
     }
 
     return null;
   }
 
-  // Patch given character slot
-  static patchCharacterData(romData, slot, tree) {
-    const data = this.getBankSubarray(romData, this.FIRST_MOD_BANK + slot);
+  // Patch given character on given bank
+  static patchCharacterData(romData, bank, tree) {
+    const data = this.getBankSubarray(romData, bank);
     this.writeCharacterData(data, tree);
   }
 
@@ -580,10 +589,17 @@ class RomPatcher {
     return romData.subarray(offset, offset + this.BANK_SIZE);
   }
 
-  // Return name of the ROM, return a hash or a known name
-  static getRomName(romData) {
+  // Return information of the ROM, return suitable values for unknown ROMs
+  static getRomInfo(romData) {
     const hash = hashByteArray(romData);
-    return this.KNOWN_ROMS[hash] || `hash:${hash}`;
+    return this.KNOWN_ROMS[hash] || { name: `hash:${hash} (custom)`, modBank: null };
+  }
+
+  // Guess a default `modBank` value
+  static guessModBank(romData) {
+    // For STB 2.5, online has 64 banks and offline has 32
+    const bankCount = Math.floor((romData.byteLength - this.NES_HEADER_SIZE) / this.BANK_SIZE);
+    return bankCount >= 50 ? 0x4 + 0x11 : 0x11;
   }
 
   // Write a 16-bit value, return end offset
@@ -2611,21 +2627,17 @@ const RomTab = {
   data() {
     return {
       romData: null,
+      romInfo: null,
       romError: null,
+      customModBank: null,
       characterSlot: 0,
     }
   },
 
   created() {
     this.patcher = new RomPatcher(localStorage);
-    this.romData = this.patcher.loadRomData();
+    this._updateRomData(this.patcher.loadRomData());
     this.characterSlot = this.patcher.getCharacterSlot();
-  },
-
-  computed: {
-    romName() {
-      return this.romData ? RomPatcher.getRomName(this.romData) : null;
-    }
   },
 
   methods: {
@@ -2636,18 +2648,26 @@ const RomTab = {
         const buffer = ev.target.result;
         this.romError = RomPatcher.checkRom(buffer);
         if (this.romError === null) {
-          this.romData = new Uint8Array(buffer);
+          this._updateRomData(new Uint8Array(buffer));
           this.patcher.saveRomData(this.romData);
         }
       });
       reader.readAsArrayBuffer(ev.target.files[0]);
     },
 
+    // Update romData and associated fields
+    _updateRomData(romData) {
+      this.romData = romData;
+      this.romInfo = RomPatcher.getRomInfo(this.romData);
+      this.customModBank = this.romInfo.modBank || RomPatcher.guessModBank(this.romData);
+    },
+
     patchAndDownloadRom() {
-      console.debug(`patch ROM character ${this.characterSlot}`);
+      console.debug(`patch ROM character ${this.characterSlot} from mod bank ${this.romInfo.modBank}`);
 
       const patchedData = this.romData.slice();  // clone
-      this.patcher.constructor.patchCharacterData(patchedData, this.characterSlot, this.tree);
+      const bank = this.customModBank + this.characterSlot;
+      this.patcher.constructor.patchCharacterData(patchedData, bank, this.tree);
 
       downloadBlobData(patchedData, 'super_tilt_bro-patched.nes', 'application/octet-stream');
     },
@@ -2671,9 +2691,12 @@ const RomTab = {
       <p>
         <button @click="$refs.importRomFile.click()" style="margin-right: 1em">Load a ROM</button>
         <span v-if="romError" style="color: red">{{ romError }}</span>
-        <span v-else-if="romData">A ROM is loaded ({{ romName }})</span>
+        <span v-else-if="romData">A ROM is loaded: {{ romInfo.name }}</span>
         <span v-else>No ROM loaded</span>
         <input type="file" hidden ref="importRomFile" @change="importRomFile" />
+      </p>
+      <p>
+        <label>First MOD bank: <input v-model="customModBank" type="number" :disabled="romInfo?.modBank !== null" style="width: 3em" /></label>
       </p>
       <p>
         <label>Character to patch: <input v-model="characterSlot" type="number" style="width: 3em" /> (0 for first, 1 for second, ...)</label>
