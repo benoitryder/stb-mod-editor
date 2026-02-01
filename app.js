@@ -520,18 +520,6 @@ class Conf {
 class RomPatcher {
   static NES_HEADER_SIZE = 0x10;  // note: assume no trainer area
   static BANK_SIZE = 0x4000;
-  // Information of known ROMS, indexed by their hash
-  // - `name` is a human-readable name, can be anything
-  // - `modBank` is the first bank that stores mod data, `null` if unknown
-  // `modBank` must rely on bank mapping, implemented in `game/banks.asm`
-  // - `FIRST_GAME_BANK` is an offset applied to ROM with online enabled
-  // - First mod bank location is announced by a `;; mod banks` comment
-  static KNOWN_ROMS = {
-    'utmgm9': { name: 'Super Tilt Bro. v2.5 (online build)', modBank: 0x4 + 0x11 },
-    'itn6my': { name: 'Super Tilt Bro. v2.5 (offline build)', modBank: 0x11 },
-    '1fqcsvf': { name: 'Super Tilt Bro. v2.6 (online build)', modBank: 0x4 + 0x12 },
-    '1vm7kcs': { name: 'Super Tilt Bro. v2.6 (offline build)', modBank: 0x12 },
-  };
 
   constructor(storage, onchange) {
     this.storage = storage;
@@ -584,7 +572,7 @@ class RomPatcher {
   // Return information of the ROM, return suitable values for unknown ROMs
   static getRomInfo(romData) {
     const hash = hashByteArray(romData);
-    return this.KNOWN_ROMS[hash] || { name: `hash:${hash} (custom)`, modBank: null };
+    return STATIC_CONF.knownRoms[hash] || { name: `hash:${hash} (custom)`, modBank: null, characterSlots: [] };
   }
 
   // Guess a default `modBank` value
@@ -760,10 +748,7 @@ const app = Vue.createApp({
     return {
       tree: null,
       conf: new Conf(),
-      staticConf: {
-        characterPacks: {},
-        characterSlots: {},
-      },
+      staticConf: STATIC_CONF,
       characterFileIndex: [],
       currentCharacterFile: null,
       currentCharacterSlot: null,
@@ -775,16 +760,14 @@ const app = Vue.createApp({
 
   provide() {
     return {
+      staticConf: STATIC_CONF,
       tree: Vue.computed(() => this.tree),
       conf: Vue.computed(() => this.conf),
-      staticConf: Vue.computed(() => this.staticConf),
       currentCharacterSlot: Vue.computed(() => this.currentCharacterSlot),
     }
   },
 
   mounted() {
-    this.fetchStaticConf();
-
     // Setup stylesheet for dynamic styling
     let style = document.createElement("style");
     document.head.appendChild(style);
@@ -884,31 +867,7 @@ const app = Vue.createApp({
     this.eventHandlers.remove();
   },
 
-  computed: {
-    knownSlots() {
-      const slots = new Set();
-      for (let pack of Object.values(this.staticConf.characterPacks)) {
-        for (let item of pack) {
-          if (item.slot) {
-            slots.add(item.slot);
-          }
-        }
-      }
-      const result = Array.from(slots.values());
-      result.sort();
-      return result;
-    },
-  },
-
   methods: {
-    fetchStaticConf() {
-      console.debug('fetch static configuration');
-      fetch('conf.json')
-        .then(response => response.json())
-        .then(data => { this.staticConf = data; })
-        .catch(err => console.info(`cannot load static conf: ${err}`));
-    },
-
     getCharacterFileInfoByName(name) {
       for (let info of this.characterFileIndex) {
         if (info.name == name) {
@@ -916,6 +875,10 @@ const app = Vue.createApp({
         }
       }
       return undefined;
+    },
+
+    knownSlots() {
+      return Object.keys(STATIC_CONF.characterSlots);
     },
 
     loadCharacterData(data) {
@@ -1071,7 +1034,7 @@ const app = Vue.createApp({
             <label>Slot in ROM:
               <select v-model="currentCharacterSlot">
                 <option value="unknown">unknown</option>
-                <option v-for="slot in knownSlots" :value="slot">{{ slot }}</option>
+                <option v-for="slot in knownSlots()" :value="slot">{{ slot }}</option>
               </select>
             </label>
           </div>
@@ -2680,7 +2643,7 @@ const RomTab = {
 
   mounted() {
     this.$watch('currentCharacterSlot', (val, _) => {
-      const index = this.staticConf.characterSlots[val]?.index;
+      const index = this.getSlotIndexFromName(val);
       if (index !== undefined) {
         this.characterSlot = index;
       }
@@ -2688,6 +2651,16 @@ const RomTab = {
   },
 
   methods: {
+    getSlotIndexFromName(name) {
+      if (this.romInfo?.characterSlots) {
+        let index = this.romInfo.characterSlots.indexOf(name);
+        if (index !== -1) {
+          return index;
+        }
+      }
+      return STATIC_CONF.characterSlots[name]?.defaultIndex;
+    },
+
     importRomFile(ev) {
       console.log("loading ROM data from uploaded file");
       const reader = new FileReader();
