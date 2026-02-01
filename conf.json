@@ -1,9 +1,18 @@
 {
-  "characterUrls": {
-    "sinbad": "data/sinbad.json",
-    "kiki": "data/kiki.json",
-    "pepper": "data/pepper.json",
-    "vgsage": "data/vgsage.json",
-    "sunny": "data/sunny.json"
+  "characterPacks": {
+    "STB 2.6": [
+      {"name": "sinbad", "url": "data/sinbad.json", "slot": "sinbad-2.5"},
+      {"name": "kiki", "url": "data/kiki.json", "slot": "kiki-2.5"},
+      {"name": "pepper", "url": "data/pepper.json", "slot": "pepper-2.5"},
+      {"name": "vgsage", "url": "data/vgsage.json", "slot": "vgsage-2.5"},
+      {"name": "sunny", "url": "data/sunny.json", "slot": "sunny-2.5"}
+    ]
+  },
+  "characterSlots": {
+    "sinbad-2.5": {"index": 0},
+    "kiki-2.5": {"index": 1},
+    "pepper-2.5": {"index": 2},
+    "vgsage-2.5": {"index": 3},
+    "sunny-2.5": {"index": 4}
   }
 }

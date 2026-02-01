@@ -383,9 +383,9 @@ class CharacterFileStorage {
     this.onchange = onchange;
   }
 
-  setCharacterFile(name, data) {
+  setCharacterFile(name, slot, data) {
     const index = this.loadIndex();
-    index[name] = {'updated_at': Date.now()};
+    index[name] = { updated_at: Date.now(), slot: slot || "unknown" };
     this.storage.setItem(`stbeditor.data.${name}`, JSON.stringify(data));
     this.storage.setItem('stbeditor.index', JSON.stringify(index));
     this.onchange();
@@ -538,9 +538,8 @@ class RomPatcher {
   }
 
   saveRomData(data) {
-    // Note: custom `modBank` is not saved
+    // Note: custom `modBank` and `characterSlot` are not saved
     this.storage.setItem('stbeditor.rom.data', data.toBase64());
-    this.storage.removeItem('stbeditor.rom.characterSlot');
   }
 
   loadRomData() {
@@ -550,15 +549,6 @@ class RomPatcher {
     } else {
       return Uint8Array.fromBase64(data);
     }
-  }
-
-  getCharacterSlot() {
-    const data = this.storage.getItem('stbeditor.rom.characterSlot');
-    return data === null ? 0 : parseInt(data);
-  }
-
-  setCharacterSlot(index) {
-    this.storage.setItem('stbeditor.rom.characterSlot', index.toString());
   }
 
   // Check a ROM buffer, log error, return an error message, null if everything is fine
@@ -770,9 +760,13 @@ const app = Vue.createApp({
     return {
       tree: null,
       conf: new Conf(),
+      staticConf: {
+        characterPacks: {},
+        characterSlots: {},
+      },
       characterFileIndex: [],
-      characterUrls: {},
       currentCharacterFile: null,
+      currentCharacterSlot: null,
       historyStates: [],
       historyPausedChanges: null,  // null: normal, false: paused, true: changes during pause
       routerKey: 0,  // dummy value used to force a router refresh
@@ -783,6 +777,8 @@ const app = Vue.createApp({
     return {
       tree: Vue.computed(() => this.tree),
       conf: Vue.computed(() => this.conf),
+      staticConf: Vue.computed(() => this.staticConf),
+      currentCharacterSlot: Vue.computed(() => this.currentCharacterSlot),
     }
   },
 
@@ -888,13 +884,38 @@ const app = Vue.createApp({
     this.eventHandlers.remove();
   },
 
+  computed: {
+    knownSlots() {
+      const slots = new Set();
+      for (let pack of Object.values(this.staticConf.characterPacks)) {
+        for (let item of pack) {
+          if (item.slot) {
+            slots.add(item.slot);
+          }
+        }
+      }
+      const result = Array.from(slots.values());
+      result.sort();
+      return result;
+    },
+  },
+
   methods: {
     fetchStaticConf() {
       console.debug('fetch static configuration');
       fetch('conf.json')
         .then(response => response.json())
-        .then(data => { this.characterUrls = data.characterUrls; })
-        .catch(err => console.info(`cannot load static configuration: ${err}`));
+        .then(data => { this.staticConf = data; })
+        .catch(err => console.info(`cannot load static conf: ${err}`));
+    },
+
+    getCharacterFileInfoByName(name) {
+      for (let info of this.characterFileIndex) {
+        if (info.name == name) {
+          return info;
+        }
+      }
+      return undefined;
     },
 
     loadCharacterData(data) {
@@ -906,17 +927,19 @@ const app = Vue.createApp({
       const data = this.storage.getCharacterFile(name);
       if (data !== null) {
         this.currentCharacterFile = name;
+        this.currentCharacterSlot = this.getCharacterFileInfoByName(name)?.slot || null;
         this.loadCharacterData(data);
       }
     },
 
-    loadCharacterUrl(name, url) {
-      console.debug(`load character data from URL: ${url}`);
-      fetch(url)
+    loadCharacterUrl(item) {
+      console.debug(`load character data from URL: ${item.url}`);
+      fetch(item.url)
         .then(response => response.json())
         .then(data => {
           const index = this.storage.loadIndex();
-          this.currentCharacterFile = this.storage.uniqueFileName(name);
+          this.currentCharacterFile = this.storage.uniqueFileName(item.name);
+          this.currentCharacterSlot = item.slot;
           this.loadCharacterData(data);
         })
         .catch(err => console.error(err));
@@ -930,7 +953,7 @@ const app = Vue.createApp({
 
     saveCurrentCharacterFile() {
       if (this.currentCharacterFile !== null && this.currentCharacterFile !== '') {
-        this.storage.setCharacterFile(this.currentCharacterFile, this.tree);
+        this.storage.setCharacterFile(this.currentCharacterFile, this.currentCharacterSlot, this.tree);
       }
     },
 
@@ -957,7 +980,7 @@ const app = Vue.createApp({
           return;
         }
         const name = this.storage.uniqueFileName(data.name);
-        this.storage.setCharacterFile(name, data);
+        this.storage.setCharacterFile(name, "unknown", data);
         this.loadCharacterFile(name);
       });
       reader.readAsText(ev.target.files[0]);
@@ -1037,18 +1060,31 @@ const app = Vue.createApp({
         </ul>
       </div>
       <div class="tree-files">
-        <div class="tree-file-bar">
-          <input v-model.trim="currentCharacterFile" required/>
+        <div class="tree-files-bar">
+          <input v-model.trim="currentCharacterFile" class="tree-files-file" required/>
           <i class="fas fa-w fa-upload" title="Load" @click="loadCurrentCharacterFile()" />
           <i class="fas fa-w fa-download" title="Save" @click="saveCurrentCharacterFile()" />
           <i class="fas fa-w fa-file-export" title="Download as JSON" @click="downloadAsJson()" />
           <i class="fas fa-w fa-file-import" title="Import a JSON" @click="$refs.importCharacterFile.click()" />
           <input type="file" hidden ref="importCharacterFile" @change="importCharacterFile" />
+          <div class="tree-files-slot">
+            <label>Slot in ROM:
+              <select v-model="currentCharacterSlot">
+                <option value="unknown">unknown</option>
+                <option v-for="slot in knownSlots" :value="slot">{{ slot }}</option>
+              </select>
+            </label>
+          </div>
         </div>
         <ul>
-          <li v-for="info in characterFileIndex" @click="loadCharacterFile(info.name)">{{ info.name }}
+          <li class="tree-files-group">Local storage</li>
+          <li class="tree-files-item-empty" v-if="characterFileIndex.length == 0">(none)</li>
+          <li class="tree-files-item" v-for="info in characterFileIndex" @click="loadCharacterFile(info.name)">{{ info.name }}
             <i class="fas fa-trash-alt" style="float: right" @click="deleteCharacterFile(info.name)" /></li>
-          <li v-for="(url, name) in characterUrls" @click="loadCharacterUrl(name, url)"><i class="fas fa-external-link-alt"/> {{ name }}</li>
+          <template v-for="(pack, packName) in staticConf.characterPacks">
+            <li class="tree-files-group">{{ packName }}</li>
+            <li class="tree-files-item" v-for="item in pack" @click="loadCharacterUrl(item)">{{ item.name }}</li>
+          </template>
         </ul>
       </div>
     </div>
@@ -2624,7 +2660,7 @@ const AiTab = {
 }
 
 const RomTab = {
-  inject: ['tree'],
+  inject: ['tree', 'staticConf', 'currentCharacterSlot'],
 
   data() {
     return {
@@ -2639,7 +2675,16 @@ const RomTab = {
   created() {
     this.patcher = new RomPatcher(localStorage);
     this._updateRomData(this.patcher.loadRomData());
-    this.characterSlot = this.patcher.getCharacterSlot();
+    this.characterSlot = 0;  // Updated in 'mounted'
+  },
+
+  mounted() {
+    this.$watch('currentCharacterSlot', (val, _) => {
+      const index = this.staticConf.characterSlots[val]?.index;
+      if (index !== undefined) {
+        this.characterSlot = index;
+      }
+    }, { immediate: true });
   },
 
   methods: {
@@ -2701,7 +2746,7 @@ const RomTab = {
         <label>First MOD bank: <input v-model="customModBank" type="number" :disabled="romInfo?.modBank !== null" style="width: 3em" /></label>
       </p>
       <p>
-        <label>Character to patch: <input v-model="characterSlot" type="number" style="width: 3em" /> (0 for first, 1 for second, ...)</label>
+        <label>Character slot index: <input v-model="characterSlot" type="number" style="width: 3em" /></label>
       </p>
       <p>
         <button :disabled="!tree || !romData" @click="patchAndDownloadRom()">Patch and download ROM</button>

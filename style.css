@@ -82,11 +82,14 @@ input.damages { width: 3em; }
   margin: 0.3em 0.2em;
 }
 
-.tree-file-bar input {
+.tree-files-bar input.tree-files-file {
   width: 50%;
   margin-right: 0.2em;
 }
-.tree-file-bar i.fas {
+.tree-files-slot {
+  margin: 0;
+}
+.tree-files-bar i.fas {
   font-size: 90%;
   padding: 0.2em;
 }
@@ -99,14 +102,22 @@ input.damages { width: 3em; }
   font-size: 90%;
   margin-right: 0.1em;
 }
-.tree-files li {
+li.tree-files-item, li.tree-files-item-empty {
   padding: 0.1em;
   margin: 0;
   margin-left: 0.5em;
   cursor: default;
 }
-.tree-files li:hover {
+li.tree-files-item:hover {
   background-color: #ddd;
+}
+li.tree-files-item-empty {
+  font-style: italic;
+}
+li.tree-files-group {
+  margin-top: 0.2em;
+  margin-bottom: 0.1em;
+  font-weight: bold;
 }
 
 
