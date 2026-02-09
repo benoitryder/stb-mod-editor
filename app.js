@@ -763,7 +763,9 @@ const app = Vue.createApp({
       staticConf: STATIC_CONF,
       tree: Vue.computed(() => this.tree),
       conf: Vue.computed(() => this.conf),
+      characterFileIndex: Vue.computed(() => this.characterFileIndex),
       currentCharacterSlot: Vue.computed(() => this.currentCharacterSlot),
+      storage: Vue.computed(() => this.storage),
     }
   },
 
@@ -2623,7 +2625,7 @@ const AiTab = {
 }
 
 const RomTab = {
-  inject: ['tree', 'staticConf', 'currentCharacterSlot'],
+  inject: ['storage', 'tree', 'staticConf', 'characterFileIndex', 'currentCharacterSlot'],
 
   data() {
     return {
@@ -2631,36 +2633,28 @@ const RomTab = {
       romInfo: null,
       romError: null,
       customModBank: null,
-      characterSlot: 0,
+      // Which character to patch, indexed by the slot, and the expected slot if any
+      // Possible `character` values are:
+      // - local character name (from `characterFileIndex`)
+      // - __none__: don't patch
+      // - __current__: current character data
+      // The `slot` is set here for convenience and readability in the template
+      characterSlots: [],
+    }
+  },
+
+  computed: {
+    hasCharacterToPatch() {
+      return this.romData && this.characterSlots.findIndex((item) => item.character !== '__none__') !== -1;
     }
   },
 
   created() {
     this.patcher = new RomPatcher(localStorage);
     this._updateRomData(this.patcher.loadRomData());
-    this.characterSlot = 0;  // Updated in 'mounted'
-  },
-
-  mounted() {
-    this.$watch('currentCharacterSlot', (val, _) => {
-      const index = this.getSlotIndexFromName(val);
-      if (index !== undefined) {
-        this.characterSlot = index;
-      }
-    }, { immediate: true });
   },
 
   methods: {
-    getSlotIndexFromName(name) {
-      if (this.romInfo?.characterSlots) {
-        let index = this.romInfo.characterSlots.indexOf(name);
-        if (index !== -1) {
-          return index;
-        }
-      }
-      return STATIC_CONF.characterSlots[name]?.defaultIndex;
-    },
-
     importRomFile(ev) {
       console.log("loading ROM data from uploaded file");
       const reader = new FileReader();
@@ -2680,15 +2674,44 @@ const RomTab = {
       this.romData = romData;
       this.romInfo = RomPatcher.getRomInfo(this.romData);
       this.customModBank = this.romInfo.modBank || RomPatcher.guessModBank(this.romData);
+      this._reloadSlotsFromRom();
+    },
+
+    // Update `characterSlots` from ROM data
+    _reloadSlotsFromRom() {
+      this.characterSlots = [];
+      if (this.romInfo) {
+        for (const slot of this.romInfo.characterSlots) {
+          this.characterSlots.push({ character: '__none__', slot });
+        }
+      }
+      // Always put at least one slot
+      if (!this.characterSlots.length) {
+        this.addEmptySlot();
+      }
+    },
+
+    addEmptySlot() {
+      this.characterSlots.push({ character: '__none__', slot: null });
     },
 
     patchAndDownloadRom() {
-      console.debug(`patch ROM character ${this.characterSlot} from mod bank ${this.romInfo.modBank}`);
-
+      console.debug(`patch ROM from mod bank ${this.romInfo.modBank}`);
       const patchedData = this.romData.slice();  // clone
-      const bank = this.customModBank + this.characterSlot;
-      this.patcher.constructor.patchCharacterData(patchedData, bank, this.tree);
-
+      this.characterSlots.forEach((item, slot) => {
+        let tree = null;
+        if (item.character === '__none__') {
+          tree = null;
+        } else if (item.character === '__current__') {
+          tree = this.tree;
+        } else {
+          tree = this.storage.getCharacterFile(item.character);
+        }
+        if (tree) { 
+          console.debug(`patch character in slot ${slot}`);
+          this.patcher.constructor.patchCharacterData(patchedData, this.customModBank + slot, tree);
+        }
+      });
       downloadBlobData(patchedData, 'super_tilt_bro-patched.nes', 'application/octet-stream');
     },
   },
@@ -2697,7 +2720,8 @@ const RomTab = {
     <div>
       <h2>Patch a ROM</h2>
       <div>
-        Write character data to the original ROM. Limitations listed below apply.<br/>
+        Write character data to the original ROM.<br/>
+        For each ROM slot, the patched character must be compatible.<br/>
         Basically graphics, hitboxes and hurtboxes can be modified. Everything else must match the ROM to patch.<br/>
         <b>If constraints are not fulfilled, the patched ROM will be corrupted.</b><br/>
         <ul>
@@ -2711,19 +2735,35 @@ const RomTab = {
       <p>
         <button @click="$refs.importRomFile.click()" style="margin-right: 1em">Load a ROM</button>
         <span v-if="romError" style="color: red">{{ romError }}</span>
-        <span v-else-if="romData">A ROM is loaded: {{ romInfo.name }}</span>
+        <span v-else-if="romData">Loaded ROM: {{ romInfo.name }}</span>
         <span v-else>No ROM loaded</span>
         <input type="file" hidden ref="importRomFile" @change="importRomFile" />
       </p>
       <p>
         <label>First MOD bank: <input v-model="customModBank" type="number" :disabled="romInfo?.modBank !== null" style="width: 3em" /></label>
       </p>
-      <p>
-        <label>Character slot index: <input v-model="characterSlot" type="number" style="width: 3em" /></label>
+      <hr/>
+      <p v-for="(item, i) in characterSlots">
+        <label>Slot {{ i }}
+          <select @change="characterSlots[i].character = $event.target.value" :value="item.character">
+            <option value="__none__">(unchanged)</option>
+            <option value="__current__" v-if="item.slot === currentCharacterSlot">current data</option>
+            <template v-for="info in characterFileIndex">
+              <option :value="info.name" v-if="item.slot === info.slot">{{ info.name }}</option>
+            </template>
+            <option disabled>-- slot incompatible --</option>
+            <option value="__current__" v-if="item.slot !== currentCharacterSlot">current data</option>
+            <template v-for="info in characterFileIndex">
+              <option :value="info.name" v-if="item.slot !== info.slot">{{ info.name }}</option>
+            </template>
+          </select>
+          {{ item.slot || '(unknown slot)' }}
+        </label>
       </p>
+      <p><button @click="addEmptySlot()">Add slot</button></p>
       <p>
-        <button :disabled="!tree || !romData" @click="patchAndDownloadRom()">Patch and download ROM</button>
-        <span v-if="!tree"> (no character file loaded)</span>
+        <button :disabled="!hasCharacterToPatch" @click="patchAndDownloadRom()">Patch and download ROM</button>
+        <span v-if="!hasCharacterToPatch"></span>
       </p>
     </div>
   `,
