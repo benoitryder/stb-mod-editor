@@ -2671,6 +2671,9 @@ const RomTab = {
 
     // Update romData and associated fields
     _updateRomData(romData) {
+      if (!romData) {
+        return;
+      }
       this.romData = romData;
       this.romInfo = RomPatcher.getRomInfo(this.romData);
       this.customModBank = this.romInfo.modBank || RomPatcher.guessModBank(this.romData);
